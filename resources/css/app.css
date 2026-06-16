@@ -1,0 +1,48 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Light Theme */
+    --color-surface: var(--color-white);
+    --color-surface-alt: var(--color-gray-100);
+    --color-on-surface: var(--color-slate-600);
+    --color-on-surface-strong: var(--color-purple-800);
+    --color-primary: var(--color-orange-400);
+    --color-on-primary: var(--color-slate-100);
+    --color-secondary: var(--color-purple-600);
+    --color-on-secondary: var(--color-slate-100);
+    --color-outline: transparent;
+    --color-outline-strong: var(--color-orange-500);
+
+    /* Dark Theme */
+    --color-surface-dark: var(--color-black);
+    --color-surface-dark-alt: var(--color-gray-900);
+    --color-on-surface-dark: var(--color-violet-100);
+    --color-on-surface-dark-strong: var(--color-white);
+    --color-primary-dark: var(--color-lime-400);
+    --color-on-primary-dark: var(--color-black);
+    --color-secondary-dark: var(--color-fuchsia-600);
+    --color-on-secondary-dark: var(--color-white);
+    --color-outline-dark: var(--color-slate-700);
+    --color-outline-dark-strong: var(--color-purple-600);
+
+    /* Shared Colors */
+    --color-info: var(--color-sky-500);
+    --color-on-info: var(--color-slate-100);
+    --color-success: var(--color-green-400);
+    --color-on-success: var(--color-slate-900);
+    --color-warning: var(--color-amber-500);
+    --color-on-warning: var(--color-slate-900);
+    --color-danger: var(--color-red-500);
+    --color-on-danger: var(--color-slate-100);
+
+    /* Border Radius */
+    --radius-radius: var(--radius-xl);  
+}

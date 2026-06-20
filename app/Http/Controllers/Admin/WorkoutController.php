@@ -21,7 +21,7 @@ class WorkoutController extends Controller
         $sessions = WorkoutSession::where('user_id', $user->id)
             ->with(['trainingDay.monthlyPlan'])
             ->orderBy('start_time', 'desc')
-            ->paginate(10);
+            ->get();
 
         return view('admin.workouts.index', compact('user', 'sessions'));
     }

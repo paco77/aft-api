@@ -20,7 +20,7 @@ class PlanController extends Controller
                   ->orWhere('assigned_client_id', auth()->id());
             });
         }
-        $plans = $query->paginate(10);
+        $plans = $query->get();
         return view('admin.plans.index', compact('plans'));
     }
 

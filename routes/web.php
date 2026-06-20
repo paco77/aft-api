@@ -35,9 +35,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Rutas para Planes
     Route::resource('plans', \App\Http\Controllers\Admin\PlanController::class);
 
-    // Rutas para Entrenamientos
+    // Rutas para Planes de Alimentación
+    Route::resource('nutrition-plans', \App\Http\Controllers\Admin\NutritionPlanController::class);
+
+    // Rutas para Entrenamientos y Progreso
     Route::get('/users/{user}/workouts', [\App\Http\Controllers\Admin\WorkoutController::class, 'index'])->name('users.workouts');
     Route::get('/users/{user}/progress', [\App\Http\Controllers\Admin\UserController::class, 'progress'])->name('users.progress');
+    Route::get('/users/{user}/nutrition-plans', [\App\Http\Controllers\Admin\UserController::class, 'nutritionPlans'])->name('users.nutrition-plans');
     Route::get('/workouts/{session}', [\App\Http\Controllers\Admin\WorkoutController::class, 'show'])->name('workouts.show');
 
     // Perfil de Coach

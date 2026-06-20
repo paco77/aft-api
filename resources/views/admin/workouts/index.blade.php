@@ -18,7 +18,7 @@
         </div>
     @else
         <div class="border-t border-gray-200">
-            <table class="min-w-full divide-y divide-gray-200">
+            <table id="workouts-table" class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha / Hora</th>
@@ -50,16 +50,30 @@
                             @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <a href="{{ route('admin.workouts.show', $session) }}" class="text-indigo-600 hover:text-indigo-900">Ver Detalles</a>
+                            <a href="{{ route('admin.workouts.show', $session) }}" class="inline-flex items-center text-indigo-600 hover:text-indigo-900 font-bold" title="Ver Detalles">
+                                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                Ver
+                            </a>
                         </td>
                     </tr>
                     @endforeach
                 </tbody>
             </table>
         </div>
-        <div class="px-4 py-3 bg-gray-50 border-t border-gray-200">
-            {{ $sessions->links() }}
-        </div>
     @endif
 </div>
 @endsection
+
+@push('scripts')
+<script type="module">
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.DataTable) {
+            new DataTable('#workouts-table', {
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+                }
+            });
+        }
+    });
+</script>
+@endpush

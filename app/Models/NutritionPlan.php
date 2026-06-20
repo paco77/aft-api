@@ -17,6 +17,16 @@ class NutritionPlan extends Model
         'total_protein',
         'total_carbs',
         'total_fat',
+        'tdee',
+        'target_calories',
+        'gender',
+        'weight',
+        'height',
+        'age',
+        'activity_level',
+        'formula',
+        'objective',
+        'caloric_adjustment'
     ];
 
     public function coach()

@@ -15,7 +15,7 @@ class UserController extends Controller
         if (auth()->user()->role === 'coach') {
             $query->where('role', 'client')->where('coach_id', auth()->id());
         }
-        $users = $query->paginate(10);
+        $users = $query->get();
         return view('admin.users.index', compact('users'));
     }
 
@@ -134,6 +134,18 @@ class UserController extends Controller
         $progressLogs = $user->progressLogs()->latest('recorded_at')->get();
 
         return view('admin.users.progress', compact('user', 'progressLogs'));
+    }
+
+    public function nutritionPlans(User $user)
+    {
+        if (auth()->user()->role === 'coach' && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
+            abort(403, 'No tienes permiso para ver los planes de este usuario.');
+        }
+
+        // Utilizar la relación de NutritionPlan donde el usuario es el cliente
+        $nutritionPlans = \App\Models\NutritionPlan::where('client_id', $user->id)->latest()->get();
+
+        return view('admin.users.nutrition-plans', compact('user', 'nutritionPlans'));
     }
 
     public function destroy(User $user)

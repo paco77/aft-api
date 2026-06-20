@@ -7,6 +7,8 @@ use App\Models\NutritionPlanMeal;
 
 class MealFood extends Model
 {
+    protected $table = 'meal_foods';
+
     protected $fillable = [
         'nutrition_plan_meal_id',
         'fatsecret_food_id',

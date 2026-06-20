@@ -10,6 +10,9 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
+
     <!-- Styles / Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -36,7 +39,11 @@
                 </a>
                 <a href="{{ route('admin.plans.index') }}"
                     class="block py-2.5 px-4 rounded transition duration-200 hover:bg-slate-700 {{ request()->routeIs('admin.plans.*') ? 'bg-slate-700' : '' }}">
-                    Planes Mensuales
+                    Planes de Entrenamiento
+                </a>
+                <a href="{{ route('admin.nutrition-plans.index') }}"
+                    class="block py-2.5 px-4 rounded transition duration-200 hover:bg-slate-700 {{ request()->routeIs('admin.nutrition-plans.*') ? 'bg-slate-700' : '' }}">
+                    Planes de Alimentación
                 </a>
                 <a href="{{ route('admin.profile.edit') }}"
                     class="block py-2.5 px-4 rounded transition duration-200 hover:bg-slate-700 {{ request()->routeIs('admin.profile.*') ? 'bg-slate-700' : '' }}">

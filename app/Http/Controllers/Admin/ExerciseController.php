@@ -10,7 +10,7 @@ class ExerciseController extends Controller
 {
     public function index()
     {
-        $exercises = Exercise::latest()->paginate(10);
+        $exercises = Exercise::latest()->get();
         return view('admin.exercises.index', compact('exercises'));
     }
 

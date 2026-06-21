@@ -35,7 +35,7 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
-                @forelse ($nutritionPlans as $plan)
+                @foreach ($nutritionPlans as $plan)
                     <tr class="hover:bg-gray-50 transition-colors">
                         <td class="px-6 py-4 text-sm text-gray-800">#{{ $plan->id }}</td>
                         <td class="px-6 py-4 text-sm text-gray-800 font-medium">
@@ -62,16 +62,7 @@
                             </a>
                         </td>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="7" class="px-6 py-8 text-center text-gray-500">
-                            <div class="flex flex-col items-center justify-center">
-                                <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                                <p>Este usuario no tiene planes de alimentación registrados.</p>
-                            </div>
-                        </td>
-                    </tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
     </div>

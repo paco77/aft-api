@@ -31,12 +31,15 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Rutas para Ejercicios
     Route::resource('exercises', \App\Http\Controllers\Admin\ExerciseController::class);
+    Route::post('exercises/api-store', [\App\Http\Controllers\Admin\ExerciseController::class, 'apiStore'])->name('exercises.api-store');
 
     // Rutas para Planes
     Route::resource('plans', \App\Http\Controllers\Admin\PlanController::class);
+    Route::get('plans/{plan}/pdf', [\App\Http\Controllers\Admin\PlanController::class, 'exportPdf'])->name('plans.pdf');
 
     // Rutas para Planes de Alimentación
     Route::resource('nutrition-plans', \App\Http\Controllers\Admin\NutritionPlanController::class);
+    Route::get('nutrition-plans/{nutrition_plan}/pdf', [\App\Http\Controllers\Admin\NutritionPlanController::class, 'exportPdf'])->name('nutrition-plans.pdf');
 
     // Rutas para Entrenamientos y Progreso
     Route::get('/users/{user}/workouts', [\App\Http\Controllers\Admin\WorkoutController::class, 'index'])->name('users.workouts');

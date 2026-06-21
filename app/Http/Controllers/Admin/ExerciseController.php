@@ -10,29 +10,53 @@ class ExerciseController extends Controller
 {
     public function index()
     {
-        $exercises = Exercise::latest()->get();
+        $exercises = Exercise::with('muscleGroup')->latest()->get();
         return view('admin.exercises.index', compact('exercises'));
     }
 
     public function create()
     {
-        return view('admin.exercises.create');
+        $muscleGroups = \App\Models\MuscleGroup::all();
+        return view('admin.exercises.create', compact('muscleGroups'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'muscle_group' => 'required|string|max:255',
+            'muscle_group_id' => 'required|exists:muscle_groups,id',
             'description' => 'nullable|string',
-            'video_url' => 'nullable|url',
         ]);
 
         $data = $request->all();
         $data['user_id'] = auth()->id();
+        $data['is_custom'] = true;
         Exercise::create($data);
 
         return redirect()->route('admin.exercises.index')->with('success', 'Ejercicio creado correctamente.');
+    }
+
+    public function apiStore(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'muscle_group_id' => 'required|exists:muscle_groups,id',
+            'description' => 'nullable|string',
+        ]);
+
+        $data = $request->only(['name', 'muscle_group_id', 'description']);
+        $data['user_id'] = auth()->id();
+        $data['is_custom'] = true; // Assuming coaches creating on the fly are custom exercises
+
+        $exercise = Exercise::create($data);
+        
+        // Load relation for response
+        $exercise->load('muscleGroup');
+
+        return response()->json([
+            'success' => true,
+            'exercise' => $exercise
+        ]);
     }
 
     public function edit(Exercise $exercise)
@@ -40,7 +64,8 @@ class ExerciseController extends Controller
         if (auth()->user()->role === 'coach' && $exercise->user_id !== auth()->id()) {
             abort(403, 'No tienes permiso para editar este ejercicio.');
         }
-        return view('admin.exercises.edit', compact('exercise'));
+        $muscleGroups = \App\Models\MuscleGroup::all();
+        return view('admin.exercises.edit', compact('exercise', 'muscleGroups'));
     }
 
     public function update(Request $request, Exercise $exercise)
@@ -51,9 +76,8 @@ class ExerciseController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
-            'muscle_group' => 'required|string|max:255',
+            'muscle_group_id' => 'required|exists:muscle_groups,id',
             'description' => 'nullable|string',
-            'video_url' => 'nullable|url',
         ]);
 
         $exercise->update($request->all());

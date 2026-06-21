@@ -41,14 +41,17 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         @if($user->role === 'client')
-                            <a href="{{ route('admin.users.workouts', $user) }}" class="inline-flex items-center text-green-600 hover:text-green-900 mr-3 font-bold" title="Ver Entrenamientos">
+                            <a href="{{ route('admin.users.workouts', $user) }}" class="inline-flex items-center px-2.5 py-1.5 bg-green-50 text-green-700 hover:bg-green-100 rounded-md text-xs font-medium mr-2" title="Ver Entrenamientos">
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                Ejercicios
                             </a>
-                            <a href="{{ route('admin.users.progress', $user) }}" class="inline-flex items-center text-blue-600 hover:text-blue-900 mr-3 font-bold" title="Ver Progreso">
+                            <a href="{{ route('admin.users.progress', $user) }}" class="inline-flex items-center px-2.5 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-md text-xs font-medium mr-2" title="Ver Progreso">
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                                Progreso
                             </a>
-                            <a href="{{ route('admin.users.nutrition-plans', $user) }}" class="inline-flex items-center text-orange-600 hover:text-orange-900 mr-3 font-bold" title="Ver Planes Alimentación">
+                            <a href="{{ route('admin.users.nutrition-plans', $user) }}" class="inline-flex items-center px-2.5 py-1.5 bg-orange-50 text-orange-700 hover:bg-orange-100 rounded-md text-xs font-medium mr-2" title="Ver Planes Alimentación">
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                Alimentación
                             </a>
                         @endif
                         <a href="{{ route('admin.users.edit', $user) }}" class="inline-flex items-center text-indigo-600 hover:text-indigo-900 mr-3" title="Editar">
@@ -71,15 +74,13 @@
 @endsection
 
 @push('scripts')
-<script type="module">
+<script>
     document.addEventListener('DOMContentLoaded', function() {
-        if (window.DataTable) {
-            new DataTable('#users-table', {
-                language: {
-                    url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-                }
-            });
-        }
+        new DataTable('#users-table', {
+            language: {
+                url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+            }
+        });
     });
 </script>
 @endpush

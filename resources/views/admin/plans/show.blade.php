@@ -9,9 +9,15 @@
             <h3 class="text-lg leading-6 font-medium text-gray-900">Información General</h3>
             <p class="mt-1 max-w-2xl text-sm text-gray-500">Detalles y estructura del entrenamiento.</p>
         </div>
-        <a href="{{ route('admin.plans.index') }}" class="text-blue-600 hover:text-blue-900 text-sm font-medium">
-            Volver a la lista
-        </a>
+        <div class="flex gap-4 items-center">
+            <a href="{{ route('admin.plans.pdf', $plan) }}" class="text-white bg-indigo-600 hover:bg-indigo-700 font-medium rounded-md text-sm px-4 py-2 flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                Exportar PDF
+            </a>
+            <a href="{{ route('admin.plans.index') }}" class="text-blue-600 hover:text-blue-900 text-sm font-medium">
+                Volver a la lista
+            </a>
+        </div>
     </div>
     <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
         <dl class="sm:divide-y sm:divide-gray-200">
@@ -38,8 +44,14 @@
         <div class="bg-white shadow sm:rounded-lg overflow-hidden">
             <div class="px-4 py-3 bg-slate-800 text-white flex justify-between items-center">
                 <h4 class="font-medium">Día {{ $day->day_number }}: {{ $day->label }}</h4>
+                @php
+                    $muscleNames = [];
+                    if (is_array($day->muscle_groups) && count($day->muscle_groups) > 0) {
+                        $muscleNames = \App\Models\MuscleGroup::whereIn('id', $day->muscle_groups)->pluck('name')->toArray();
+                    }
+                @endphp
                 <span class="text-xs uppercase px-2 py-1 bg-slate-700 rounded">
-                    {{ is_array($day->muscle_groups) ? implode(', ', $day->muscle_groups) : $day->muscle_groups }}
+                    {{ !empty($muscleNames) ? implode(', ', $muscleNames) : 'N/A' }}
                 </span>
             </div>
             <div class="p-0">

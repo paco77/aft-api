@@ -20,34 +20,17 @@
                 </div>
 
                 <!-- Muscle Group -->
-                <div class="sm:col-span-3">
-                    <div class="flex w-full flex-col gap-1 text-on-surface dark:text-on-surface-dark">
-                        <label for="muscle_group" class="w-fit pl-0.5 text-sm">Grupo Muscular</label>
-                        <select name="muscle_group" id="muscle_group" 
-                            class="w-full rounded-radius bg-surface-alt px-2 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-75 dark:bg-surface-dark-alt/50 dark:focus-visible:outline-primary-dark @error('muscle_group') border border-red-500 @enderror">
-                             <option value="">Seleccionar...</option>
-                             <option value="Pecho" {{ old('muscle_group') == 'Pecho' ? 'selected' : '' }}>Pecho</option>
-                             <option value="Espalda" {{ old('muscle_group') == 'Espalda' ? 'selected' : '' }}>Espalda</option>
-                             <option value="Pierna" {{ old('muscle_group') == 'Pierna' ? 'selected' : '' }}>Pierna</option>
-                             <option value="Hombro" {{ old('muscle_group') == 'Hombro' ? 'selected' : '' }}>Hombro</option>
-                             <option value="Brazos" {{ old('muscle_group') == 'Brazos' ? 'selected' : '' }}>Brazos</option>
-                             <option value="Bícep" {{ old('muscle_group') == 'Bícep' ? 'selected' : '' }}>Bícep</option>
-                             <option value="Trícep" {{ old('muscle_group') == 'Trícep' ? 'selected' : '' }}>Trícep</option>
-                             <option value="Core" {{ old('muscle_group') == 'Core' ? 'selected' : '' }}>Core</option>
-                             <option value="Descanso" {{ old('muscle_group') == 'Descanso' ? 'selected' : '' }}>Descanso</option>
-                        </select>
-                        @error('muscle_group') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                    </div>
-                </div>
-
-                <!-- Video URL -->
                 <div class="sm:col-span-6">
                     <div class="flex w-full flex-col gap-1 text-on-surface dark:text-on-surface-dark">
-                        <label for="video_url" class="w-fit pl-0.5 text-sm">URL del Video (opcional)</label>
-                        <input type="url" name="video_url" id="video_url" value="{{ old('video_url') }}" 
-                            class="w-full rounded-radius bg-surface-alt px-2 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-75 dark:bg-surface-dark-alt/50 dark:focus-visible:outline-primary-dark"
-                            placeholder="https://youtube.com/...">
-                        @error('video_url') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                        <label for="muscle_group_id" class="w-fit pl-0.5 text-sm">Grupo Muscular</label>
+                        <select name="muscle_group_id" id="muscle_group_id" 
+                            class="w-full rounded-radius bg-surface-alt px-2 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-75 dark:bg-surface-dark-alt/50 dark:focus-visible:outline-primary-dark @error('muscle_group_id') border border-red-500 @enderror">
+                             <option value="">Seleccionar...</option>
+                             @foreach($muscleGroups as $group)
+                                <option value="{{ $group->id }}" {{ old('muscle_group_id') == $group->id ? 'selected' : '' }}>{{ $group->name }}</option>
+                             @endforeach
+                        </select>
+                        @error('muscle_group_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                     </div>
                 </div>
 

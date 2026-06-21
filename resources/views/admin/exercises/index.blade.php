@@ -27,7 +27,7 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                            {{ $exercise->muscle_group }}
+                            {{ $exercise->muscleGroup?->name ?? 'N/A' }}
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -53,15 +53,13 @@
 @endsection
 
 @push('scripts')
-<script type="module">
+<script>
     document.addEventListener('DOMContentLoaded', function() {
-        if (window.DataTable) {
-            new DataTable('#exercises-table', {
-                language: {
-                    url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-                }
-            });
-        }
+        new DataTable('#exercises-table', {
+            language: {
+                url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+            }
+        });
     });
 </script>
 @endpush

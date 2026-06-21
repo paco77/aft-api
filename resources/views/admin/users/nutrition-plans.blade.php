@@ -70,15 +70,13 @@
 @endsection
 
 @push('scripts')
-<script type="module">
+<script>
     document.addEventListener('DOMContentLoaded', function() {
-        if (window.DataTable) {
-            new DataTable('#user-nutrition-plans-table', {
-                language: {
-                    url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-                }
-            });
-        }
+        new DataTable('#user-nutrition-plans-table', {
+            language: {
+                url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+            }
+        });
     });
 </script>
 @endpush

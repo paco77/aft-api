@@ -28,6 +28,26 @@
                     </div>
                 </div>
 
+                <!-- Logo para PDF -->
+                <div class="flex items-center gap-6">
+                    <div class="flex-shrink-0">
+                        @if(auth()->user()->logo_path)
+                            <img src="{{ asset('storage/' . auth()->user()->logo_path) }}" alt="Logo Coach" class="h-20 w-auto object-contain border border-gray-200 p-1 bg-white">
+                        @else
+                            <div class="h-20 w-32 bg-gray-100 border border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-xs text-center p-2">
+                                Sin Logo
+                            </div>
+                        @endif
+                    </div>
+                    <div class="flex w-full flex-col gap-1 text-on-surface dark:text-on-surface-dark">
+                        <label for="logo" class="w-fit pl-0.5 text-sm font-medium">Logo para PDF (Opcional)</label>
+                        <input type="file" name="logo" id="logo" accept="image/*"
+                            class="w-full rounded-radius bg-surface-alt px-2 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-75 dark:bg-surface-dark-alt/50 dark:focus-visible:outline-primary-dark @error('logo') border border-red-500 @enderror">
+                        <p class="mt-1 text-xs text-gray-500">Aparecerá en la cabecera de tus planes PDF. Máx 2MB.</p>
+                        @error('logo') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+
                 <!-- Información de Formación -->
                 <div class="flex w-full flex-col gap-1 text-on-surface dark:text-on-surface-dark">
                     <label for="training_info" class="w-fit pl-0.5 text-sm font-medium">Información de Formación / Bio</label>

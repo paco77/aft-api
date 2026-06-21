@@ -116,4 +116,16 @@ class NutritionPlanController extends Controller
         $nutritionPlan->delete();
         return redirect()->route('admin.nutrition-plans.index')->with('success', 'Plan nutricional eliminado correctamente.');
     }
+
+    public function exportPdf(NutritionPlan $nutritionPlan)
+    {
+        if (auth()->user()->role === 'coach' && $nutritionPlan->coach_id !== auth()->id() && $nutritionPlan->client_id !== auth()->id()) {
+            abort(403, 'No tienes permiso para exportar este plan nutricional.');
+        }
+
+        $nutritionPlan->load(['client', 'coach', 'meals.foods']);
+        
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.nutrition-plans.pdf', compact('nutritionPlan'));
+        return $pdf->download('Plan_Nutricional_' . str_replace(' ', '_', $nutritionPlan->client->name ?? 'Cliente') . '.pdf');
+    }
 }

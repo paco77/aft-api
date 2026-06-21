@@ -27,6 +27,7 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'training_info' => 'nullable|string',
             'profile_photo' => 'nullable|image|max:2048', // Max 2MB
+            'logo' => 'nullable|image|max:2048', // Max 2MB
         ]);
 
         if ($request->hasFile('profile_photo')) {
@@ -37,6 +38,16 @@ class ProfileController extends Controller
 
             $path = $request->file('profile_photo')->store('profile-photos', 'public');
             $user->profile_photo_path = $path;
+        }
+
+        if ($request->hasFile('logo')) {
+            // Delete old logo if exists
+            if ($user->logo_path) {
+                Storage::disk('public')->delete($user->logo_path);
+            }
+
+            $path = $request->file('logo')->store('logos', 'public');
+            $user->logo_path = $path;
         }
 
         $user->training_info = $validated['training_info'];

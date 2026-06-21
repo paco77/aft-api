@@ -15,6 +15,10 @@
 
     <!-- Styles / Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <!-- DataTables CDN -->
+    <link href="https://cdn.datatables.net/v/dt/jq-3.7.0/dt-2.0.8/datatables.min.css" rel="stylesheet">
+    <script src="https://cdn.datatables.net/v/dt/jq-3.7.0/dt-2.0.8/datatables.min.js"></script>
 </head>
 
 <body class="bg-gray-100 font-sans antialiased">

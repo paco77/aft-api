@@ -34,8 +34,8 @@
                 </div>
                 
                 <div class="md:col-span-2">
-                    <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Descripción / Notas Adicionales</label>
-                    <textarea name="description" id="description" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('description') }}</textarea>
+                    <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Comentarios Adicionales</label>
+                    <textarea name="description" id="description" rows="2" placeholder="Ej: Beber 3 litros de agua diarios..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('description') }}</textarea>
                 </div>
             </div>
 

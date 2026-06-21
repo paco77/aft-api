@@ -31,8 +31,9 @@ class PlanController extends Controller
             $query->where('coach_id', auth()->id());
         }
         $clients = $query->get();
-        $exercises = Exercise::all();
-        return view('admin.plans.create', compact('clients', 'exercises'));
+        $exercises = Exercise::with('muscleGroup')->get();
+        $muscleGroups = \App\Models\MuscleGroup::all();
+        return view('admin.plans.create', compact('clients', 'exercises', 'muscleGroups'));
     }
 
     public function store(Request $request)
@@ -46,6 +47,7 @@ class PlanController extends Controller
             'days' => 'required|array',
             'days.*.label' => 'required|string',
             'days.*.day_number' => 'required|integer',
+            'days.*.muscle_groups' => 'nullable|array',
             'days.*.exercises' => 'array',
             'days.*.exercises.*.exercise_id' => 'required',
             'days.*.exercises.*.sets' => 'required|integer',
@@ -74,7 +76,7 @@ class PlanController extends Controller
                 $trainingDay = $plan->trainingDays()->create([
                     'label' => $dayData['label'],
                     'day_number' => $dayData['day_number'],
-                    'muscle_groups' => [],
+                    'muscle_groups' => $dayData['muscle_groups'] ?? [],
                 ]);
 
                 if (isset($dayData['exercises'])) {
@@ -110,5 +112,17 @@ class PlanController extends Controller
         }
         $plan->delete();
         return redirect()->route('admin.plans.index')->with('success', 'Plan eliminado correctamente.');
+    }
+
+    public function exportPdf(MonthlyPlan $plan)
+    {
+        if (auth()->user()->role === 'coach' && $plan->user_id !== auth()->id() && $plan->assigned_client_id !== auth()->id()) {
+            abort(403, 'No tienes permiso para exportar este plan.');
+        }
+
+        $plan->load(['user', 'assignedClient', 'trainingDays.plannedExercises.exercise.muscleGroup']);
+        
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.plans.pdf', compact('plan'));
+        return $pdf->download('Plan_Entrenamiento_' . str_replace(' ', '_', $plan->assignedClient->name ?? 'Cliente') . '_' . $plan->month . '.pdf');
     }
 }

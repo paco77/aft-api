@@ -40,6 +40,10 @@ class NutritionPlanController extends Controller
             'formula' => 'nullable|string',
             'objective' => 'nullable|string',
             'caloric_adjustment' => 'nullable|numeric',
+            'total_calories' => 'nullable|numeric',
+            'total_protein' => 'nullable|numeric',
+            'total_carbs' => 'nullable|numeric',
+            'total_fat' => 'nullable|numeric',
             'meals' => 'required|array',
             'meals.*.name' => 'required|string',
             'meals.*.time' => 'nullable|date_format:H:i',
@@ -69,18 +73,10 @@ class NutritionPlanController extends Controller
             'formula' => $validated['formula'] ?? null,
             'objective' => $validated['objective'] ?? null,
             'caloric_adjustment' => $validated['caloric_adjustment'] ?? null,
-            'total_calories' => collect($validated['meals'])->sum(function ($meal) {
-            return collect($meal['foods'])->sum('calories');
-        }),
-            'total_protein' => collect($validated['meals'])->sum(function ($meal) {
-            return collect($meal['foods'])->sum('protein');
-        }),
-            'total_carbs' => collect($validated['meals'])->sum(function ($meal) {
-            return collect($meal['foods'])->sum('carbs');
-        }),
-            'total_fat' => collect($validated['meals'])->sum(function ($meal) {
-            return collect($meal['foods'])->sum('fat');
-        }),
+            'total_calories' => $validated['total_calories'] ?? null,
+            'total_protein' => $validated['total_protein'] ?? null,
+            'total_carbs' => $validated['total_carbs'] ?? null,
+            'total_fat' => $validated['total_fat'] ?? null,
         ]);
 
         foreach ($validated['meals'] as $mealData) {
@@ -119,6 +115,10 @@ class NutritionPlanController extends Controller
             'formula' => 'nullable|string',
             'objective' => 'nullable|string',
             'caloric_adjustment' => 'nullable|numeric',
+            'total_calories' => 'nullable|numeric',
+            'total_protein' => 'nullable|numeric',
+            'total_carbs' => 'nullable|numeric',
+            'total_fat' => 'nullable|numeric',
             'meals' => 'required|array',
             'meals.*.name' => 'required|string',
             'meals.*.time' => 'nullable|date_format:H:i',
@@ -147,18 +147,10 @@ class NutritionPlanController extends Controller
             'formula' => $validated['formula'] ?? null,
             'objective' => $validated['objective'] ?? null,
             'caloric_adjustment' => $validated['caloric_adjustment'] ?? null,
-            'total_calories' => collect($validated['meals'])->sum(function ($meal) {
-                return collect($meal['foods'])->sum('calories');
-            }),
-            'total_protein' => collect($validated['meals'])->sum(function ($meal) {
-                return collect($meal['foods'])->sum('protein');
-            }),
-            'total_carbs' => collect($validated['meals'])->sum(function ($meal) {
-                return collect($meal['foods'])->sum('carbs');
-            }),
-            'total_fat' => collect($validated['meals'])->sum(function ($meal) {
-                return collect($meal['foods'])->sum('fat');
-            }),
+            'total_calories' => $validated['total_calories'] ?? null,
+            'total_protein' => $validated['total_protein'] ?? null,
+            'total_carbs' => $validated['total_carbs'] ?? null,
+            'total_fat' => $validated['total_fat'] ?? null,
         ]);
 
         // Delete existing meals to replace them completely

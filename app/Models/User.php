@@ -37,6 +37,7 @@ class User extends Authenticatable
         'front_photo',
         'side_photo',
         'back_photo',
+        'is_active',
     ];
 
     public function coach()
@@ -74,6 +75,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
     }
 

@@ -39,12 +39,14 @@ class UserController extends Controller
         if (auth()->user()->role === 'admin') {
             $rules['role'] = 'required|string|in:coach,client,usuario,admin';
             $rules['coach_id'] = 'nullable|exists:users,id';
+            $rules['is_active'] = 'nullable|boolean';
         }
 
         $request->validate($rules);
 
         $role = auth()->user()->role === 'admin' ? $request->role : 'client';
         $coach_id = auth()->user()->role === 'coach' ? auth()->id() : $request->coach_id;
+        $is_active = auth()->user()->role === 'admin' ? $request->boolean('is_active', true) : true;
 
         $profilePhotoPath = null;
         if ($request->hasFile('profile_photo')) {
@@ -58,6 +60,7 @@ class UserController extends Controller
             'password' => Hash::make($request->password),
             'role' => $role,
             'coach_id' => $coach_id,
+            'is_active' => $is_active,
             'training_info' => $request->training_info,
             'profile_photo_path' => $profilePhotoPath,
         ]);
@@ -92,6 +95,7 @@ class UserController extends Controller
         if (auth()->user()->role === 'admin') {
             $rules['role'] = 'required|string|in:coach,client,usuario,admin';
             $rules['coach_id'] = 'nullable|exists:users,id';
+            $rules['is_active'] = 'nullable|boolean';
         }
 
         $request->validate($rules);
@@ -107,6 +111,10 @@ class UserController extends Controller
             'coach_id' => $coach_id,
             'training_info' => $request->training_info,
         ];
+
+        if (auth()->user()->role === 'admin') {
+            $userData['is_active'] = $request->boolean('is_active', false);
+        }
 
         if ($request->hasFile('profile_photo')) {
             // Delete old photo if exists

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('header', 'Crear Nuevo Plan de Alimentación')
+@section('header', 'Editar Plan de Alimentación')
 
 @section('content')
     <div class="max-w-5xl mx-auto space-y-6">
@@ -11,11 +11,13 @@
                         d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z">
                     </path>
                 </svg>
-                Calculadora Nutricional
+                Editar Calculadora Nutricional
             </h2>
 
-            <form action="{{ route('admin.nutrition-plans.store') }}" method="POST" id="nutrition-form">
+            <form action="{{ route('admin.nutrition-plans.update', $nutritionPlan->id) }}" method="POST"
+                id="nutrition-form">
                 @csrf
+                @method('PUT')
 
                 <!-- Client & Plan Details -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -27,7 +29,7 @@
                             @foreach($clients as $client)
                                 <option value="{{ $client->id }}" data-weight="{{ $client->weight ?? '' }}"
                                     data-height="{{ $client->height ?? '' }}" data-age="{{ $client->age ?? '' }}"
-                                    data-gender="{{ $client->gender ?? 'male' }}" {{ (old('client_id') ?? $selectedClientId) == $client->id ? 'selected' : '' }}>
+                                    data-gender="{{ $client->gender ?? 'male' }}" {{ (old('client_id', $nutritionPlan->client_id)) == $client->id ? 'selected' : '' }}>
                                     {{ $client->name }} ({{ $client->email }})
                                 </option>
                             @endforeach
@@ -37,7 +39,7 @@
 
                     <div>
                         <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nombre del Plan</label>
-                        <input type="text" name="name" id="name" value="{{ old('name') }}"
+                        <input type="text" name="name" id="name" value="{{ old('name', $nutritionPlan->name) }}"
                             placeholder="Ej: Plan de Definición - Junio"
                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     </div>
@@ -47,7 +49,7 @@
                             Adicionales</label>
                         <textarea name="description" id="description" rows="2"
                             placeholder="Ej: Beber 3 litros de agua diarios..."
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('description') }}</textarea>
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('description', $nutritionPlan->description) }}</textarea>
                     </div>
                 </div>
 
@@ -73,7 +75,7 @@
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Edad (años)</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Edad</label>
                             <input type="number" id="calc_age" name="age"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
@@ -373,10 +375,10 @@
 
                 if (meals.length === 0) {
                     mealsContainer.innerHTML = `
-                        <div class="text-center p-8 border-2 border-dashed border-gray-200 rounded-xl">
-                            <p class="text-gray-500">No has agregado tiempos de comida aún.</p>
-                            <p class="text-sm text-gray-400 mt-1">Haz clic en "Añadir Comida" para empezar.</p>
-                        </div>`;
+                            <div class="text-center p-8 border-2 border-dashed border-gray-200 rounded-xl">
+                                <p class="text-gray-500">No has agregado tiempos de comida aún.</p>
+                                <p class="text-sm text-gray-400 mt-1">Haz clic en "Añadir Comida" para empezar.</p>
+                            </div>`;
                     updateMealsData();
                     return;
                 }
@@ -390,15 +392,15 @@
                         foodsHtml = `<ul class="divide-y divide-gray-100 border-t border-gray-100 mt-3">`;
                         meal.foods.forEach((food, foodIndex) => {
                             foodsHtml += `
-                                <li class="py-3 flex justify-between items-center group">
-                                    <div>
-                                        <p class="font-semibold text-sm text-gray-800">${food.name}</p>
-                                        <p class="text-xs text-gray-500 mt-0.5">${food.serving_size} ${food.serving_unit}</p>
-                                    </div>
-                                    <button type="button" class="btn-remove-food text-gray-300 hover:text-red-500 transition-colors p-1" data-meal-idx="${mealIndex}" data-food-idx="${foodIndex}">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    </button>
-                                </li>`;
+                                    <li class="py-3 flex justify-between items-center group">
+                                        <div>
+                                            <p class="font-semibold text-sm text-gray-800">${food.name}</p>
+                                            <p class="text-xs text-gray-500 mt-0.5">${food.serving_size} ${food.serving_unit}</p>
+                                        </div>
+                                        <button type="button" class="btn-remove-food text-gray-300 hover:text-red-500 transition-colors p-1" data-meal-idx="${mealIndex}" data-food-idx="${foodIndex}">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        </button>
+                                    </li>`;
                         });
                         foodsHtml += `</ul>`;
                     } else {
@@ -406,26 +408,26 @@
                     }
 
                     mealsContainer.innerHTML += `
-                        <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:border-blue-100 transition-colors">
-                            <div class="flex justify-between items-center">
-                                <div class="flex-1 mr-4 flex items-center gap-2">
-                                    <input type="text" class="meal-name-input font-bold text-gray-900 border-none bg-transparent p-0 focus:ring-0 w-full" value="${meal.name}" data-meal-idx="${mealIndex}" placeholder="Ej. Desayuno">
+                            <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:border-blue-100 transition-colors">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex-1 mr-4 flex items-center gap-2">
+                                        <input type="text" class="meal-name-input font-bold text-gray-900 border-none bg-transparent p-0 focus:ring-0 w-full" value="${meal.name}" data-meal-idx="${mealIndex}" placeholder="Ej. Desayuno">
+                                    </div>
+                                    <div class="flex items-center gap-4">
+                                        <!-- <span class="text-sm font-semibold bg-gray-100 px-2 py-1 rounded text-gray-600">${mealTotalCals.toFixed(0)} kcal</span> -->
+                                        <button type="button" class="btn-remove-meal text-red-500 hover:text-red-700" data-meal-idx="${mealIndex}" title="Eliminar comida">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="flex items-center gap-4">
-                                    <!-- <span class="text-sm font-semibold bg-gray-100 px-2 py-1 rounded text-gray-600">${mealTotalCals.toFixed(0)} kcal</span> -->
-                                    <button type="button" class="btn-remove-meal text-red-500 hover:text-red-700" data-meal-idx="${mealIndex}" title="Eliminar comida">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                ${foodsHtml}
+                                <div class="mt-4 pt-4 border-t border-gray-50 flex justify-center">
+                                    <button type="button" class="btn-open-modal text-sm font-medium text-blue-600 hover:text-blue-800 flex items-center gap-1" data-meal-idx="${mealIndex}">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                        Añadir Alimento
                                     </button>
                                 </div>
-                            </div>
-                            ${foodsHtml}
-                            <div class="mt-4 pt-4 border-t border-gray-50 flex justify-center">
-                                <button type="button" class="btn-open-modal text-sm font-medium text-blue-600 hover:text-blue-800 flex items-center gap-1" data-meal-idx="${mealIndex}">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                                    Añadir Alimento
-                                </button>
-                            </div>
-                        </div>`;
+                            </div>`;
                 });
 
                 updateMealsData();
@@ -622,6 +624,50 @@
             btnCalculate.addEventListener('click', calculateRequirements);
             calcProteinKg.addEventListener('input', calculateMacros);
             calcLipidsKg.addEventListener('input', calculateMacros);
-        });
+
+            // PREFILL DATA
+            calcGender.value = "{{ old('gender', $nutritionPlan->gender ?? 'male') }}";
+            calcWeight.value = "{{ old('weight', $nutritionPlan->weight) }}";
+            calcHeight.value = "{{ old('height', $nutritionPlan->height) }}";
+            calcAge.value = "{{ old('age', $nutritionPlan->age) }}";
+            calcActivity.value = "{{ old('activity_level', $nutritionPlan->activity_level ?? '1.2') }}";
+            calcFormula.value = "{{ old('formula', $nutritionPlan->formula ?? 'mifflin') }}";
+            calcObjective.value = "{{ old('objective', $nutritionPlan->objective ?? 'Mantenimiento') }}";
+            calcAdjustment.value = "{{ old('caloric_adjustment', $nutritionPlan->caloric_adjustment ?? '0') }}";
+
+            @if($nutritionPlan->weight && $nutritionPlan->total_protein && $nutritionPlan->target_calories)
+                    calcProteinKg.value = ({{ $nutritionPlan->total_protein }} / {{ $nutritionPlan->weight }}).toFixed(1);
+                calcLipidsKg.value = ({{ $nutritionPlan->total_fat }} / {{ $nutritionPlan->weight }}).toFixed(1);
+            @endif
+
+            @php
+                $oldMeals = old('meals_data') ? json_decode(old('meals_data'), true) : null;
+                $defaultMeals = $nutritionPlan->meals->map(function($meal) {
+                    return [
+                        'name' => $meal->name,
+                        'time' => $meal->time,
+                        'foods' => $meal->foods->map(function($food) {
+                            return [
+                                'fatsecret_food_id' => $food->fatsecret_food_id,
+                                'name' => $food->name,
+                                'serving_size' => $food->serving_size,
+                                'serving_unit' => $food->serving_unit,
+                                'calories' => $food->calories,
+                                'protein' => $food->protein,
+                                'carbs' => $food->carbs,
+                                'fat' => $food->fat
+                            ];
+                        })->toArray()
+                    ];
+                })->toArray();
+                $mealsData = $oldMeals ?: $defaultMeals;
+            @endphp
+            meals = @json($mealsData);
+
+        if (calcWeight.value && calcHeight.value && calcAge.value) {
+            calculateRequirements();
+        }
+        renderMeals();
+            });
     </script>
 @endpush

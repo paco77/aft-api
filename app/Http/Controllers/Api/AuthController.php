@@ -57,6 +57,12 @@ class AuthController extends Controller
             ]);
         }
 
+        if (!$user->is_active) {
+            throw ValidationException::withMessages([
+                'login' => ['Usuario Inactivo, favor de contactar al Administrador'],
+            ]);
+        }
+
         $token = $user->createToken('auth_token')->plainTextToken;
         $user->load('coach');
 

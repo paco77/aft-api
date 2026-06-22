@@ -31,6 +31,12 @@ class LoginController extends Controller
             ->first();
 
         if ($user && Hash::check($request->password, $user->password)) {
+            if (!$user->is_active) {
+                throw ValidationException::withMessages([
+                    'login' => ['Usuario Inactivo, favor de contactar al Administrador'],
+                ]);
+            }
+
             Auth::login($user, $request->has('remember'));
             $request->session()->regenerate();
 

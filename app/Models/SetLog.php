@@ -10,6 +10,7 @@ class SetLog extends Model
         'exercise_log_id',
         'set_number',
         'weight',
+        'weight_lb',
         'reps',
     ];
 

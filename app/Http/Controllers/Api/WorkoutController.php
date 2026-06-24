@@ -141,6 +141,7 @@ class WorkoutController extends Controller
                 $exLog->setLogs()->create([
                     'set_number' => $setData['set_number'],
                     'weight' => $setData['weight'],
+                    'weight_lb' => $setData['weight_lb'] ?? 0,
                     'reps' => $setData['reps'],
                 ]);
             }

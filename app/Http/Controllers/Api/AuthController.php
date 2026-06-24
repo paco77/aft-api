@@ -99,7 +99,7 @@ class AuthController extends Controller
             'objectives' => 'nullable|string',
             'experience_years' => 'nullable|integer',
             'training_info' => 'nullable|string',
-            'profile_photo' => 'nullable|image|max:4096', // Max 4MB
+            'profile_photo' => 'nullable|image|max:20480', // Max 20MB
         ]);
 
         if ($request->hasFile('profile_photo')) {

@@ -35,10 +35,10 @@ class ClientController extends Controller
             'age' => 'nullable|integer',
             'training_time' => 'nullable|string',
             'objectives' => 'nullable|string',
-            'profile_photo' => 'nullable|image|max:5120',
-            'front_photo' => 'nullable|image|max:5120',
-            'side_photo' => 'nullable|image|max:5120',
-            'back_photo' => 'nullable|image|max:5120',
+            'profile_photo' => 'nullable|image|max:20480',
+            'front_photo' => 'nullable|image|max:20480',
+            'side_photo' => 'nullable|image|max:20480',
+            'back_photo' => 'nullable|image|max:20480',
         ]);
 
         $userData = [

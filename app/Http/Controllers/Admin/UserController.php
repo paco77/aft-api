@@ -33,7 +33,7 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'training_info' => 'nullable|string',
-            'profile_photo' => 'nullable|image|max:2048',
+            'profile_photo' => 'nullable|image|max:20480',
         ];
 
         if (auth()->user()->role === 'admin') {
@@ -89,7 +89,7 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8',
             'training_info' => 'nullable|string',
-            'profile_photo' => 'nullable|image|max:2048',
+            'profile_photo' => 'nullable|image|max:20480',
         ];
 
         if (auth()->user()->role === 'admin') {

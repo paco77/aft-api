@@ -32,7 +32,7 @@
         }
         .day-block {
             margin-bottom: 30px;
-            page-break-inside: auto;
+            page-break-inside: avoid;
         }
         .day-title {
             background-color: #f0f0f0;

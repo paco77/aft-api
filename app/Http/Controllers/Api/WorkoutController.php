@@ -104,6 +104,7 @@ class WorkoutController extends Controller
             'training_day_id' => 'required|exists:training_days,id',
             'start_time' => 'date',
             'end_time' => 'date',
+            'duration' => 'nullable|integer',
             'comments' => 'string|nullable',
             'exercises' => 'required|array',
             'exercises.*.planned_exercise_id' => 'required|exists:planned_exercises,id',
@@ -129,6 +130,7 @@ class WorkoutController extends Controller
             'training_day_id' => $data['training_day_id'],
             'start_time' => $data['start_time'] ?? Carbon::now(),
             'end_time' => $data['end_time'] ?? Carbon::now(),
+            'duration' => $data['duration'] ?? null,
             'comments' => $data['comments'] ?? null,
         ]);
 

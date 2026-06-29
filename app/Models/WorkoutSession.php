@@ -11,6 +11,7 @@ class WorkoutSession extends Model
         'training_day_id',
         'start_time',
         'end_time',
+        'duration',
         'comments',
     ];
 

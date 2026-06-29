@@ -30,10 +30,10 @@ class MonthlyPlanResource extends JsonResource
                     }),
                     ];
                 }
-
                 $sessions[] = [
                     'sessionNumber' => $index + 1,
                     'date' => $session->start_time->toIso8601String(),
+                    'duration' => $session->duration,
                     'exercises' => $exercises,
                     'comment' => $session->comments,
                 ];

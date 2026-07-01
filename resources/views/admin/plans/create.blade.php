@@ -125,6 +125,11 @@
                             class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                     </div>
 
+                    <!-- Filtros por Grupo Muscular en el Modal -->
+                    <div id="modal-mg-filters" class="mb-4 flex flex-wrap gap-3 hidden">
+                        <!-- Checkboxes dinámicos -->
+                    </div>
+
                     <!-- Lista de Ejercicios -->
                     <div class="max-h-[60vh] overflow-y-auto border border-gray-200 rounded-md p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3"
                         id="modal-exercises-list">
@@ -250,21 +255,41 @@
         let dayIndex = 0;
         let currentDayBlockForModal = null;
 
-        // Search in modal
+        // Search and Filters in modal
         document.getElementById('exercise-search').addEventListener('input', function (e) {
-            const term = e.target.value.toLowerCase();
+            applyModalFilters();
+        });
+
+        function applyModalFilters() {
+            const term = document.getElementById('exercise-search').value.toLowerCase();
+            const modalCheckboxes = document.querySelectorAll('.modal-mg-filter-checkbox:checked');
+            const activeModalMgIds = Array.from(modalCheckboxes).map(cb => cb.value);
+
+            // Get selected muscle groups from the day block (as base filter)
+            let baseMgIds = [];
+            if (currentDayBlockForModal) {
+                const dayCheckboxes = currentDayBlockForModal.querySelectorAll('input[type="checkbox"]:checked');
+                baseMgIds = Array.from(dayCheckboxes).map(cb => cb.value);
+            }
+
             const items = document.querySelectorAll('.exercise-item');
             items.forEach(item => {
-                if (item.classList.contains('filtered-out')) return; // ignore filtered out by muscle group
-
+                const itemMg = item.getAttribute('data-mg');
                 const name = item.getAttribute('data-name');
-                if (name.includes(term)) {
+                
+                let matchesBaseMg = baseMgIds.length === 0 || baseMgIds.includes(itemMg);
+                let matchesActiveModalMg = activeModalMgIds.length === 0 || activeModalMgIds.includes(itemMg);
+                let matchesSearch = name.includes(term);
+
+                if (matchesBaseMg && matchesActiveModalMg && matchesSearch) {
+                    item.classList.remove('filtered-out');
                     item.style.display = 'flex';
                 } else {
+                    item.classList.add('filtered-out');
                     item.style.display = 'none';
                 }
             });
-        });
+        }
 
         function addDay() {
             const container = document.getElementById('days-container');
@@ -354,23 +379,40 @@
             // Get selected muscle groups in this day block
             const checkboxes = dayBlock.querySelectorAll('input[type="checkbox"]:checked');
             const selectedMgIds = Array.from(checkboxes).map(cb => cb.value);
+            const selectedMgNames = Array.from(checkboxes).map(cb => cb.nextElementSibling.textContent.trim());
 
-            // Filter items in modal based on selectedMgIds
-            const items = document.querySelectorAll('.exercise-item');
-            items.forEach(item => {
-                const itemMg = item.getAttribute('data-mg');
-                if (selectedMgIds.length === 0 || selectedMgIds.includes(itemMg)) {
-                    item.classList.remove('filtered-out');
-                    item.style.display = 'flex';
-                } else {
-                    item.classList.add('filtered-out');
-                    item.style.display = 'none';
-                }
-            });
+            // Build dynamic filters in the modal
+            const modalFiltersContainer = document.getElementById('modal-mg-filters');
+            modalFiltersContainer.innerHTML = '';
+
+            if (selectedMgIds.length > 0) {
+                modalFiltersContainer.classList.remove('hidden');
+                
+                selectedMgIds.forEach((id, index) => {
+                    const name = selectedMgNames[index];
+                    const filterHtml = `
+                        <div class="flex items-center">
+                            <input type="checkbox" id="modal-filter-mg-${id}" value="${id}" class="modal-mg-filter-checkbox h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="modal-filter-mg-${id}" class="ml-2 text-sm text-gray-700 cursor-pointer font-medium">${name}</label>
+                        </div>
+                    `;
+                    modalFiltersContainer.insertAdjacentHTML('beforeend', filterHtml);
+                });
+
+                // Add event listeners to new checkboxes
+                document.querySelectorAll('.modal-mg-filter-checkbox').forEach(cb => {
+                    cb.addEventListener('change', applyModalFilters);
+                });
+            } else {
+                modalFiltersContainer.classList.add('hidden');
+            }
 
             // Reset checkboxes and search
             document.querySelectorAll('.modal-exercise-checkbox').forEach(cb => cb.checked = false);
             document.getElementById('exercise-search').value = '';
+
+            // Apply initial filters based on dayBlock selections
+            applyModalFilters();
 
             document.getElementById('exercise-modal').classList.remove('hidden');
         }

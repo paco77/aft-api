@@ -31,7 +31,7 @@ class PlanController extends Controller
             $query->where('coach_id', auth()->id());
         }
         $clients = $query->get();
-        $exercises = Exercise::with('muscleGroup')->get();
+        $exercises = Exercise::with('muscleGroup')->where('is_active', true)->get();
         $muscleGroups = \App\Models\MuscleGroup::all();
         return view('admin.plans.create', compact('clients', 'exercises', 'muscleGroups'));
     }

@@ -18,6 +18,7 @@ class Exercise extends Model
         'level',
         'is_custom',
         'user_id',
+        'is_active',
     ];
 
     protected $casts = [
@@ -25,6 +26,7 @@ class Exercise extends Model
         'secondary_muscles' => 'array',
         'benefits' => 'array',
         'is_custom' => 'boolean',
+        'is_active' => 'boolean',
     ];
 
     public function muscleGroup()

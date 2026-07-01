@@ -10,7 +10,7 @@ class ExerciseController extends Controller
 {
     public function index()
     {
-        $exercises = Exercise::with('muscleGroup')->latest()->get();
+        $exercises = Exercise::with('muscleGroup')->where('is_active', true)->latest()->get();
         return view('admin.exercises.index', compact('exercises'));
     }
 
@@ -90,7 +90,7 @@ class ExerciseController extends Controller
         if (auth()->user()->role === 'coach' && $exercise->user_id !== auth()->id()) {
             abort(403, 'No tienes permiso para eliminar este ejercicio.');
         }
-        $exercise->delete();
-        return redirect()->route('admin.exercises.index')->with('success', 'Ejercicio eliminado correctamente.');
+        $exercise->update(['is_active' => false]);
+        return redirect()->route('admin.exercises.index')->with('success', 'Ejercicio eliminado (deshabilitado) correctamente.');
     }
 }

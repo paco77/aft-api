@@ -11,7 +11,7 @@ class ExerciseController extends Controller
 {
     public function index()
     {
-        return ExerciseResource::collection(Exercise::with('muscleGroup')->get());
+        return ExerciseResource::collection(Exercise::with('muscleGroup')->where('is_active', true)->get());
     }
 
     public function store(Request $request)
@@ -83,7 +83,7 @@ class ExerciseController extends Controller
             return response()->json(['message' => 'No tienes permiso para eliminar este ejercicio.'], 403);
         }
 
-        $exercise->delete();
+        $exercise->update(['is_active' => false]);
 
         return response()->json([
             'message' => 'Ejercicio eliminado correctamente.',

@@ -19,6 +19,26 @@
                 @csrf
                 @method('PUT')
 
+                @if ($errors->any())
+                    <div class="mb-4 p-4 bg-red-50 border-l-4 border-red-500 rounded">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-red-800">Hay errores en el formulario:</h3>
+                                <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
                 <!-- Client & Plan Details -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     <div>
@@ -143,10 +163,10 @@
                             <div class="h-px w-full bg-gray-100 my-4"></div>
 
                             <p class="text-indigo-600 font-bold mb-2">Calorías Objetivo</p>
-                            <p class="text-4xl font-extrabold text-indigo-700"><span id="display_target">0</span> <span
+                            <p class="text-4xl font-extrabold text-indigo-700"><span id="display_target">{{ old('target_calories', $nutritionPlan->target_calories ?? 0) }}</span> <span
                                     class="text-lg text-indigo-500">kcal</span></p>
                             <!-- Hidden inputs to send in form -->
-                            <input type="hidden" name="target_calories" id="input_target_calories">
+                            <input type="hidden" name="target_calories" id="input_target_calories" value="{{ old('target_calories', $nutritionPlan->target_calories) }}">
                         </div>
 
                         <!-- Macro Settings -->
@@ -176,21 +196,21 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 text-center">
                             <p class="text-blue-600 font-bold mb-1">Proteínas</p>
-                            <p class="text-2xl font-bold text-blue-900"><span id="display_protein_g">0</span>g</p>
+                            <p class="text-2xl font-bold text-blue-900"><span id="display_protein_g">{{ old('total_protein', $nutritionPlan->total_protein ?? 0) }}</span>g</p>
                             <p class="text-xs text-blue-500 mt-1"><span id="display_protein_kcal">0</span> kcal</p>
-                            <input type="hidden" name="total_protein" id="input_protein">
+                            <input type="hidden" name="total_protein" id="input_protein" value="{{ old('total_protein', $nutritionPlan->total_protein) }}">
                         </div>
                         <div class="bg-orange-50 border border-orange-100 rounded-xl p-4 text-center">
                             <p class="text-orange-600 font-bold mb-1">Carbohidratos</p>
-                            <p class="text-2xl font-bold text-orange-900"><span id="display_carbs_g">0</span>g</p>
+                            <p class="text-2xl font-bold text-orange-900"><span id="display_carbs_g">{{ old('total_carbs', $nutritionPlan->total_carbs ?? 0) }}</span>g</p>
                             <p class="text-xs text-orange-500 mt-1"><span id="display_carbs_kcal">0</span> kcal</p>
-                            <input type="hidden" name="total_carbs" id="input_carbs">
+                            <input type="hidden" name="total_carbs" id="input_carbs" value="{{ old('total_carbs', $nutritionPlan->total_carbs) }}">
                         </div>
                         <div class="bg-green-50 border border-green-100 rounded-xl p-4 text-center">
                             <p class="text-green-600 font-bold mb-1">Grasas (Lípidos)</p>
-                            <p class="text-2xl font-bold text-green-900"><span id="display_lipids_g">0</span>g</p>
+                            <p class="text-2xl font-bold text-green-900"><span id="display_lipids_g">{{ old('total_fat', $nutritionPlan->total_fat ?? 0) }}</span>g</p>
                             <p class="text-xs text-green-500 mt-1"><span id="display_lipids_kcal">0</span> kcal</p>
-                            <input type="hidden" name="total_fat" id="input_fat">
+                            <input type="hidden" name="total_fat" id="input_fat" value="{{ old('total_fat', $nutritionPlan->total_fat) }}">
                         </div>
                     </div>
 
@@ -221,7 +241,7 @@
                             class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-100 transition-colors">
                             Cancelar
                         </a>
-                        <button type="submit" id="btn_submit" disabled
+                        <button type="submit" id="btn_submit"
                             class="px-6 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                             Guardar Plan de Alimentación
                         </button>

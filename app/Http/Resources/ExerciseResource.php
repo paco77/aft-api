@@ -27,6 +27,7 @@ class ExerciseResource extends JsonResource
             'benefits' => $this->benefits,
             'level' => $this->level,
             'is_custom' => (bool)$this->is_custom,
+            'video_url' => $this->video_url,
         ];
     }
 }

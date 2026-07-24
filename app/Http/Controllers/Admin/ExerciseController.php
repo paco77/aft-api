@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Exercise;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ExerciseController extends Controller
 {
@@ -26,11 +27,17 @@ class ExerciseController extends Controller
             'name' => 'required|string|max:255',
             'muscle_group_id' => 'required|exists:muscle_groups,id',
             'description' => 'nullable|string',
+            'video_file' => 'nullable|file|mimes:mp4,mov,ogg,qt,gif|max:50000',
         ]);
 
-        $data = $request->all();
+        $data = $request->except('video_file');
         $data['user_id'] = auth()->id();
         $data['is_custom'] = true;
+
+        if ($request->hasFile('video_file')) {
+            $path = $request->file('video_file')->store('exercises/videos', 'public');
+            $data['video_url'] = Storage::url($path);
+        }
         Exercise::create($data);
 
         return redirect()->route('admin.exercises.index')->with('success', 'Ejercicio creado correctamente.');
@@ -42,11 +49,17 @@ class ExerciseController extends Controller
             'name' => 'required|string|max:255',
             'muscle_group_id' => 'required|exists:muscle_groups,id',
             'description' => 'nullable|string',
+            'video_file' => 'nullable|file|mimes:mp4,mov,ogg,qt,gif|max:50000',
         ]);
 
         $data = $request->only(['name', 'muscle_group_id', 'description']);
         $data['user_id'] = auth()->id();
         $data['is_custom'] = true; // Assuming coaches creating on the fly are custom exercises
+
+        if ($request->hasFile('video_file')) {
+            $path = $request->file('video_file')->store('exercises/videos', 'public');
+            $data['video_url'] = Storage::url($path);
+        }
 
         $exercise = Exercise::create($data);
         
@@ -78,9 +91,21 @@ class ExerciseController extends Controller
             'name' => 'required|string|max:255',
             'muscle_group_id' => 'required|exists:muscle_groups,id',
             'description' => 'nullable|string',
+            'video_file' => 'nullable|file|mimes:mp4,mov,ogg,qt,gif|max:50000',
         ]);
 
-        $exercise->update($request->all());
+        $data = $request->except('video_file');
+
+        if ($request->hasFile('video_file')) {
+            if ($exercise->video_url) {
+                $oldPath = str_replace('/storage/', '', $exercise->video_url);
+                Storage::disk('public')->delete($oldPath);
+            }
+            $path = $request->file('video_file')->store('exercises/videos', 'public');
+            $data['video_url'] = Storage::url($path);
+        }
+
+        $exercise->update($data);
 
         return redirect()->route('admin.exercises.index')->with('success', 'Ejercicio actualizado correctamente.');
     }

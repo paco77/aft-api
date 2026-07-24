@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Exercise;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\ExerciseResource;
 
 class ExerciseController extends Controller
@@ -26,6 +27,7 @@ class ExerciseController extends Controller
             'secondary_muscles' => 'array|nullable',
             'benefits' => 'array|nullable',
             'level' => 'string|nullable',
+            'video_file' => 'nullable|file|mimes:mp4,mov,ogg,qt,gif|max:50000',
         ]);
 
         $muscleGroup = \App\Models\MuscleGroup::where('name', $data['muscle_group'])->first();
@@ -35,7 +37,16 @@ class ExerciseController extends Controller
         unset($data['muscle_group']);
 
         $data['user_id'] = auth()->id();
-        $exercise = Exercise::create($data);
+        
+        $insertData = $data;
+        unset($insertData['video_file']);
+
+        if ($request->hasFile('video_file')) {
+            $path = $request->file('video_file')->store('exercises/videos', 'public');
+            $insertData['video_url'] = Storage::url($path);
+        }
+
+        $exercise = Exercise::create($insertData);
         $exercise->load('muscleGroup');
 
         return new ExerciseResource($exercise);
@@ -62,6 +73,7 @@ class ExerciseController extends Controller
             'benefits' => 'array|nullable',
             'level' => 'string|nullable',
             'is_custom' => 'boolean',
+            'video_file' => 'nullable|file|mimes:mp4,mov,ogg,qt,gif|max:50000',
         ]);
 
         if (isset($data['muscle_group'])) {
@@ -72,7 +84,19 @@ class ExerciseController extends Controller
             unset($data['muscle_group']);
         }
 
-        $exercise->update($data);
+        $updateData = $data;
+        unset($updateData['video_file']);
+
+        if ($request->hasFile('video_file')) {
+            if ($exercise->video_url) {
+                $oldPath = str_replace('/storage/', '', $exercise->video_url);
+                Storage::disk('public')->delete($oldPath);
+            }
+            $path = $request->file('video_file')->store('exercises/videos', 'public');
+            $updateData['video_url'] = Storage::url($path);
+        }
+
+        $exercise->update($updateData);
 
         return new ExerciseResource($exercise);
     }

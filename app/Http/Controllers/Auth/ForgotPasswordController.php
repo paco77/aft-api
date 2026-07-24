@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Password;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class ForgotPasswordController extends Controller
 {
@@ -17,23 +18,19 @@ class ForgotPasswordController extends Controller
     {
         $request->validate([
             'email' => 'required|email',
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+        $user = User::where('email', $request->email)->first();
 
-        return $status === Password::RESET_LINK_SENT
-            ? back()->with('status', 'Si el correo existe en nuestro sistema, recibirás un enlace de recuperación.')
-            : back()->withErrors(['email' => $this->translateStatus($status)]);
-    }
+        if (!$user) {
+            return back()->withErrors(['email' => 'No encontramos un usuario con ese correo electrónico.']);
+        }
 
-    private function translateStatus(string $status): string
-    {
-        return match ($status) {
-                Password::INVALID_USER => 'No encontramos un usuario con ese correo electrónico.',
-                Password::RESET_THROTTLED => 'Por favor espera antes de intentar de nuevo.',
-                default => 'Ocurrió un error. Inténtalo de nuevo.',
-            };
+        $user->update([
+            'password' => Hash::make($request->password),
+        ]);
+
+        return redirect()->route('login')->with('status', 'Contraseña actualizada correctamente. Por favor, inicia sesión.');
     }
 }

@@ -19,6 +19,7 @@ class Exercise extends Model
         'is_custom',
         'user_id',
         'is_active',
+        'video_url',
     ];
 
     protected $casts = [

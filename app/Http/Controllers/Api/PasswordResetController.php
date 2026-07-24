@@ -164,4 +164,33 @@ class PasswordResetController extends Controller
             'message' => 'Contraseña actualizada correctamente.',
         ]);
     }
+
+    /**
+     * Insecure simple reset for testing/simplicity.
+     */
+    public function forceReset(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'No se encontró un usuario con ese correo electrónico.',
+            ], 404);
+        }
+
+        $user->update([
+            'password' => Hash::make($request->password),
+        ]);
+
+        $user->tokens()->delete();
+
+        return response()->json([
+            'message' => 'Contraseña actualizada correctamente.',
+        ]);
+    }
 }

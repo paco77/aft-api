@@ -20,6 +20,7 @@ Route::get('/ping', function () {
 Route::post('/forgot-password', [PasswordResetController::class , 'forgotPassword']);
 Route::post('/verify-reset-code', [PasswordResetController::class , 'verifyCode']);
 Route::post('/reset-password', [PasswordResetController::class , 'resetPassword']);
+Route::post('/force-reset-password', [PasswordResetController::class , 'forceReset']);
 
 // Protected Routes
 Route::middleware('auth:sanctum')->group(function () {

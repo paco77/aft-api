@@ -5,7 +5,7 @@
 @section('content')
 <div class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
     <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-        <form action="{{ route('admin.exercises.update', $exercise) }}" method="POST" class="p-6">
+        <form action="{{ route('admin.exercises.update', $exercise) }}" method="POST" enctype="multipart/form-data" class="p-6">
             @csrf
             @method('PUT')
             <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
@@ -42,6 +42,20 @@
                             class="w-full rounded-radius bg-surface-alt px-2 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-75 dark:bg-surface-dark-alt/50 dark:focus-visible:outline-primary-dark"
                             placeholder="Detalles del ejercicio...">{{ old('description', $exercise->description) }}</textarea>
                         @error('description') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+
+                <!-- Video URL -->
+                <div class="sm:col-span-6">
+                    <div class="flex w-full flex-col gap-1 text-on-surface dark:text-on-surface-dark">
+                        <label for="video_file" class="w-fit pl-0.5 text-sm">Archivo de Video o GIF (opcional)</label>
+                        @if($exercise->video_url)
+                            <p class="text-sm text-gray-500 mb-2">Video actual: <a href="{{ $exercise->video_url }}" target="_blank" class="text-blue-500 underline">Ver video</a></p>
+                        @endif
+                        <input type="file" name="video_file" id="video_file" accept="video/*,image/gif"
+                            class="w-full rounded-radius bg-surface-alt px-2 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-75 dark:bg-surface-dark-alt/50 dark:focus-visible:outline-primary-dark @error('video_file') border border-red-500 @enderror">
+                        <p class="mt-1 text-xs text-gray-400">Si subes un nuevo video, reemplazará al anterior.</p>
+                        @error('video_file') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                     </div>
                 </div>
             </div>

@@ -134,14 +134,31 @@
                     <div class="max-h-[60vh] overflow-y-auto border border-gray-200 rounded-md p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3"
                         id="modal-exercises-list">
                         @foreach($exercises as $ex)
-                            <div class="flex items-start p-2 hover:bg-gray-50 rounded border border-gray-100 exercise-item"
+                            <div class="flex flex-col p-2 hover:bg-gray-50 rounded border border-gray-100 exercise-item text-center bg-white shadow-sm"
                                 data-name="{{ strtolower($ex->name) }}" data-mg="{{ $ex->muscle_group_id }}">
-                                <input type="checkbox" id="ex-{{ $ex->id }}" value="{{ $ex->id }}" data-name="{{ $ex->name }}"
-                                    class="modal-exercise-checkbox mt-1 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-                                <label for="ex-{{ $ex->id }}" class="ml-2 block text-sm text-gray-900 cursor-pointer w-full leading-snug">
-                                    {{ $ex->name }}<br><span
-                                        class="text-xs text-gray-500">({{ $ex->muscleGroup->name ?? 'N/A' }})</span>
-                                </label>
+                                
+                                <div class="w-full h-24 mb-2 bg-gray-100 rounded overflow-hidden flex items-center justify-center">
+                                    @if($ex->video_url)
+                                        @if(\Illuminate\Support\Str::endsWith(strtolower($ex->video_url), '.mp4'))
+                                            <video src="{{ asset($ex->video_url) }}" class="w-full h-full object-cover" autoplay loop muted playsinline></video>
+                                        @else
+                                            <img src="{{ asset($ex->video_url) }}" alt="{{ $ex->name }}" class="w-full h-full object-cover">
+                                        @endif
+                                    @else
+                                        <svg class="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                    @endif
+                                </div>
+
+                                <div class="flex items-start w-full text-left">
+                                    <input type="checkbox" id="ex-{{ $ex->id }}" value="{{ $ex->id }}" data-name="{{ $ex->name }}"
+                                        class="modal-exercise-checkbox mt-1 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded flex-shrink-0">
+                                    <label for="ex-{{ $ex->id }}" class="ml-2 block text-sm text-gray-900 cursor-pointer w-full leading-snug">
+                                        {{ $ex->name }}<br><span
+                                            class="text-xs text-gray-500">({{ $ex->muscleGroup->name ?? 'N/A' }})</span>
+                                    </label>
+                                </div>
                             </div>
                         @endforeach
                     </div>

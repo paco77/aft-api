@@ -16,6 +16,7 @@
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Grupo Muscular</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">GIF / Video</th>
                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                 </tr>
             </thead>
@@ -29,6 +30,13 @@
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                             {{ $exercise->muscleGroup?->name ?? 'N/A' }}
                         </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                        @if($exercise->video_url)
+                            <svg class="w-5 h-5 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        @else
+                            <span class="text-gray-400 text-xs">-</span>
+                        @endif
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <a href="{{ route('admin.exercises.edit', $exercise) }}" class="inline-flex items-center text-indigo-600 hover:text-indigo-900 font-bold mr-3" title="Editar">

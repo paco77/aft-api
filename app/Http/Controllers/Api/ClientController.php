@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Models\ClientProgressLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Laravel\Facades\Image;
 
 class ClientController extends Controller
 {
@@ -35,6 +37,7 @@ class ClientController extends Controller
             'age' => 'nullable|integer',
             'training_time' => 'nullable|string',
             'objectives' => 'nullable|string',
+            'measurements' => 'nullable|json',
             'profile_photo' => 'nullable|image|max:20480',
             'front_photo' => 'nullable|image|max:20480',
             'side_photo' => 'nullable|image|max:20480',
@@ -70,7 +73,54 @@ class ClientController extends Controller
 
         $user = User::create($userData);
 
+        // Create initial progress log if there's data for it
+        if (
+            isset($validated['weight']) || 
+            isset($validated['measurements']) || 
+            $request->hasFile('front_photo') || 
+            $request->hasFile('side_photo') || 
+            $request->hasFile('back_photo')
+        ) {
+            $logData = [
+                'client_id' => $user->id,
+                'coach_id' => $request->user()->id,
+                'weight' => $validated['weight'] ?? null,
+                'measurements' => isset($validated['measurements']) ? json_decode($validated['measurements'], true) : null,
+                'comments' => 'Registro inicial',
+                'recorded_at' => now(),
+            ];
+
+            if ($request->hasFile('front_photo')) {
+                $logData['front_photo_path'] = $this->processAndStoreImage($request->file('front_photo'), $user->id, 'front');
+            }
+            if ($request->hasFile('side_photo')) {
+                $logData['side_photo_path'] = $this->processAndStoreImage($request->file('side_photo'), $user->id, 'side');
+            }
+            if ($request->hasFile('back_photo')) {
+                $logData['back_photo_path'] = $this->processAndStoreImage($request->file('back_photo'), $user->id, 'back');
+            }
+
+            ClientProgressLog::create($logData);
+        }
+
         return new UserResource($user);
+    }
+
+    /**
+     * Process an image (resize, compress to webp) and store it in the default disk.
+     */
+    private function processAndStoreImage($file, $clientId, $prefix)
+    {
+        $filename = 'progress_photos/' . $clientId . '/' . $prefix . '_' . time() . '.webp';
+        
+        $image = Image::read($file)
+            ->scaleDown(width: 1080)
+            ->toWebp(quality: 80);
+            
+        // Use the configured FILESYSTEM_DISK to put the file (e.g., 's3' or 'local')
+        Storage::put($filename, (string) $image, 'public');
+        
+        return $filename;
     }
 
     /**

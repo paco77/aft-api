@@ -15,6 +15,7 @@ class PlannedExercise extends Model
         'min_reps',
         'max_reps',
         'instruction',
+        'superset_id',
     ];
 
     public function trainingDay()

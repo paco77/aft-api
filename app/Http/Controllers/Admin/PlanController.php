@@ -53,6 +53,8 @@ class PlanController extends Controller
             'days.*.exercises.*.sets' => 'required|integer',
             'days.*.exercises.*.min_reps' => 'required|integer',
             'days.*.exercises.*.max_reps' => 'required|integer',
+            'days.*.exercises.*.instruction' => 'string|nullable',
+            'days.*.exercises.*.superset_id' => 'string|nullable',
         ]);
 
         if (auth()->user()->role === 'coach') {
@@ -86,6 +88,8 @@ class PlanController extends Controller
                             'sets' => $exerciseData['sets'],
                             'min_reps' => $exerciseData['min_reps'],
                             'max_reps' => $exerciseData['max_reps'],
+                            'instruction' => $exerciseData['instruction'] ?? null,
+                            'superset_id' => $exerciseData['superset_id'] ?? null,
                         ]);
                     }
                 }

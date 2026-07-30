@@ -77,6 +77,7 @@ class PlanController extends Controller
             'days.*.exercises.*.min_reps' => 'required|integer',
             'days.*.exercises.*.max_reps' => 'required|integer',
             'days.*.exercises.*.instruction' => 'string|nullable',
+            'days.*.exercises.*.superset_id' => 'string|nullable',
         ]);
 
         return DB::transaction(function () use ($request, $data) {
@@ -144,6 +145,7 @@ class PlanController extends Controller
                             'min_reps' => $exerciseData['min_reps'],
                             'max_reps' => $exerciseData['max_reps'],
                             'instruction' => $exerciseData['instruction'] ?? null,
+                            'superset_id' => $exerciseData['superset_id'] ?? null,
                         ]);
                     }
                     
@@ -179,6 +181,7 @@ class PlanController extends Controller
             'days.*.exercises.*.min_reps' => 'required|integer',
             'days.*.exercises.*.max_reps' => 'required|integer',
             'days.*.exercises.*.instruction' => 'string|nullable',
+            'days.*.exercises.*.superset_id' => 'string|nullable',
         ]);
 
         return DB::transaction(function () use ($request, $data, $plan) {
@@ -276,6 +279,7 @@ class PlanController extends Controller
                                                 'min_reps' => $exerciseData['min_reps'],
                                                 'max_reps' => $exerciseData['max_reps'],
                                                 'instruction' => $exerciseData['instruction'] ?? null,
+                                                'superset_id' => $exerciseData['superset_id'] ?? null,
                                             ]);
                                         }
                                         else {
@@ -285,6 +289,7 @@ class PlanController extends Controller
                                                 'min_reps' => $exerciseData['min_reps'],
                                                 'max_reps' => $exerciseData['max_reps'],
                                                 'instruction' => $exerciseData['instruction'] ?? null,
+                                                'superset_id' => $exerciseData['superset_id'] ?? null,
                                             ]);
                                         }
                                     }
@@ -295,6 +300,7 @@ class PlanController extends Controller
                                             'min_reps' => $exerciseData['min_reps'],
                                             'max_reps' => $exerciseData['max_reps'],
                                             'instruction' => $exerciseData['instruction'] ?? null,
+                                            'superset_id' => $exerciseData['superset_id'] ?? null,
                                         ]);
                                     }
                                 }

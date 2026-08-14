@@ -56,6 +56,7 @@ class MonthlyPlanResource extends JsonResource
             'year' => $this->year,
             'days_per_week' => $this->days_per_week,
             'split_type' => $this->split_type,
+            'comment' => $this->comment,
             'training_days' => TrainingDayResource::collection($this->trainingDays),
             'logs' => $logs,
             'created_at' => $this->created_at->toIso8601String(),

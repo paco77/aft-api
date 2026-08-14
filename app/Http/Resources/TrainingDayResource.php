@@ -21,6 +21,7 @@ class TrainingDayResource extends JsonResource
             'day_number' => $this->day_number,
             'muscle_groups' => $this->muscle_groups,
             'target_volumes' => $this->target_volumes,
+            'comment' => $this->comment,
             'exercises' => PlannedExerciseResource::collection($this->plannedExercises),
         ];
     }

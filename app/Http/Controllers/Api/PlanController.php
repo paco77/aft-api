@@ -64,6 +64,7 @@ class PlanController extends Controller
             'year' => 'required|integer',
             'days_per_week' => 'required|integer',
             'split_type' => 'required|string',
+            'comment' => 'nullable|string',
             'days' => 'required|array',
             'days.*.label' => 'required|string',
             'days.*.day_number' => 'required|integer',
@@ -98,6 +99,7 @@ class PlanController extends Controller
                 'year' => $data['year'],
                 'days_per_week' => $data['days_per_week'],
                 'split_type' => $data['split_type'],
+                'comment' => $data['comment'] ?? null,
             ]);
 
             foreach ($data['days'] as $dayData) {
@@ -167,6 +169,7 @@ class PlanController extends Controller
             'year' => 'required|integer',
             'days_per_week' => 'required|integer',
             'split_type' => 'required|string',
+            'comment' => 'nullable|string',
             'days' => 'array',
             'days.*.id' => 'integer|nullable',
             'days.*.label' => 'required|string',
@@ -197,6 +200,7 @@ class PlanController extends Controller
                 'year' => $data['year'],
                 'days_per_week' => $data['days_per_week'],
                 'split_type' => $data['split_type'],
+                'comment' => $data['comment'] ?? null,
             ]);
 
             if (isset($data['days'])) {

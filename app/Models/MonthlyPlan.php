@@ -13,6 +13,7 @@ class MonthlyPlan extends Model
         'year',
         'days_per_week',
         'split_type',
+        'comment',
     ];
 
     public function user()

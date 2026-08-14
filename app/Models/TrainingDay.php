@@ -12,6 +12,7 @@ class TrainingDay extends Model
         'day_number',
         'muscle_groups',
         'target_volumes',
+        'comment',
     ];
 
     protected $casts = [

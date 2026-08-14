@@ -106,6 +106,7 @@ class PlanController extends Controller
                     'day_number' => $dayData['day_number'],
                     'muscle_groups' => $dayData['muscle_groups'] ?? [],
                     'target_volumes' => null, // Se calculará automáticamente
+                    'comment' => $dayData['comment'] ?? null,
                 ]);
 
                 if (isset($dayData['exercises'])) {
@@ -216,6 +217,7 @@ class PlanController extends Controller
                                         'day_number' => $dayData['day_number'],
                                         'muscle_groups' => $dayData['muscle_groups'] ?? [],
                                         'target_volumes' => $dayData['target_volumes'] ?? null,
+                                        'comment' => $dayData['comment'] ?? null,
                                     ]);
                                 }
                                 else {
@@ -224,6 +226,7 @@ class PlanController extends Controller
                                         'day_number' => $dayData['day_number'],
                                         'muscle_groups' => $dayData['muscle_groups'] ?? [],
                                         'target_volumes' => $dayData['target_volumes'] ?? null,
+                                        'comment' => $dayData['comment'] ?? null,
                                     ]);
                                 }
                             }
@@ -233,6 +236,7 @@ class PlanController extends Controller
                                     'day_number' => $dayData['day_number'],
                                     'muscle_groups' => $dayData['muscle_groups'] ?? [],
                                     'target_volumes' => $dayData['target_volumes'] ?? null,
+                                    'comment' => $dayData['comment'] ?? null,
                                 ]);
                             }
 

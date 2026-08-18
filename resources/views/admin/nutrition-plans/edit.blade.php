@@ -274,19 +274,36 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad *</label>
-                        <input type="number" id="modal_food_qty" step="0.1" value="100"
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-sm font-medium text-gray-700">Cantidad *</label>
+                            <span class="text-xs text-gray-400">Ej: 1, 1/2, 1/3, 100</span>
+                        </div>
+                        <input type="text" id="modal_food_qty" value="100" placeholder="Ej: 1, 1/2, 1/3, 100"
                             class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <div id="fraction_quick_buttons" class="flex flex-wrap gap-1 mt-2">
+                            <button type="button" class="btn-fraction text-xs bg-gray-100 hover:bg-blue-50 hover:text-blue-600 border border-gray-200 rounded px-2 py-0.5 font-medium text-gray-700 transition-colors" data-val="1/4">1/4</button>
+                            <button type="button" class="btn-fraction text-xs bg-gray-100 hover:bg-blue-50 hover:text-blue-600 border border-gray-200 rounded px-2 py-0.5 font-medium text-gray-700 transition-colors" data-val="1/3">1/3</button>
+                            <button type="button" class="btn-fraction text-xs bg-gray-100 hover:bg-blue-50 hover:text-blue-600 border border-gray-200 rounded px-2 py-0.5 font-medium text-gray-700 transition-colors" data-val="1/2">1/2</button>
+                            <button type="button" class="btn-fraction text-xs bg-gray-100 hover:bg-blue-50 hover:text-blue-600 border border-gray-200 rounded px-2 py-0.5 font-medium text-gray-700 transition-colors" data-val="3/4">3/4</button>
+                            <button type="button" class="btn-fraction text-xs bg-gray-100 hover:bg-blue-50 hover:text-blue-600 border border-gray-200 rounded px-2 py-0.5 font-medium text-gray-700 transition-colors" data-val="1">1</button>
+                            <button type="button" class="btn-fraction text-xs bg-gray-100 hover:bg-blue-50 hover:text-blue-600 border border-gray-200 rounded px-2 py-0.5 font-medium text-gray-700 transition-colors" data-val="1 1/2">1 1/2</button>
+                        </div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Unidad</label>
                         <select id="modal_food_unit"
                             class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="g">Gramos (g)</option>
-                            <option value="pz">Pieza (pz)</option>
-                            <option value="porcion">Porción</option>
-                            <option value="taza">Taza (tz)</option>
                             <option value="ml">Mililitros (ml)</option>
+                            <option value="taza">Taza (tz)</option>
+                            <option value="porcion">Porción</option>
+                            <option value="pz">Pieza (pz)</option>
+                            <option value="cda">Cucharada (cda)</option>
+                            <option value="cdita">Cucharadita (cdita)</option>
+                            <option value="rebanada">Rebanada</option>
+                            <option value="scoop">Scoop / Medida</option>
+                            <option value="vaso">Vaso</option>
+                            <option value="lata">Lata</option>
                         </select>
                     </div>
                 </div>
@@ -386,6 +403,14 @@
             let w = 0;
             let meals = []; // State array for meals
 
+            function formatServingSize(qty) {
+                if (qty === null || qty === undefined || qty === '') return '0';
+                const str = String(qty).trim();
+                if (str.includes('/')) return str;
+                const num = parseFloat(str);
+                return isNaN(num) ? str : String(num);
+            }
+
             function updateMealsData() {
                 inputMealsData.value = JSON.stringify(meals);
             }
@@ -413,14 +438,14 @@
                         meal.foods.forEach((food, foodIndex) => {
                             foodsHtml += `
                                     <li class="py-3 flex justify-between items-center group">
-                                        <div>
-                                            <p class="font-semibold text-sm text-gray-800">${food.name}</p>
-                                            <p class="text-xs text-gray-500 mt-0.5">${food.serving_size} ${food.serving_unit}</p>
-                                        </div>
-                                        <button type="button" class="btn-remove-food text-gray-300 hover:text-red-500 transition-colors p-1" data-meal-idx="${mealIndex}" data-food-idx="${foodIndex}">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                        </button>
-                                    </li>`;
+                                    <div>
+                                        <p class="font-semibold text-sm text-gray-800">${food.name}</p>
+                                        <p class="text-xs text-gray-500 mt-0.5">${formatServingSize(food.serving_size)} ${food.serving_unit}</p>
+                                    </div>
+                                    <button type="button" class="btn-remove-food text-gray-300 hover:text-red-500 transition-colors p-1" data-meal-idx="${mealIndex}" data-food-idx="${foodIndex}">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    </button>
+                                </li>`;
                         });
                         foodsHtml += `</ul>`;
                     } else {
@@ -428,26 +453,26 @@
                     }
 
                     mealsContainer.innerHTML += `
-                            <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:border-blue-100 transition-colors">
-                                <div class="flex justify-between items-center">
-                                    <div class="flex-1 mr-4 flex items-center gap-2">
-                                        <input type="text" class="meal-name-input font-bold text-gray-900 border-none bg-transparent p-0 focus:ring-0 w-full" value="${meal.name}" data-meal-idx="${mealIndex}" placeholder="Ej. Desayuno">
-                                    </div>
-                                    <div class="flex items-center gap-4">
-                                        <!-- <span class="text-sm font-semibold bg-gray-100 px-2 py-1 rounded text-gray-600">${mealTotalCals.toFixed(0)} kcal</span> -->
-                                        <button type="button" class="btn-remove-meal text-red-500 hover:text-red-700" data-meal-idx="${mealIndex}" title="Eliminar comida">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                        </button>
-                                    </div>
+                        <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:border-blue-100 transition-colors">
+                            <div class="flex justify-between items-center">
+                                <div class="flex-1 mr-4 flex items-center gap-2">
+                                    <input type="text" class="meal-name-input font-bold text-gray-900 border-b border-dashed border-gray-300 focus:border-blue-500 bg-transparent py-1 px-1 focus:ring-0 w-full placeholder-gray-400 focus:outline-none transition-colors" value="${meal.name ? meal.name : ''}" data-meal-idx="${mealIndex}" placeholder="Ej. Desayuno, Almuerzo, Cena...">
                                 </div>
-                                ${foodsHtml}
-                                <div class="mt-4 pt-4 border-t border-gray-50 flex justify-center">
-                                    <button type="button" class="btn-open-modal text-sm font-medium text-blue-600 hover:text-blue-800 flex items-center gap-1" data-meal-idx="${mealIndex}">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                                        Añadir Alimento
+                                <div class="flex items-center gap-4">
+                                    <!-- <span class="text-sm font-semibold bg-gray-100 px-2 py-1 rounded text-gray-600">${mealTotalCals.toFixed(0)} kcal</span> -->
+                                    <button type="button" class="btn-remove-meal text-red-500 hover:text-red-700" data-meal-idx="${mealIndex}" title="Eliminar comida">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                     </button>
                                 </div>
-                            </div>`;
+                            </div>
+                            ${foodsHtml}
+                            <div class="mt-4 pt-4 border-t border-gray-50 flex justify-center">
+                                <button type="button" class="btn-open-modal text-sm font-medium text-blue-600 hover:text-blue-800 flex items-center gap-1" data-meal-idx="${mealIndex}">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                    Añadir Alimento
+                                </button>
+                            </div>
+                        </div>`;
                 });
 
                 updateMealsData();
@@ -473,6 +498,11 @@
                 });
 
                 document.querySelectorAll('.meal-name-input').forEach(input => {
+                    input.addEventListener('input', function () {
+                        const mIdx = parseInt(this.getAttribute('data-meal-idx'));
+                        meals[mIdx].name = this.value;
+                        updateMealsData();
+                    });
                     input.addEventListener('change', function () {
                         const mIdx = parseInt(this.getAttribute('data-meal-idx'));
                         meals[mIdx].name = this.value;
@@ -487,8 +517,8 @@
 
                         // Clear modal fields
                         modalFoodName.value = '';
-                        modalFoodQty.value = '100';
                         modalFoodUnit.value = 'g';
+                        modalFoodQty.value = '100';
                         modalFoodCals.value = '0';
                         modalFoodProt.value = '0';
                         modalFoodCarbs.value = '0';
@@ -501,8 +531,29 @@
                 });
             }
 
+            document.querySelectorAll('.btn-fraction').forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    modalFoodQty.value = this.getAttribute('data-val');
+                    modalFoodQty.focus();
+                });
+            });
+
+            modalFoodUnit.addEventListener('change', function () {
+                const val = this.value;
+                if (['g', 'ml'].includes(val)) {
+                    if (modalFoodQty.value === '1' || modalFoodQty.value.includes('/')) {
+                        modalFoodQty.value = '100';
+                    }
+                } else {
+                    if (modalFoodQty.value === '100') {
+                        modalFoodQty.value = '1';
+                    }
+                }
+            });
+
             btnAddMeal.addEventListener('click', function () {
-                meals.push({ name: 'Nueva Comida', foods: [] });
+                meals.push({ name: '', foods: [] });
                 renderMeals();
             });
 
@@ -519,9 +570,10 @@
                 const name = modalFoodName.value.trim();
                 if (!name) { alert('Ingresa un nombre para el alimento.'); return; }
 
+                const rawQty = modalFoodQty.value.trim();
                 const newFood = {
                     name: name,
-                    serving_size: parseFloat(modalFoodQty.value) || 0,
+                    serving_size: rawQty || '1',
                     serving_unit: modalFoodUnit.value,
                     calories: parseFloat(modalFoodCals.value) || 0,
                     protein: parseFloat(modalFoodProt.value) || 0,

@@ -140,7 +140,7 @@
                     @forelse($meal->foods as $food)
                         <tr>
                             <td class="food-name">{{ $food->name }}</td>
-                            <td>{{ $food->serving_size }} {{ $food->serving_unit }}</td>
+                            <td>{{ is_numeric($food->serving_size) ? (float)$food->serving_size : $food->serving_size }} {{ $food->serving_unit }}</td>
                             <td>{{ $food->calories }}</td>
                             <td>{{ $food->protein }}</td>
                             <td>{{ $food->carbs }}</td>

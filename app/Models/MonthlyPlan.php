@@ -30,4 +30,13 @@ class MonthlyPlan extends Model
     {
         return $this->hasMany(TrainingDay::class);
     }
+
+    protected static function booted()
+    {
+        static::deleting(function ($plan) {
+            $plan->trainingDays()->each(function ($day) {
+                $day->delete();
+            });
+        });
+    }
 }

@@ -146,7 +146,7 @@
                                     <li class="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-gray-50/50">
                                         <div class="flex-1">
                                             <p class="font-semibold text-gray-900">{{ $food->name }}</p>
-                                            <p class="text-sm text-gray-500 mt-0.5">{{ $food->serving_size }} {{ $food->serving_unit }}</p>
+                                            <p class="text-sm text-gray-500 mt-0.5">{{ is_numeric($food->serving_size) ? (float)$food->serving_size : $food->serving_size }} {{ $food->serving_unit }}</p>
                                         </div>
                                         <!-- Oculto por solicitud del usuario: 
                                         <div class="flex items-center gap-4 text-sm bg-gray-50 px-4 py-2 rounded-lg">

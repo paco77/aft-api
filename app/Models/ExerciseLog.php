@@ -25,4 +25,11 @@ class ExerciseLog extends Model
     {
         return $this->hasMany(SetLog::class);
     }
+
+    protected static function booted()
+    {
+        static::deleting(function ($log) {
+            $log->setLogs()->delete();
+        });
+    }
 }

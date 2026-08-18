@@ -42,4 +42,13 @@ class PlannedExercise extends Model
     {
         return $this->belongsTo(User::class , 'coach_id');
     }
+
+    protected static function booted()
+    {
+        static::deleting(function ($exercise) {
+            $exercise->exerciseLogs()->each(function ($log) {
+                $log->delete();
+            });
+        });
+    }
 }

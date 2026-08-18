@@ -34,4 +34,13 @@ class WorkoutSession extends Model
     {
         return $this->hasMany(ExerciseLog::class);
     }
+
+    protected static function booted()
+    {
+        static::deleting(function ($session) {
+            $session->exerciseLogs()->each(function ($log) {
+                $log->delete();
+            });
+        });
+    }
 }

@@ -34,4 +34,16 @@ class TrainingDay extends Model
     {
         return $this->hasMany(WorkoutSession::class);
     }
+
+    protected static function booted()
+    {
+        static::deleting(function ($day) {
+            $day->plannedExercises()->each(function ($exercise) {
+                $exercise->delete();
+            });
+            $day->workoutSessions()->each(function ($session) {
+                $session->delete();
+            });
+        });
+    }
 }

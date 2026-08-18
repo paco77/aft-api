@@ -95,9 +95,13 @@ class NutritionPlanController extends Controller
         if ($request->filled('meals_data')) {
             $meals = json_decode($request->input('meals_data'), true);
             if (is_array($meals)) {
-                foreach ($meals as $mealData) {
+                foreach ($meals as $index => $mealData) {
+                    $mealName = isset($mealData['name']) && trim($mealData['name']) !== ''
+                        ? trim($mealData['name'])
+                        : 'Comida ' . ($index + 1);
+
                     $meal = $plan->meals()->create([
-                        'name' => $mealData['name'],
+                        'name' => $mealName,
                         'time' => $mealData['time'] ?? null,
                     ]);
 
@@ -193,9 +197,13 @@ class NutritionPlanController extends Controller
         if ($request->filled('meals_data')) {
             $meals = json_decode($request->input('meals_data'), true);
             if (is_array($meals)) {
-                foreach ($meals as $mealData) {
+                foreach ($meals as $index => $mealData) {
+                    $mealName = isset($mealData['name']) && trim($mealData['name']) !== ''
+                        ? trim($mealData['name'])
+                        : 'Comida ' . ($index + 1);
+
                     $meal = $nutritionPlan->meals()->create([
-                        'name' => $mealData['name'],
+                        'name' => $mealName,
                         'time' => $mealData['time'] ?? null,
                     ]);
 

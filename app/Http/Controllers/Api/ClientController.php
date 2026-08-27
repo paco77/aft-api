@@ -137,6 +137,72 @@ class ClientController extends Controller
     }
 
     /**
+     * Update the specified client in storage.
+     */
+    public function update(Request $request, User $client)
+    {
+        // Ensure the client belongs to this coach
+        if ($client->coach_id !== $request->user()->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'username' => 'sometimes|required|string|max:255|unique:users,username,' . $client->id,
+            'name' => 'sometimes|required|string|max:255',
+            'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $client->id,
+            'password' => 'nullable|string|min:8',
+            'weight' => 'nullable|numeric',
+            'height' => 'nullable|numeric',
+            'age' => 'nullable|integer',
+            'training_time' => 'nullable|string',
+            'objectives' => 'nullable|string',
+            'training_info' => 'nullable|string',
+            'experience_years' => 'nullable|integer',
+            'profile_photo' => 'nullable|image|max:20480',
+            'front_photo' => 'nullable|image|max:20480',
+            'side_photo' => 'nullable|image|max:20480',
+            'back_photo' => 'nullable|image|max:20480',
+        ]);
+
+        if (!empty($validated['password'])) {
+            $validated['password'] = Hash::make($validated['password']);
+        } else {
+            unset($validated['password']);
+        }
+
+        if ($request->hasFile('profile_photo')) {
+            if ($client->profile_photo_path) {
+                Storage::disk('public')->delete($client->profile_photo_path);
+            }
+            $validated['profile_photo_path'] = $request->file('profile_photo')->store('profile-photos', 'public');
+        }
+        if ($request->hasFile('front_photo')) {
+            if ($client->front_photo) {
+                Storage::disk('public')->delete($client->front_photo);
+            }
+            $validated['front_photo'] = $request->file('front_photo')->store('clients/photos', 'public');
+        }
+        if ($request->hasFile('side_photo')) {
+            if ($client->side_photo) {
+                Storage::disk('public')->delete($client->side_photo);
+            }
+            $validated['side_photo'] = $request->file('side_photo')->store('clients/photos', 'public');
+        }
+        if ($request->hasFile('back_photo')) {
+            if ($client->back_photo) {
+                Storage::disk('public')->delete($client->back_photo);
+            }
+            $validated['back_photo'] = $request->file('back_photo')->store('clients/photos', 'public');
+        }
+
+        unset($validated['profile_photo']);
+
+        $client->update($validated);
+
+        return new UserResource($client);
+    }
+
+    /**
      * Remove the specified client from the coach.
      */
     public function destroy(Request $request, User $client)
@@ -146,8 +212,8 @@ class ClientController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $client->update(['coach_id' => null]);
+        $client->delete();
 
-        return response()->json(['message' => 'Cliente desvinculado correctamente.']);
+        return response()->json(['message' => 'Cliente y toda su información eliminados correctamente.']);
     }
 }

@@ -10,7 +10,7 @@
             Nuevo Plan
         </a>
     </div>
-    <div class="border-t border-gray-200">
+    <div class="border-t border-gray-200 overflow-x-auto p-4">
         <table id="plans-table" class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>

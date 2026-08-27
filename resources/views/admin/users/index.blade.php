@@ -10,7 +10,7 @@
             Nuevo Usuario
         </a>
     </div>
-    <div class="border-t border-gray-200">
+    <div class="border-t border-gray-200 overflow-x-auto p-4">
         <table id="users-table" class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
@@ -32,13 +32,22 @@
                         <div class="text-sm text-gray-900">{{ $user->email }}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                            @if($user->role == 'admin') bg-red-100 text-red-800 
-                            @elseif($user->role == 'coach') bg-green-100 text-green-800 
-                            @elseif($user->role == 'client') bg-blue-100 text-blue-800 
-                            @else bg-gray-100 text-gray-800 @endif">
-                            {{ ucfirst($user->role) }}
-                        </span>
+                        <div class="flex flex-col gap-1 items-start">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                @if($user->role == 'admin') bg-red-100 text-red-800 
+                                @elseif($user->role == 'coach') bg-green-100 text-green-800 
+                                @elseif($user->role == 'client') bg-blue-100 text-blue-800 
+                                @else bg-gray-100 text-gray-800 @endif">
+                                {{ ucfirst($user->role) }}
+                            </span>
+                            @if($user->role === 'client')
+                                @if($user->coach)
+                                    <span class="text-xs text-slate-500">Coach: <span class="font-medium text-slate-700">{{ $user->coach->name }}</span></span>
+                                @else
+                                    <span class="text-xs text-amber-600 font-medium italic">Sin Coach</span>
+                                @endif
+                            @endif
+                        </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         @if($user->is_active)

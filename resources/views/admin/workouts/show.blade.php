@@ -77,7 +77,7 @@
                         @endif
                     </div>
                     
-                    <div class="p-0">
+                    <div class="p-0 overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50 text-center">
                                 <tr>

@@ -11,7 +11,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        $query = User::latest();
+        $query = User::with('coach')->latest();
         if (auth()->user()->role === 'coach') {
             $query->where('role', 'client')->where('coach_id', auth()->id());
         }
@@ -44,9 +44,16 @@ class UserController extends Controller
 
         $request->validate($rules);
 
-        $role = auth()->user()->role === 'admin' ? $request->role : 'client';
-        $coach_id = auth()->user()->role === 'coach' ? auth()->id() : $request->coach_id;
-        $is_active = auth()->user()->role === 'admin' ? $request->boolean('is_active', true) : true;
+        if (auth()->user()->role === 'admin') {
+            $role = $request->role;
+            // Solo si el rol es client y se seleccionó un coach se asigna, de lo contrario null (desligado)
+            $coach_id = ($role === 'client' && $request->filled('coach_id')) ? $request->coach_id : null;
+            $is_active = $request->boolean('is_active', true);
+        } else {
+            $role = 'client';
+            $coach_id = auth()->id();
+            $is_active = true;
+        }
 
         $profilePhotoPath = null;
         if ($request->hasFile('profile_photo')) {
@@ -73,7 +80,7 @@ class UserController extends Controller
         if (auth()->user()->role === 'coach' && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
             abort(403, 'No tienes permiso para editar este usuario.');
         }
-        $coaches = User::where('role', 'coach')->get();
+        $coaches = User::where('role', 'coach')->where('id', '!=', $user->id)->get();
         return view('admin.users.edit', compact('user', 'coaches'));
     }
 
@@ -100,8 +107,15 @@ class UserController extends Controller
 
         $request->validate($rules);
 
-        $role = auth()->user()->role === 'admin' ? $request->role : 'client';
-        $coach_id = auth()->user()->role === 'coach' ? auth()->id() : $request->coach_id;
+        if (auth()->user()->role === 'admin') {
+            $role = $request->role;
+            // Si el rol es coach u otro diferente de client, coach_id debe ser null.
+            // Si el rol es client y se envió coach_id con valor, se asigna; si está vacío/desligado, es null.
+            $coach_id = ($role === 'client' && $request->filled('coach_id')) ? $request->coach_id : null;
+        } else {
+            $role = 'client';
+            $coach_id = auth()->id();
+        }
 
         $userData = [
             'username' => $request->username,

@@ -8,11 +8,36 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
+
+    protected static function booted()
+    {
+        static::deleting(function ($user) {
+            if ($user->profile_photo_path) {
+                Storage::disk('public')->delete($user->profile_photo_path);
+            }
+            if ($user->logo_path) {
+                Storage::disk('public')->delete($user->logo_path);
+            }
+            if ($user->front_photo) {
+                Storage::disk('public')->delete($user->front_photo);
+            }
+            if ($user->side_photo) {
+                Storage::disk('public')->delete($user->side_photo);
+            }
+            if ($user->back_photo) {
+                Storage::disk('public')->delete($user->back_photo);
+            }
+            // Eliminar planes asignados al cliente
+            \App\Models\NutritionPlan::where('client_id', $user->id)->delete();
+            \App\Models\MonthlyPlan::where('assigned_client_id', $user->id)->delete();
+        });
+    }
 
     /**
      * The attributes that are mass assignable.

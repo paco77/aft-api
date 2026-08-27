@@ -92,6 +92,10 @@ class AuthController extends Controller
         $user = $request->user();
 
         $data = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'username' => 'sometimes|required|string|max:255|unique:users,username,' . $user->id,
+            'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:8',
             'weight' => 'nullable|numeric',
             'height' => 'nullable|numeric',
             'age' => 'nullable|integer',
@@ -101,6 +105,12 @@ class AuthController extends Controller
             'training_info' => 'nullable|string',
             'profile_photo' => 'nullable|image|max:20480', // Max 20MB
         ]);
+
+        if (!empty($data['password'])) {
+            $data['password'] = Hash::make($data['password']);
+        } else {
+            unset($data['password']);
+        }
 
         if ($request->hasFile('profile_photo')) {
             // Delete old photo if exists
@@ -115,7 +125,7 @@ class AuthController extends Controller
         // Remove profile_photo from data before updating other fields
         unset($data['profile_photo']);
 
-        $user->update(array_filter($data));
+        $user->update(array_filter($data, fn($v) => !is_null($v)));
         $user->save();
 
         return new UserResource($user);

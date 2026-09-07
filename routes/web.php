@@ -41,6 +41,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('nutrition-plans', \App\Http\Controllers\Admin\NutritionPlanController::class);
     Route::get('nutrition-plans/{nutrition_plan}/pdf', [\App\Http\Controllers\Admin\NutritionPlanController::class, 'exportPdf'])->name('nutrition-plans.pdf');
 
+    // Rutas para Actividades al Aire Libre (Cardio GPS)
+    Route::resource('outdoor-activities', \App\Http\Controllers\Admin\OutdoorActivityController::class)->only(['index', 'destroy']);
+
     // Rutas para Entrenamientos y Progreso
     Route::get('/users/{user}/workouts', [\App\Http\Controllers\Admin\WorkoutController::class, 'index'])->name('users.workouts');
     Route::get('/users/{user}/progress', [\App\Http\Controllers\Admin\UserController::class, 'progress'])->name('users.progress');

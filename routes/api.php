@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\ExerciseController;
 use App\Http\Controllers\Api\MuscleGroupController;
+use App\Http\Controllers\Api\OutdoorActivityController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\PlanController;
 use App\Http\Controllers\Api\WorkoutController;
@@ -60,4 +61,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Steps
     Route::get('/steps', [\App\Http\Controllers\Api\StepLogController::class, 'index']);
     Route::post('/steps', [\App\Http\Controllers\Api\StepLogController::class, 'store']);
+
+    // Outdoor Activities (Cardio GPS)
+    Route::get('/outdoor-activities', [OutdoorActivityController::class, 'index']);
+    Route::post('/outdoor-activities', [OutdoorActivityController::class, 'store']);
+    Route::delete('/outdoor-activities/{outdoorActivity}', [OutdoorActivityController::class, 'destroy']);
 });

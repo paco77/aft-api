@@ -41,6 +41,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('nutrition-plans', \App\Http\Controllers\Admin\NutritionPlanController::class);
     Route::get('nutrition-plans/{nutrition_plan}/pdf', [\App\Http\Controllers\Admin\NutritionPlanController::class, 'exportPdf'])->name('nutrition-plans.pdf');
 
+    // FatSecret Web Route for Admin Panel
+    Route::get('/fatsecret/search', [\App\Http\Controllers\Api\FatSecretController::class, 'search'])->name('fatsecret.search');
+
     // Rutas para Actividades al Aire Libre (Cardio GPS)
     Route::resource('outdoor-activities', \App\Http\Controllers\Admin\OutdoorActivityController::class)->only(['index', 'destroy']);
 

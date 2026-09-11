@@ -255,7 +255,7 @@
     <div id="modal_add_food" class="fixed inset-0 bg-black/50 hidden z-[60] items-center justify-center">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden m-4">
             <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h4 class="font-bold text-gray-900">Añadir Alimento Manual</h4>
+                <h4 class="font-bold text-gray-900">Añadir Alimento</h4>
                 <button type="button" id="btn_close_modal" class="text-gray-400 hover:text-gray-600 p-1">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
@@ -265,6 +265,29 @@
             </div>
             <div class="p-6 space-y-4">
                 <input type="hidden" id="modal_meal_index">
+                <input type="hidden" id="modal_fatsecret_id">
+
+                <!-- BÚSQUEDA FATSECRET -->
+                <div class="bg-blue-50 -mx-6 -mt-6 p-6 mb-4 border-b border-blue-100">
+                    <label class="block text-sm font-bold text-blue-900 mb-1">Buscar Alimento Online (FatSecret)</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="fs_search_input" placeholder="Ej. Pechuga de pollo, Manzana..." class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                        <button type="button" id="btn_fs_search" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition font-medium text-sm flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            Buscar
+                        </button>
+                    </div>
+                    <div id="fs_loading" class="hidden mt-2 text-sm text-blue-600">Buscando...</div>
+                    <div id="fs_results" class="mt-3 max-h-48 overflow-y-auto hidden bg-white rounded shadow-inner border border-blue-100 divide-y divide-gray-100">
+                        <!-- Results will be injected here -->
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="h-px bg-gray-200 flex-1"></div>
+                    <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Detalles del Alimento</span>
+                    <div class="h-px bg-gray-200 flex-1"></div>
+                </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del alimento *</label>
@@ -572,6 +595,7 @@
 
                 const rawQty = modalFoodQty.value.trim();
                 const newFood = {
+                    fatsecret_food_id: modalFatsecretId.value || null,
                     name: name,
                     serving_size: rawQty || '1',
                     serving_unit: modalFoodUnit.value,
@@ -589,6 +613,257 @@
 
                 renderMeals();
             });
+
+            // --- FATSECRET SEARCH LOGIC ---
+            const btnFsSearch = document.getElementById('btn_fs_search');
+            const fsSearchInput = document.getElementById('fs_search_input');
+            const fsLoading = document.getElementById('fs_loading');
+            const fsResults = document.getElementById('fs_results');
+            const modalFatsecretId = document.getElementById('modal_fatsecret_id');
+            const macroContainer = modalFoodCals.closest('.hidden'); // The container
+
+            btnFsSearch.addEventListener('click', async function() {
+                const query = fsSearchInput.value.trim();
+                if(!query) return;
+
+                fsLoading.classList.remove('hidden');
+                fsResults.classList.add('hidden');
+                fsResults.innerHTML = '';
+
+                try {
+                    const response = await fetch(`/admin/fatsecret/search?query=${encodeURIComponent(query)}`);
+                    const data = await response.json();
+
+                    fsLoading.classList.add('hidden');
+                    
+                    if(data.error) {
+                        alert("Error: " + data.error);
+                        return;
+                    }
+
+                    if(data.length === 0) {
+                        fsResults.innerHTML = '<div class="p-4 text-sm text-gray-500">No se encontraron resultados.</div>';
+                        fsResults.classList.remove('hidden');
+                        return;
+                    }
+
+                    // Priorizar alimentos genéricos (no preparados/marcas)
+                    data.sort((a, b) => {
+                        const typeA = a.food_type || '';
+                        const typeB = b.food_type || '';
+                        if (typeA === 'Generic' && typeB !== 'Generic') return -1;
+                        if (typeA !== 'Generic' && typeB === 'Generic') return 1;
+                        return 0;
+                    });
+
+                    let html = '';
+                    data.forEach(item => {
+                        const desc = item.food_description || '';
+                        
+                        // Extraer macros para mostrarlos bonitos en español
+                        let cals = 0, fat = 0, carbs = 0, prot = 0, serving = "100g";
+                        
+                        const extractNumber = (str) => parseFloat(str.replace(',', '.'));
+                        
+                        const calsMatch = desc.match(/(?:Calories|Calorías):\s*([\d,\.]+)kcal/i);
+                        const fatMatch = desc.match(/(?:Fat|Grasa):\s*([\d,\.]+)g/i);
+                        const carbsMatch = desc.match(/(?:Carbs|Carbh|Carbohidratos):\s*([\d,\.]+)g/i);
+                        const protMatch = desc.match(/(?:Protein|Prot|Proteína|Proteínas):\s*([\d,\.]+)g/i);
+                        const servingMatch = desc.match(/(?:Per|Por)\s+([^-]+)\s*-/i);
+
+                        if(calsMatch) cals = extractNumber(calsMatch[1]);
+                        if(fatMatch) fat = extractNumber(fatMatch[1]);
+                        if(carbsMatch) carbs = extractNumber(carbsMatch[1]);
+                        if(protMatch) prot = extractNumber(protMatch[1]);
+                        if(servingMatch) serving = servingMatch[1].trim();
+                        
+                        // Traducir etiquetas para que se vean en español en la UI aunque la API Básica regrese inglés
+                        let displayDesc = desc
+                            .replace(/Calories:/gi, 'Calorías:')
+                            .replace(/Fat:/gi, 'Grasa:')
+                            .replace(/Carbs:/gi, 'Carbh:')
+                            .replace(/Protein:/gi, 'Prot:')
+                            .replace(/Per /gi, 'por ');
+
+                        html += `
+                            <div class="p-3 hover:bg-blue-50 cursor-pointer transition fs-result-item border-b border-gray-100 last:border-0" 
+                                 data-id="${item.food_id}" 
+                                 data-name="${item.food_name}" 
+                                 data-desc="${desc}">
+                                <div class="font-bold text-sm text-blue-600">${item.food_name} <span class="text-xs font-normal text-gray-500">${item.brand_name ? '('+item.brand_name+')' : ''}</span></div>
+                                <div class="text-xs text-gray-700 mt-0.5">${displayDesc}</div>
+                            </div>
+                        `;
+                    });
+
+                    fsResults.innerHTML = html;
+                    fsResults.classList.remove('hidden');
+
+                    // Add click listeners to results
+                    document.querySelectorAll('.fs-result-item').forEach(el => {
+                        el.addEventListener('click', function() {
+                            const name = this.getAttribute('data-name');
+                            const desc = this.getAttribute('data-desc');
+                            const fsId = this.getAttribute('data-id');
+
+                            // Parse description
+                            let cals = 0, fat = 0, carbs = 0, prot = 0;
+                            let servingQty = "100";
+                            let servingUnit = "g";
+
+                            const extractNumber = (str) => parseFloat(str.replace(',', '.'));
+
+                            const calsMatch = desc.match(/(?:Calories|Calorías):\s*([\d,\.]+)kcal/i);
+                            const fatMatch = desc.match(/(?:Fat|Grasa):\s*([\d,\.]+)g/i);
+                            const carbsMatch = desc.match(/(?:Carbs|Carbh|Carbohidratos):\s*([\d,\.]+)g/i);
+                            const protMatch = desc.match(/(?:Protein|Prot|Proteína|Proteínas):\s*([\d,\.]+)g/i);
+                            
+                            const servingMatch = desc.match(/(?:Per|Por)\s+([\d,\.\/]+)\s*([a-zA-Z]+)/i);
+                            if(servingMatch) {
+                                servingQty = servingMatch[1].replace(',', '.');
+                                const rawUnit = servingMatch[2].toLowerCase();
+                                if(rawUnit === 'oz' || rawUnit === 'onza') {
+                                    servingUnit = 'g';
+                                    servingQty = (eval(servingQty) * 28.35).toFixed(0);
+                                } else if(rawUnit === 'cup' || rawUnit === 'taza') {
+                                    servingUnit = 'taza';
+                                } else if(rawUnit === 'tbsp' || rawUnit === 'cda') {
+                                    servingUnit = 'cda';
+                                } else if(rawUnit === 'tsp' || rawUnit === 'cdita') {
+                                    servingUnit = 'cdita';
+                                } else if(rawUnit === 'slice' || rawUnit === 'rebanada' || rawUnit === 'rebanadas') {
+                                    servingUnit = 'rebanada';
+                                } else if(rawUnit === 'serving' || rawUnit === 'porción' || rawUnit === 'porcion') {
+                                    servingUnit = 'porcion';
+                                }
+                            }
+
+                            if(calsMatch) cals = extractNumber(calsMatch[1]);
+                            if(fatMatch) fat = extractNumber(fatMatch[1]);
+                            if(carbsMatch) carbs = extractNumber(carbsMatch[1]);
+                            if(protMatch) prot = extractNumber(protMatch[1]);
+
+                            modalFoodName.value = name;
+                            modalFatsecretId.value = fsId;
+                            modalFoodQty.value = servingQty;
+                            
+                            const unitExists = Array.from(modalFoodUnit.options).some(opt => opt.value === servingUnit);
+                            modalFoodUnit.value = unitExists ? servingUnit : 'porcion';
+
+                            // Guardar base para cálculo dinámico
+                            let baseQtyParsed = 100;
+                            if(String(servingQty).includes('/')) {
+                                try {
+                                    const parts = String(servingQty).split(' ');
+                                    if(parts.length === 2) {
+                                        const frac = parts[1].split('/');
+                                        baseQtyParsed = parseFloat(parts[0]) + (parseFloat(frac[0]) / parseFloat(frac[1]));
+                                    } else {
+                                        const frac = parts[0].split('/');
+                                        baseQtyParsed = (parseFloat(frac[0]) / parseFloat(frac[1]));
+                                    }
+                                } catch(e) {}
+                            } else {
+                                baseQtyParsed = parseFloat(servingQty) || 1;
+                            }
+
+                            modalFoodQty.dataset.baseQty = baseQtyParsed;
+                            modalFoodQty.dataset.baseCals = cals;
+                            modalFoodQty.dataset.baseProt = prot;
+                            modalFoodQty.dataset.baseCarbs = carbs;
+                            modalFoodQty.dataset.baseFat = fat;
+
+                            modalFoodCals.value = cals;
+                            modalFoodProt.value = prot;
+                            modalFoodCarbs.value = carbs;
+                            modalFoodFat.value = fat;
+
+                            if(macroContainer) {
+                                macroContainer.classList.remove('hidden');
+                            }
+
+                            fsResults.classList.add('hidden');
+                            fsSearchInput.value = '';
+                        });
+                    });
+
+                } catch(e) {
+                    fsLoading.classList.add('hidden');
+                    alert("Error conectando con la API");
+                }
+            });
+
+            fsSearchInput.addEventListener('keypress', function(e) {
+                if(e.key === 'Enter') {
+                    e.preventDefault();
+                    btnFsSearch.click();
+                }
+            });
+
+            // Lógica para recalcular en tiempo real
+            function recalculateMacros() {
+                if(!modalFoodQty.dataset.baseQty) return;
+                const baseQty = parseFloat(modalFoodQty.dataset.baseQty);
+                if(isNaN(baseQty) || baseQty === 0) return;
+
+                let currentQtyRaw = modalFoodQty.value.trim();
+                let currentQty = 1;
+                
+                if (currentQtyRaw.includes('/')) {
+                    try {
+                        const parts = currentQtyRaw.split(' ');
+                        if(parts.length === 2) {
+                            const frac = parts[1].split('/');
+                            currentQty = parseFloat(parts[0]) + (parseFloat(frac[0]) / parseFloat(frac[1]));
+                        } else {
+                            const frac = parts[0].split('/');
+                            currentQty = (parseFloat(frac[0]) / parseFloat(frac[1]));
+                        }
+                    } catch(e) {}
+                } else {
+                    currentQty = parseFloat(currentQtyRaw) || 0;
+                }
+
+                if(currentQty > 0) {
+                    const ratio = currentQty / baseQty;
+                    modalFoodCals.value = (parseFloat(modalFoodQty.dataset.baseCals) * ratio).toFixed(1);
+                    modalFoodProt.value = (parseFloat(modalFoodQty.dataset.baseProt) * ratio).toFixed(1);
+                    modalFoodCarbs.value = (parseFloat(modalFoodQty.dataset.baseCarbs) * ratio).toFixed(1);
+                    modalFoodFat.value = (parseFloat(modalFoodQty.dataset.baseFat) * ratio).toFixed(1);
+                } else {
+                    modalFoodCals.value = 0;
+                    modalFoodProt.value = 0;
+                    modalFoodCarbs.value = 0;
+                    modalFoodFat.value = 0;
+                }
+            }
+
+            modalFoodQty.addEventListener('input', recalculateMacros);
+            
+            // Re-vincular botones de fracción para que disparen el evento input
+            document.querySelectorAll('.btn-fraction').forEach(btn => {
+                // Removemos listeners anteriores clonando
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+                newBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    modalFoodQty.value = this.getAttribute('data-val');
+                    modalFoodQty.dispatchEvent(new Event('input'));
+                    modalFoodQty.focus();
+                });
+            });
+
+            // Clear dataset when modal is opened manually (done in attachMealEventListeners in original code)
+            const origAttach = attachMealEventListeners;
+            attachMealEventListeners = function() {
+                origAttach();
+                document.querySelectorAll('.btn-open-modal').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        // Clear base dataset so manual changes don't trigger recalcs randomly
+                        delete modalFoodQty.dataset.baseQty;
+                    });
+                });
+            };
 
             // Initialize empty meals
             renderMeals();

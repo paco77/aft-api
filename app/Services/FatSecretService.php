@@ -52,7 +52,9 @@ class FatSecretService
             'search_expression' => $query,
             'format' => 'json',
             'page_number' => $pageNumber,
-            'max_results' => 20
+            'max_results' => 20,
+            'region' => 'MX',
+            'language' => 'es'
         ]);
 
         if ($response->successful()) {

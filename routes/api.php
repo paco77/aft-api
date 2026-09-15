@@ -32,6 +32,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('clients', ClientController::class);
     Route::get('/clients/{client}/progress', [\App\Http\Controllers\Api\ClientProgressController::class, 'index']);
     Route::post('/clients/{client}/progress', [\App\Http\Controllers\Api\ClientProgressController::class, 'store']);
+    Route::delete('/clients/{client}/progress/{progress}', [\App\Http\Controllers\Api\ClientProgressController::class, 'destroy']);
 
     // Exercises & Muscle Groups
     Route::apiResource('exercises', ExerciseController::class);

@@ -23,7 +23,7 @@
                 <!-- Profile Image -->
                 <div class="flex-shrink-0 mx-auto md:mx-0">
                     @if($user->profile_photo_path)
-                        <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="{{ $user->name }}"
+                        <img src="{{ Storage::disk('s3')->url($user->profile_photo_path) }}" alt="{{ $user->name }}"
                             class="w-24 h-24 rounded-full object-cover border-2 border-slate-100 shadow-sm">
                     @else
                         <div
@@ -140,9 +140,9 @@
                                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                             @if($log->front_photo_path)
                                                 <div class="group relative rounded-xl overflow-hidden border border-slate-100 bg-slate-50">
-                                                    <img src="{{ asset('storage/' . $log->front_photo_path) }}" alt="Foto de Frente"
+                                                    <img src="{{ Storage::disk('s3')->url($log->front_photo_path) }}" alt="Foto de Frente"
                                                         class="w-full h-64 object-cover cursor-zoom-in group-hover:scale-105 transition duration-300"
-                                                        onclick="window.open('{{ asset('storage/' . $log->front_photo_path) }}', '_blank')">
+                                                        onclick="window.open('{{ Storage::disk('s3')->url($log->front_photo_path) }}', '_blank')">
                                                     <div
                                                         class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900/60 to-transparent p-3">
                                                         <p class="text-white text-xs font-bold text-center">Vista Frontal</p>
@@ -151,9 +151,9 @@
                                             @endif
                                             @if($log->side_photo_path)
                                                 <div class="group relative rounded-xl overflow-hidden border border-slate-100 bg-slate-50">
-                                                    <img src="{{ asset('storage/' . $log->side_photo_path) }}" alt="Foto Lateral"
+                                                    <img src="{{ Storage::disk('s3')->url($log->side_photo_path) }}" alt="Foto Lateral"
                                                         class="w-full h-64 object-cover cursor-zoom-in group-hover:scale-105 transition duration-300"
-                                                        onclick="window.open('{{ asset('storage/' . $log->side_photo_path) }}', '_blank')">
+                                                        onclick="window.open('{{ Storage::disk('s3')->url($log->side_photo_path) }}', '_blank')">
                                                     <div
                                                         class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900/60 to-transparent p-3">
                                                         <p class="text-white text-xs font-bold text-center">Vista Lateral</p>
@@ -162,9 +162,9 @@
                                             @endif
                                             @if($log->back_photo_path)
                                                 <div class="group relative rounded-xl overflow-hidden border border-slate-100 bg-slate-50">
-                                                    <img src="{{ asset('storage/' . $log->back_photo_path) }}" alt="Foto Posterior"
+                                                    <img src="{{ Storage::disk('s3')->url($log->back_photo_path) }}" alt="Foto Posterior"
                                                         class="w-full h-64 object-cover cursor-zoom-in group-hover:scale-105 transition duration-300"
-                                                        onclick="window.open('{{ asset('storage/' . $log->back_photo_path) }}', '_blank')">
+                                                        onclick="window.open('{{ Storage::disk('s3')->url($log->back_photo_path) }}', '_blank')">
                                                     <div
                                                         class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900/60 to-transparent p-3">
                                                         <p class="text-white text-xs font-bold text-center">Vista Posterior</p>

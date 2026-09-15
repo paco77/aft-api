@@ -8,9 +8,11 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Laravel\Facades\Image;
+use App\Traits\ImageUploadTrait;
 
 class ClientProgressController extends Controller
 {
+    use ImageUploadTrait;
     public function index(Request $request, User $client)
     {
         // Verificar que el cliente pertenece al coach logueado o que el usuario sea el propio cliente
@@ -53,35 +55,39 @@ class ClientProgressController extends Controller
             'recorded_at' => $validated['recorded_at'],
         ];
 
+        $progressLog = ClientProgressLog::create($logData);
+
+        $logUpdates = [];
         if ($request->hasFile('front_photo')) {
-            $logData['front_photo_path'] = $this->processAndStoreImage($request->file('front_photo'), $client->id, 'front');
+            $logUpdates['front_photo_path'] = $this->processAndStoreImage($request->file('front_photo'), "clients/{$client->id}/progress/{$progressLog->id}", 'front');
         }
         if ($request->hasFile('side_photo')) {
-            $logData['side_photo_path'] = $this->processAndStoreImage($request->file('side_photo'), $client->id, 'side');
+            $logUpdates['side_photo_path'] = $this->processAndStoreImage($request->file('side_photo'), "clients/{$client->id}/progress/{$progressLog->id}", 'side');
         }
         if ($request->hasFile('back_photo')) {
-            $logData['back_photo_path'] = $this->processAndStoreImage($request->file('back_photo'), $client->id, 'back');
+            $logUpdates['back_photo_path'] = $this->processAndStoreImage($request->file('back_photo'), "clients/{$client->id}/progress/{$progressLog->id}", 'back');
         }
 
-        $progressLog = ClientProgressLog::create($logData);
+        if (!empty($logUpdates)) {
+            $progressLog->update($logUpdates);
+        }
 
         return response()->json($progressLog, 201);
     }
 
-    /**
-     * Process an image (resize, compress to webp) and store it in the default disk.
-     */
-    private function processAndStoreImage($file, $clientId, $prefix)
+    public function destroy(Request $request, User $client, ClientProgressLog $progress)
     {
-        $filename = 'progress_photos/' . $clientId . '/' . $prefix . '_' . time() . '.webp';
-        
-        $image = Image::read($file)
-            ->scaleDown(width: 1080)
-            ->toWebp(quality: 80);
-            
-        // Use the configured FILESYSTEM_DISK to put the file (e.g., 's3' or 'local')
-        Storage::put($filename, (string) $image, 'public');
-        
-        return $filename;
+        $user = $request->user();
+        if ($user->role !== 'coach' || $client->coach_id !== $user->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        if ($progress->client_id !== $client->id) {
+            return response()->json(['message' => 'Not found'], 404);
+        }
+
+        $progress->delete();
+
+        return response()->json(['message' => 'Registro de progreso eliminado correctamente.']);
     }
 }

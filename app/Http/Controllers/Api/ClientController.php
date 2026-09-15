@@ -10,9 +10,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Laravel\Facades\Image;
+use App\Traits\ImageUploadTrait;
 
 class ClientController extends Controller
 {
+    use ImageUploadTrait;
     /**
      * Display a listing of clients assigned to the coach.
      */
@@ -58,20 +60,25 @@ class ClientController extends Controller
             'objectives' => $validated['objectives'] ?? null,
         ];
 
+        $user = User::create($userData);
+
+        $updates = [];
         if ($request->hasFile('profile_photo')) {
-            $userData['profile_photo_path'] = $request->file('profile_photo')->store('profile-photos', 'public');
+            $updates['profile_photo_path'] = $this->processAndStoreImage($request->file('profile_photo'), "clients/{$user->id}/profile", 'profile');
         }
         if ($request->hasFile('front_photo')) {
-            $userData['front_photo'] = $request->file('front_photo')->store('clients/photos', 'public');
+            $updates['front_photo'] = $this->processAndStoreImage($request->file('front_photo'), "clients/{$user->id}/profile", 'front');
         }
         if ($request->hasFile('side_photo')) {
-            $userData['side_photo'] = $request->file('side_photo')->store('clients/photos', 'public');
+            $updates['side_photo'] = $this->processAndStoreImage($request->file('side_photo'), "clients/{$user->id}/profile", 'side');
         }
         if ($request->hasFile('back_photo')) {
-            $userData['back_photo'] = $request->file('back_photo')->store('clients/photos', 'public');
+            $updates['back_photo'] = $this->processAndStoreImage($request->file('back_photo'), "clients/{$user->id}/profile", 'back');
         }
 
-        $user = User::create($userData);
+        if (!empty($updates)) {
+            $user->update($updates);
+        }
 
         // Create initial progress log if there's data for it
         if (
@@ -90,38 +97,28 @@ class ClientController extends Controller
                 'recorded_at' => now(),
             ];
 
+            $progressLog = ClientProgressLog::create($logData);
+
+            $logUpdates = [];
             if ($request->hasFile('front_photo')) {
-                $logData['front_photo_path'] = $this->processAndStoreImage($request->file('front_photo'), $user->id, 'front');
+                $logUpdates['front_photo_path'] = $this->processAndStoreImage($request->file('front_photo'), "clients/{$user->id}/progress/{$progressLog->id}", 'front');
             }
             if ($request->hasFile('side_photo')) {
-                $logData['side_photo_path'] = $this->processAndStoreImage($request->file('side_photo'), $user->id, 'side');
+                $logUpdates['side_photo_path'] = $this->processAndStoreImage($request->file('side_photo'), "clients/{$user->id}/progress/{$progressLog->id}", 'side');
             }
             if ($request->hasFile('back_photo')) {
-                $logData['back_photo_path'] = $this->processAndStoreImage($request->file('back_photo'), $user->id, 'back');
+                $logUpdates['back_photo_path'] = $this->processAndStoreImage($request->file('back_photo'), "clients/{$user->id}/progress/{$progressLog->id}", 'back');
             }
 
-            ClientProgressLog::create($logData);
+            if (!empty($logUpdates)) {
+                $progressLog->update($logUpdates);
+            }
         }
 
         return new UserResource($user);
     }
 
-    /**
-     * Process an image (resize, compress to webp) and store it in the default disk.
-     */
-    private function processAndStoreImage($file, $clientId, $prefix)
-    {
-        $filename = 'progress_photos/' . $clientId . '/' . $prefix . '_' . time() . '.webp';
-        
-        $image = Image::read($file)
-            ->scaleDown(width: 1080)
-            ->toWebp(quality: 80);
-            
-        // Use the configured FILESYSTEM_DISK to put the file (e.g., 's3' or 'local')
-        Storage::put($filename, (string) $image, 'public');
-        
-        return $filename;
-    }
+
 
     /**
      * Display the specified client.
@@ -172,27 +169,27 @@ class ClientController extends Controller
 
         if ($request->hasFile('profile_photo')) {
             if ($client->profile_photo_path) {
-                Storage::disk('public')->delete($client->profile_photo_path);
+                Storage::delete($client->profile_photo_path);
             }
-            $validated['profile_photo_path'] = $request->file('profile_photo')->store('profile-photos', 'public');
+            $validated['profile_photo_path'] = $this->processAndStoreImage($request->file('profile_photo'), "clients/{$client->id}/profile", 'profile');
         }
         if ($request->hasFile('front_photo')) {
             if ($client->front_photo) {
-                Storage::disk('public')->delete($client->front_photo);
+                Storage::delete($client->front_photo);
             }
-            $validated['front_photo'] = $request->file('front_photo')->store('clients/photos', 'public');
+            $validated['front_photo'] = $this->processAndStoreImage($request->file('front_photo'), "clients/{$client->id}/profile", 'front');
         }
         if ($request->hasFile('side_photo')) {
             if ($client->side_photo) {
-                Storage::disk('public')->delete($client->side_photo);
+                Storage::delete($client->side_photo);
             }
-            $validated['side_photo'] = $request->file('side_photo')->store('clients/photos', 'public');
+            $validated['side_photo'] = $this->processAndStoreImage($request->file('side_photo'), "clients/{$client->id}/profile", 'side');
         }
         if ($request->hasFile('back_photo')) {
             if ($client->back_photo) {
-                Storage::disk('public')->delete($client->back_photo);
+                Storage::delete($client->back_photo);
             }
-            $validated['back_photo'] = $request->file('back_photo')->store('clients/photos', 'public');
+            $validated['back_photo'] = $this->processAndStoreImage($request->file('back_photo'), "clients/{$client->id}/profile", 'back');
         }
 
         unset($validated['profile_photo']);

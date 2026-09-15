@@ -9,6 +9,13 @@ class ClientProgressLog extends Model
 {
     use HasFactory;
 
+    protected static function booted()
+    {
+        static::deleting(function ($log) {
+            \Illuminate\Support\Facades\Storage::deleteDirectory("clients/{$log->client_id}/progress/{$log->id}");
+        });
+    }
+
     protected $fillable = [
         'client_id',
         'coach_id',

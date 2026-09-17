@@ -75,6 +75,50 @@ class ClientProgressController extends Controller
         return response()->json($progressLog, 201);
     }
 
+    public function update(Request $request, User $client, ClientProgressLog $progress)
+    {
+        $user = $request->user();
+        if ($user->role !== 'coach' || $client->coach_id !== $user->id) {
+            return response()->json(['message' => 'Unauthorized. Solo el coach puede modificar el progreso.'], 403);
+        }
+
+        if ($progress->client_id !== $client->id) {
+            return response()->json(['message' => 'Not found'], 404);
+        }
+
+        $validated = $request->validate([
+            'weight' => 'nullable|numeric',
+            'measurements' => 'nullable|json',
+            'front_photo' => 'nullable|image|max:20480',
+            'side_photo' => 'nullable|image|max:20480',
+            'back_photo' => 'nullable|image|max:20480',
+            'comments' => 'nullable|string',
+            'recorded_at' => 'nullable|date',
+        ]);
+
+        $logUpdates = [];
+        if (array_key_exists('weight', $validated)) $logUpdates['weight'] = $validated['weight'];
+        if (array_key_exists('measurements', $validated)) $logUpdates['measurements'] = isset($validated['measurements']) ? json_decode($validated['measurements'], true) : null;
+        if (array_key_exists('comments', $validated)) $logUpdates['comments'] = $validated['comments'];
+        if (array_key_exists('recorded_at', $validated)) $logUpdates['recorded_at'] = $validated['recorded_at'];
+
+        if ($request->hasFile('front_photo')) {
+            $logUpdates['front_photo_path'] = $this->processAndStoreImage($request->file('front_photo'), "clients/{$client->id}/progress/{$progress->id}", 'front');
+        }
+        if ($request->hasFile('side_photo')) {
+            $logUpdates['side_photo_path'] = $this->processAndStoreImage($request->file('side_photo'), "clients/{$client->id}/progress/{$progress->id}", 'side');
+        }
+        if ($request->hasFile('back_photo')) {
+            $logUpdates['back_photo_path'] = $this->processAndStoreImage($request->file('back_photo'), "clients/{$client->id}/progress/{$progress->id}", 'back');
+        }
+
+        if (!empty($logUpdates)) {
+            $progress->update($logUpdates);
+        }
+
+        return response()->json($progress);
+    }
+
     public function destroy(Request $request, User $client, ClientProgressLog $progress)
     {
         $user = $request->user();

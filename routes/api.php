@@ -32,6 +32,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('clients', ClientController::class);
     Route::get('/clients/{client}/progress', [\App\Http\Controllers\Api\ClientProgressController::class, 'index']);
     Route::post('/clients/{client}/progress', [\App\Http\Controllers\Api\ClientProgressController::class, 'store']);
+    Route::post('/clients/{client}/progress/{progress}', [\App\Http\Controllers\Api\ClientProgressController::class, 'update']); // Usar POST o POST con _method=PUT para permitir subida de archivos
     Route::delete('/clients/{client}/progress/{progress}', [\App\Http\Controllers\Api\ClientProgressController::class, 'destroy']);
 
     // Exercises & Muscle Groups

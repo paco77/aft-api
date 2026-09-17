@@ -92,6 +92,33 @@ class User extends Authenticatable
         ];
     }
 
+    protected $appends = [
+        'profile_photo_url',
+        'front_photo_url',
+        'side_photo_url',
+        'back_photo_url',
+    ];
+
+    public function getProfilePhotoUrlAttribute()
+    {
+        return $this->profile_photo_path ? \Illuminate\Support\Facades\Storage::disk('s3')->url($this->profile_photo_path) : null;
+    }
+
+    public function getFrontPhotoUrlAttribute()
+    {
+        return $this->front_photo ? \Illuminate\Support\Facades\Storage::disk('s3')->url($this->front_photo) : null;
+    }
+
+    public function getSidePhotoUrlAttribute()
+    {
+        return $this->side_photo ? \Illuminate\Support\Facades\Storage::disk('s3')->url($this->side_photo) : null;
+    }
+
+    public function getBackPhotoUrlAttribute()
+    {
+        return $this->back_photo ? \Illuminate\Support\Facades\Storage::disk('s3')->url($this->back_photo) : null;
+    }
+
     public function monthlyPlans()
     {
         return $this->hasMany(MonthlyPlan::class);

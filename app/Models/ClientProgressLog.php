@@ -33,6 +33,27 @@ class ClientProgressLog extends Model
         'measurements' => 'array',
     ];
 
+    protected $appends = [
+        'front_photo_url',
+        'side_photo_url',
+        'back_photo_url',
+    ];
+
+    public function getFrontPhotoUrlAttribute()
+    {
+        return $this->front_photo_path ? \Illuminate\Support\Facades\Storage::disk('s3')->url($this->front_photo_path) : null;
+    }
+
+    public function getSidePhotoUrlAttribute()
+    {
+        return $this->side_photo_path ? \Illuminate\Support\Facades\Storage::disk('s3')->url($this->side_photo_path) : null;
+    }
+
+    public function getBackPhotoUrlAttribute()
+    {
+        return $this->back_photo_path ? \Illuminate\Support\Facades\Storage::disk('s3')->url($this->back_photo_path) : null;
+    }
+
     public function client()
     {
         return $this->belongsTo(User::class, 'client_id');

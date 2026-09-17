@@ -28,10 +28,12 @@ class UserResource extends JsonResource
             'objectives' => $this->objectives,
             'training_info' => $this->training_info,
             'experience_years' => $this->experience_years,
-            'profile_photo_url' => $this->profile_photo_path ? asset('storage/' . $this->profile_photo_path) : null,
-            'front_photo_url' => $this->front_photo ? asset('storage/' . $this->front_photo) : null,
-            'side_photo_url' => $this->side_photo ? asset('storage/' . $this->side_photo) : null,
-            'back_photo_url' => $this->back_photo ? asset('storage/' . $this->back_photo) : null,
+            'profile_photo_url' => $this->profile_photo_url,
+            'front_photo_url' => $this->front_photo_url,
+            'side_photo_url' => $this->side_photo_url,
+            'back_photo_url' => $this->back_photo_url,
+            'initial_measurements' => $this->progressLogs()->oldest('recorded_at')->first()->measurements ?? null,
+            'latest_measurements' => $this->progressLogs()->latest('recorded_at')->first()->measurements ?? null,
             'coach' => new UserResource($this->whenLoaded('coach')),
         ];
     }

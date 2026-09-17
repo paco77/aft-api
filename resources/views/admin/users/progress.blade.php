@@ -93,17 +93,35 @@
                             <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
                                 <!-- Card Header -->
                                 <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
-                                    <div class="space-y-0.5">
+                                    <div class="space-y-0.5 flex-grow">
                                         <p class="text-sm font-bold text-slate-400">FECHA DE EVALUACIÓN</p>
                                         <p class="text-lg font-extrabold text-slate-800">
                                             {{ \Carbon\Carbon::parse($log->recorded_at)->translatedFormat('d \d\e F, Y') }}
                                         </p>
                                     </div>
-                                    <div class="bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-2 text-right">
-                                        <p class="text-xs font-bold text-indigo-500">PESO REGISTRADO</p>
-                                        <p class="text-xl font-black text-indigo-700">
-                                            {{ $log->weight ? $log->weight . ' kg' : 'N/A' }}
-                                        </p>
+                                    
+                                    <div class="flex items-center gap-3">
+                                        <!-- Actions -->
+                                        <div class="flex gap-2">
+                                            <a href="{{ route('admin.users.progress.edit', ['user' => $user->id, 'progress' => $log->id]) }}" 
+                                                class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Editar Progreso">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                            </a>
+                                            <form action="{{ route('admin.users.progress.destroy', ['user' => $user->id, 'progress' => $log->id]) }}" method="POST" class="inline delete-form">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="button" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition delete-btn" title="Eliminar Progreso">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                </button>
+                                            </form>
+                                        </div>
+
+                                        <div class="bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-2 text-right">
+                                            <p class="text-xs font-bold text-indigo-500">PESO REGISTRADO</p>
+                                            <p class="text-xl font-black text-indigo-700">
+                                                {{ $log->weight ? $log->weight . ' kg' : 'N/A' }}
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -182,3 +200,37 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const deleteButtons = document.querySelectorAll('.delete-btn');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const form = this.closest('form');
+                
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: "No podrás revertir esto, se eliminarán las fotos de progreso asociadas.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar',
+                    customClass: {
+                        popup: 'rounded-2xl',
+                        confirmButton: 'rounded-xl',
+                        cancelButton: 'rounded-xl'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    });
+</script>
+@endpush

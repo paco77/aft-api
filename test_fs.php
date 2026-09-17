@@ -1,1 +1,1 @@
-<?php require __DIR__.'/vendor/autoload.php'; \ = require_once __DIR__.'/bootstrap/app.php'; \ = \->make(Illuminate\Contracts\Console\Kernel::class); \->bootstrap(); \ = app(App\Services\FatSecretService::class)->searchFoods('pollo'); dump(\);
+<?php require __DIR__.'/vendor/autoload.php'; $app = require_once __DIR__.'/bootstrap/app.php'; $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class); $kernel->bootstrap(); $res = app(App\Services\FatSecretService::class)->searchFoods('pollo'); dump($res);

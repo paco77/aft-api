@@ -1,0 +1,1 @@
+<?php require "vendor/autoload.php"; $app = require_once "bootstrap/app.php"; $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class); $kernel->bootstrap(); $service = app(\App\Services\FatSecretService::class); print_r(array_slice($service->searchFoods("res"), 0, 2));

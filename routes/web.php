@@ -50,6 +50,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Rutas para Entrenamientos y Progreso
     Route::get('/users/{user}/workouts', [\App\Http\Controllers\Admin\WorkoutController::class, 'index'])->name('users.workouts');
     Route::get('/users/{user}/progress', [\App\Http\Controllers\Admin\UserController::class, 'progress'])->name('users.progress');
+    Route::get('/users/{user}/progress/{progress}/edit', [\App\Http\Controllers\Admin\UserController::class, 'editProgress'])->name('users.progress.edit');
+    Route::put('/users/{user}/progress/{progress}', [\App\Http\Controllers\Admin\UserController::class, 'updateProgress'])->name('users.progress.update');
+    Route::delete('/users/{user}/progress/{progress}', [\App\Http\Controllers\Admin\UserController::class, 'destroyProgress'])->name('users.progress.destroy');
     Route::get('/users/{user}/nutrition-plans', [\App\Http\Controllers\Admin\UserController::class, 'nutritionPlans'])->name('users.nutrition-plans');
     Route::get('/workouts/{session}', [\App\Http\Controllers\Admin\WorkoutController::class, 'show'])->name('workouts.show');
 

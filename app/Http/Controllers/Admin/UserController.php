@@ -310,6 +310,86 @@ class UserController extends Controller
         return view('admin.users.nutrition-plans', compact('user', 'nutritionPlans'));
     }
 
+    public function editProgress(User $user, ClientProgressLog $progress)
+    {
+        if (auth()->user()->role === 'coach' && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
+            abort(403, 'No tienes permiso para editar el progreso de este usuario.');
+        }
+
+        if ($progress->client_id !== $user->id) {
+            abort(404, 'Progreso no encontrado para este usuario.');
+        }
+
+        return view('admin.users.progress_edit', compact('user', 'progress'));
+    }
+
+    public function updateProgress(Request $request, User $user, ClientProgressLog $progress)
+    {
+        if (auth()->user()->role === 'coach' && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
+            abort(403, 'No tienes permiso para modificar el progreso de este usuario.');
+        }
+
+        if ($progress->client_id !== $user->id) {
+            abort(404, 'Progreso no encontrado para este usuario.');
+        }
+
+        $validated = $request->validate([
+            'weight' => 'nullable|numeric',
+            'measurements' => 'nullable|array',
+            'front_photo' => 'nullable|image|max:20480',
+            'side_photo' => 'nullable|image|max:20480',
+            'back_photo' => 'nullable|image|max:20480',
+            'comments' => 'nullable|string',
+            'recorded_at' => 'nullable|date',
+        ]);
+
+        $logUpdates = [];
+        if (array_key_exists('weight', $validated)) $logUpdates['weight'] = $validated['weight'];
+        if (array_key_exists('comments', $validated)) $logUpdates['comments'] = $validated['comments'];
+        if (array_key_exists('recorded_at', $validated)) $logUpdates['recorded_at'] = $validated['recorded_at'];
+
+        if ($request->has('measurements') && is_array($request->measurements) && isset($request->measurements['keys']) && isset($request->measurements['values'])) {
+            $measurements = [];
+            foreach ($request->measurements['keys'] as $index => $key) {
+                $value = $request->measurements['values'][$index] ?? null;
+                if (!empty($key) && $value !== null && $value !== '') {
+                    $measurements[$key] = $value;
+                }
+            }
+            $logUpdates['measurements'] = empty($measurements) ? null : $measurements;
+        }
+
+        if ($request->hasFile('front_photo')) {
+            $logUpdates['front_photo_path'] = $this->processAndStoreImage($request->file('front_photo'), "clients/{$user->id}/progress/{$progress->id}", 'front');
+        }
+        if ($request->hasFile('side_photo')) {
+            $logUpdates['side_photo_path'] = $this->processAndStoreImage($request->file('side_photo'), "clients/{$user->id}/progress/{$progress->id}", 'side');
+        }
+        if ($request->hasFile('back_photo')) {
+            $logUpdates['back_photo_path'] = $this->processAndStoreImage($request->file('back_photo'), "clients/{$user->id}/progress/{$progress->id}", 'back');
+        }
+
+        if (!empty($logUpdates)) {
+            $progress->update($logUpdates);
+        }
+
+        return redirect()->route('admin.users.progress', $user)->with('success', 'Progreso actualizado correctamente.');
+    }
+
+    public function destroyProgress(User $user, ClientProgressLog $progress)
+    {
+        if (auth()->user()->role === 'coach' && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
+            abort(403, 'No tienes permiso para eliminar el progreso de este usuario.');
+        }
+
+        if ($progress->client_id !== $user->id) {
+            abort(404, 'Progreso no encontrado para este usuario.');
+        }
+
+        $progress->delete();
+
+        return redirect()->route('admin.users.progress', $user)->with('success', 'Registro de progreso eliminado correctamente.');
+    }
     public function destroy(User $user)
     {
         if (auth()->user()->role === 'coach' && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {

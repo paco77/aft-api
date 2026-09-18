@@ -34,6 +34,7 @@ class UserResource extends JsonResource
             'back_photo_url' => $this->back_photo_url,
             'initial_measurements' => $this->progressLogs()->oldest('recorded_at')->first()->measurements ?? null,
             'latest_measurements' => $this->progressLogs()->latest('recorded_at')->first()->measurements ?? null,
+            'progress_logs' => $this->progressLogs()->latest('recorded_at')->get(),
             'coach' => new UserResource($this->whenLoaded('coach')),
         ];
     }

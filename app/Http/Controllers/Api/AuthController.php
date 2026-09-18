@@ -115,10 +115,10 @@ class AuthController extends Controller
         if ($request->hasFile('profile_photo')) {
             // Delete old photo if exists
             if ($user->profile_photo_path) {
-                Storage::disk('public')->delete($user->profile_photo_path);
+                Storage::disk('s3')->delete($user->profile_photo_path);
             }
 
-            $path = $request->file('profile_photo')->store('profile-photos', 'public');
+            $path = $request->file('profile_photo')->store('profile-photos', 's3');
             $user->profile_photo_path = $path;
         }
 

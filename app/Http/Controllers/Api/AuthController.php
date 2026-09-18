@@ -9,9 +9,11 @@ use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Storage;
+use App\Traits\ImageUploadTrait;
 
 class AuthController extends Controller
 {
+    use ImageUploadTrait;
     public function register(Request $request)
     {
         $request->validate([
@@ -118,7 +120,7 @@ class AuthController extends Controller
                 Storage::disk('s3')->delete($user->profile_photo_path);
             }
 
-            $path = $request->file('profile_photo')->store('profile-photos', 's3');
+            $path = $this->processAndStoreImage($request->file('profile_photo'), "profile-photos", 'profile');
             $user->profile_photo_path = $path;
         }
 

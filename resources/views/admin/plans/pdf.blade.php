@@ -89,9 +89,21 @@
         </div>
     </div>
 
+    @if($plan->comment)
+    <div style="margin-bottom: 20px; font-size: 13px;">
+        <strong>Comentarios del Plan:</strong><br>
+        <span style="white-space: pre-wrap; color: #555;">{{ $plan->comment }}</span>
+    </div>
+    @endif
+
     @foreach($plan->trainingDays as $day)
         <div class="day-block">
             <div class="day-title">Día {{ $day->day_number }}: {{ $day->label }}</div>
+            @if($day->comment)
+            <div style="padding: 6px 8px; background-color: #f9f9f9; border: 1px solid #ddd; border-top: none; font-size: 12px; color: #555; white-space: pre-wrap;">
+                <strong>Comentarios del Día:</strong> {{ $day->comment }}
+            </div>
+            @endif
             
             <table class="exercise-table">
                 <thead>
@@ -115,6 +127,9 @@
                                         <span style="font-weight: normal; font-size: 10px; color: #666;">
                                             ({{ $planned->exercise->muscleGroup->name ?? 'N/A' }})
                                         </span>
+                                        @if($planned->notes)
+                                        <div style="margin-top: 4px; font-size: 10px; color: #555; font-style: italic; white-space: pre-wrap;">{{ $planned->notes }}</div>
+                                        @endif
                                     </td>
                                     <td rowspan="{{ $sets }}">
                                         {{ $planned->sets }} x {{ $planned->min_reps }} - {{ $planned->max_reps }}

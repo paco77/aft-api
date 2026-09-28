@@ -33,6 +33,12 @@
                 <dt class="text-sm font-medium text-gray-500">Coach</dt>
                 <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ $plan->user->name ?? 'N/A' }}</dd>
             </div>
+            @if($plan->comment)
+            <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Comentarios del Plan</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 whitespace-pre-line">{{ $plan->comment }}</dd>
+            </div>
+            @endif
         </dl>
     </div>
 </div>
@@ -54,6 +60,11 @@
                     {{ !empty($muscleNames) ? implode(', ', $muscleNames) : 'N/A' }}
                 </span>
             </div>
+            @if($day->comment)
+            <div class="px-4 py-2 bg-slate-100 text-slate-700 text-sm border-b border-gray-200">
+                <strong class="font-medium text-slate-800">Comentarios del Día:</strong> <span class="whitespace-pre-line">{{ $day->comment }}</span>
+            </div>
+            @endif
             <div class="p-0 overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">

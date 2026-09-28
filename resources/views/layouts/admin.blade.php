@@ -43,8 +43,8 @@
     </style>
 </head>
 
-<body class="h-full bg-gray-100 font-sans antialiased text-gray-900">
-    <div class="min-h-full flex flex-col lg:flex-row">
+<body class="h-screen bg-gray-100 font-sans antialiased text-gray-900 overflow-hidden">
+    <div class="h-full flex flex-col lg:flex-row w-full">
         
         <!-- Mobile Sidebar Backdrop -->
         <div id="sidebar-backdrop" 
@@ -185,7 +185,7 @@
             </header>
 
             <!-- Page Content Body -->
-            <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+            <main class="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8">
                 <div class="max-w-7xl mx-auto space-y-6">
                     @if (session('success'))
                         <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg shadow-xs flex items-center justify-between">

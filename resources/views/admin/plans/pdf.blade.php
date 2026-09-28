@@ -127,8 +127,8 @@
                                         <span style="font-weight: normal; font-size: 10px; color: #666;">
                                             ({{ $planned->exercise->muscleGroup->name ?? 'N/A' }})
                                         </span>
-                                        @if($planned->notes)
-                                        <div style="margin-top: 4px; font-size: 10px; color: #555; font-style: italic; white-space: pre-wrap;">{{ $planned->notes }}</div>
+                                        @if($planned->instruction)
+                                        <div style="margin-top: 4px; font-size: 10px; color: #555; font-style: italic; white-space: pre-wrap;">{{ $planned->instruction }}</div>
                                         @endif
                                     </td>
                                     <td rowspan="{{ $sets }}">

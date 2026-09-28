@@ -80,8 +80,8 @@
                         <tr>
                             <td class="px-6 py-3 text-gray-900 font-medium">
                                 {{ $planned->exercise->name ?? 'Ejercicio Eliminado' }}
-                                @if($planned->notes)
-                                    <p class="text-xs font-normal text-gray-500 italic mt-1">{{ $planned->notes }}</p>
+                                @if($planned->instruction)
+                                    <p class="text-xs font-normal text-gray-500 italic mt-1">{{ $planned->instruction }}</p>
                                 @endif
                             </td>
                             <td class="px-6 py-3 text-gray-500 text-center">{{ $planned->sets }}</td>

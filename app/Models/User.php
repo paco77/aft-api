@@ -51,6 +51,7 @@ class User extends Authenticatable
         'side_photo',
         'back_photo',
         'is_active',
+        'phone',
     ];
 
     public function coach()

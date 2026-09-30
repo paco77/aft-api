@@ -37,6 +37,7 @@ class ClientController extends Controller
             'weight' => 'nullable|numeric',
             'height' => 'nullable|numeric',
             'age' => 'nullable|integer',
+            'phone' => 'nullable|string|max:20',
             'training_time' => 'nullable|string',
             'objectives' => 'nullable|string',
             'measurements' => 'nullable|json',
@@ -56,6 +57,7 @@ class ClientController extends Controller
             'weight' => $validated['weight'] ?? null,
             'height' => $validated['height'] ?? null,
             'age' => $validated['age'] ?? null,
+            'phone' => $validated['phone'] ?? null,
             'training_time' => $validated['training_time'] ?? null,
             'objectives' => $validated['objectives'] ?? null,
         ];
@@ -151,6 +153,7 @@ class ClientController extends Controller
             'weight' => 'nullable|numeric',
             'height' => 'nullable|numeric',
             'age' => 'nullable|integer',
+            'phone' => 'nullable|string|max:20',
             'training_time' => 'nullable|string',
             'objectives' => 'nullable|string',
             'training_info' => 'nullable|string',

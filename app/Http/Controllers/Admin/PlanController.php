@@ -96,7 +96,18 @@ class PlanController extends Controller
             }
         });
 
-        return redirect()->route('admin.plans.index')->with('success', 'Plan creado correctamente.');
+        $redirect = redirect()->route('admin.plans.index')->with('success', 'Plan creado correctamente.');
+
+        if ($request->boolean('notify_whatsapp')) {
+            $client = User::find($data['assigned_client_id']);
+            if ($client && !empty($client->phone)) {
+                $message = urlencode("Hola {$client->name}, te he asignado un nuevo plan de entrenamiento para {$data['month']} {$data['year']}. Puedes revisarlo en tu app.");
+                $phone = preg_replace('/[^0-9]/', '', $client->phone);
+                $redirect->with('whatsapp_url', "https://wa.me/{$phone}?text={$message}");
+            }
+        }
+
+        return $redirect;
     }
 
     public function show(MonthlyPlan $plan)
@@ -107,6 +118,103 @@ class PlanController extends Controller
 
         $plan->load(['user', 'assignedClient', 'trainingDays.plannedExercises.exercise']);
         return view('admin.plans.show', compact('plan'));
+    }
+
+    public function edit(MonthlyPlan $plan)
+    {
+        if (auth()->user()->role === 'coach' && $plan->user_id !== auth()->id() && $plan->assigned_client_id !== auth()->id()) {
+            abort(403, 'No tienes permiso para editar este plan.');
+        }
+
+        $plan->load(['trainingDays.plannedExercises.exercise.muscleGroup']);
+
+        $query = User::where('role', 'client');
+        if (auth()->user()->role === 'coach') {
+            $query->where('coach_id', auth()->id());
+        }
+        $clients = $query->get();
+        $exercises = Exercise::with('muscleGroup')->where('is_active', true)->get();
+        $muscleGroups = \App\Models\MuscleGroup::all();
+
+        return view('admin.plans.edit', compact('plan', 'clients', 'exercises', 'muscleGroups'));
+    }
+
+    public function update(Request $request, MonthlyPlan $plan)
+    {
+        $data = $request->validate([
+            'assigned_client_id' => 'required|integer|exists:users,id',
+            'month' => 'required|string',
+            'year' => 'required|integer',
+            'days_per_week' => 'required|integer',
+            'split_type' => 'required|string',
+            'days' => 'required|array',
+            'days.*.label' => 'required|string',
+            'days.*.day_number' => 'required|integer',
+            'days.*.muscle_groups' => 'nullable|array',
+            'days.*.exercises' => 'array',
+            'days.*.exercises.*.exercise_id' => 'required',
+            'days.*.exercises.*.sets' => 'required|integer',
+            'days.*.exercises.*.min_reps' => 'required|integer',
+            'days.*.exercises.*.max_reps' => 'required|integer',
+            'days.*.exercises.*.instruction' => 'string|nullable',
+            'days.*.exercises.*.superset_id' => 'string|nullable',
+        ]);
+
+        if (auth()->user()->role === 'coach') {
+            $client = User::find($data['assigned_client_id']);
+            if (!$client || $client->coach_id !== auth()->id()) {
+                abort(403, 'No tienes permiso para asignar un plan a este usuario.');
+            }
+        }
+
+        DB::transaction(function () use ($data, $plan) {
+            $plan->update([
+                'assigned_client_id' => $data['assigned_client_id'],
+                'month' => $data['month'],
+                'year' => $data['year'],
+                'days_per_week' => $data['days_per_week'],
+                'split_type' => $data['split_type'],
+            ]);
+
+            foreach ($plan->trainingDays as $day) {
+                $day->plannedExercises()->delete();
+                $day->delete();
+            }
+
+            foreach ($data['days'] as $dayData) {
+                $trainingDay = $plan->trainingDays()->create([
+                    'label' => $dayData['label'],
+                    'day_number' => $dayData['day_number'],
+                    'muscle_groups' => $dayData['muscle_groups'] ?? [],
+                ]);
+
+                if (isset($dayData['exercises'])) {
+                    foreach ($dayData['exercises'] as $exerciseData) {
+                        $trainingDay->plannedExercises()->create([
+                            'exercise_id' => $exerciseData['exercise_id'],
+                            'sets' => $exerciseData['sets'],
+                            'min_reps' => $exerciseData['min_reps'],
+                            'max_reps' => $exerciseData['max_reps'],
+                            'instruction' => $exerciseData['instruction'] ?? null,
+                            'superset_id' => $exerciseData['superset_id'] ?? null,
+                        ]);
+                    }
+                }
+            }
+        });
+
+        $redirect = redirect()->route('admin.plans.index')->with('success', 'Plan actualizado correctamente.');
+
+        if ($request->boolean('notify_whatsapp')) {
+            $client = User::find($data['assigned_client_id']);
+            if ($client && !empty($client->phone)) {
+                $message = urlencode("Hola {$client->name}, he actualizado tu plan de entrenamiento para {$data['month']} {$data['year']}. Puedes revisarlo en tu app.");
+                $phone = preg_replace('/[^0-9]/', '', $client->phone);
+                $redirect->with('whatsapp_url', "https://wa.me/{$phone}?text={$message}");
+            }
+        }
+
+        return $redirect;
     }
 
     public function destroy(MonthlyPlan $plan)

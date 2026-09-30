@@ -62,6 +62,10 @@
                             <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Miembro desde</p>
                             <p class="text-sm font-semibold text-slate-700">{{ $user->created_at->translatedFormat('d F, Y') }}</p>
                         </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Teléfono</p>
+                            <p class="text-sm font-semibold text-slate-700">{{ $user->phone ?: 'No especificado' }}</p>
+                        </div>
                         
                         @if($user->role === 'client')
                             <div>

@@ -27,7 +27,7 @@
                             @foreach($clients as $client)
                                 <option value="{{ $client->id }}" data-weight="{{ $client->weight ?? '' }}"
                                     data-height="{{ $client->height ?? '' }}" data-age="{{ $client->age ?? '' }}"
-                                    data-gender="{{ $client->gender ?? 'male' }}" {{ (old('client_id') ?? $selectedClientId) == $client->id ? 'selected' : '' }}>
+                                    data-gender="{{ $client->gender ?? 'male' }}" data-phone="{{ $client->phone ?? '' }}" data-name="{{ $client->name }}" {{ (old('client_id') ?? $selectedClientId) == $client->id ? 'selected' : '' }}>
                                     {{ $client->name }} ({{ $client->email }})
                                 </option>
                             @endforeach
@@ -214,15 +214,17 @@
                         <input type="hidden" name="meals_data" id="input_meals_data">
                     </div>
 
-                    <div class="mt-8 flex justify-end gap-4 border-t border-gray-200 pt-6">
-                        <a href="{{ url()->previous() }}"
-                            class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-100 transition-colors">
-                            Cancelar
-                        </a>
-                        <button type="submit" id="btn_submit" disabled
-                            class="px-6 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                            Guardar Plan de Alimentación
-                        </button>
+                    <div class="mt-8 flex justify-end items-center border-t border-gray-200 pt-6">
+                        <div class="flex gap-4">
+                            <a href="{{ url()->previous() }}"
+                                class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-100 transition-colors">
+                                Cancelar
+                            </a>
+                            <button type="submit" id="btn_submit" disabled
+                                class="px-6 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                Guardar Plan de Alimentación
+                            </button>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -949,6 +951,52 @@
             btnCalculate.addEventListener('click', calculateRequirements);
             calcProteinKg.addEventListener('input', calculateMacros);
             calcLipidsKg.addEventListener('input', calculateMacros);
+
+            const formElement = document.getElementById('nutrition-form');
+            if (formElement) {
+                formElement.addEventListener('submit', function (e) {
+                    if (!this.dataset.confirmed) {
+                        e.preventDefault();
+                        
+                        Swal.fire({
+                            title: '¿Avisar por WhatsApp?',
+                            text: '¿Deseas avisar a este cliente por WhatsApp sobre este nuevo plan de alimentación?',
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonText: 'Sí, avisar y guardar',
+                            cancelButtonText: 'No, solo guardar',
+                            confirmButtonColor: '#25D366'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                const select = document.getElementById('client_id');
+                                if (select.selectedIndex > 0) {
+                                    const option = select.options[select.selectedIndex];
+                                    const phone = option.getAttribute('data-phone');
+                                    const name = option.getAttribute('data-name');
+                                    
+                                    if (phone) {
+                                        const cleanPhone = phone.replace(/[^0-9]/g, '');
+                                        const planName = document.getElementById('name').value;
+                                        const planText = planName ? `: ${planName}` : '';
+                                        const message = encodeURIComponent(`Hola ${name}, he creado un nuevo plan de alimentación para ti${planText}. Puedes revisarlo en tu app.`);
+                                        window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
+                                    }
+                                }
+                            }
+                            
+                            this.dataset.confirmed = true;
+                            
+                            const btn = document.getElementById('btn_submit');
+                            btn.disabled = true;
+                            btn.classList.add('opacity-50', 'cursor-not-allowed');
+                            btn.innerHTML = '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Guardando...';
+
+                            this.submit();
+                        });
+                    }
+                });
+            }
         });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @endpush

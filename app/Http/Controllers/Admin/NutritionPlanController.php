@@ -123,7 +123,18 @@ class NutritionPlanController extends Controller
             }
         }
 
-        return redirect()->route('admin.users.nutrition-plans', $plan->client_id)->with('success', 'Plan de alimentación creado correctamente.');
+        $redirect = redirect()->route('admin.users.nutrition-plans', $plan->client_id)->with('success', 'Plan de alimentación creado correctamente.');
+
+        if ($request->boolean('notify_whatsapp')) {
+            $client = \App\Models\User::find($data['client_id']);
+            if ($client && !empty($client->phone)) {
+                $message = urlencode("Hola {$client->name}, he creado un nuevo plan de alimentación para ti" . ($plan->name ? ": {$plan->name}" : "") . ". Puedes revisarlo en tu app.");
+                $phone = preg_replace('/[^0-9]/', '', $client->phone);
+                $redirect->with('whatsapp_url', "https://wa.me/{$phone}?text={$message}");
+            }
+        }
+
+        return $redirect;
     }
 
     public function edit(NutritionPlan $nutritionPlan)
@@ -225,7 +236,18 @@ class NutritionPlanController extends Controller
             }
         }
 
-        return redirect()->route('admin.users.nutrition-plans', $nutritionPlan->client_id)->with('success', 'Plan de alimentación actualizado correctamente.');
+        $redirect = redirect()->route('admin.users.nutrition-plans', $nutritionPlan->client_id)->with('success', 'Plan de alimentación actualizado correctamente.');
+
+        if ($request->boolean('notify_whatsapp')) {
+            $client = \App\Models\User::find($data['client_id']);
+            if ($client && !empty($client->phone)) {
+                $message = urlencode("Hola {$client->name}, he actualizado tu plan de alimentación" . ($nutritionPlan->name ? ": {$nutritionPlan->name}" : "") . ". Puedes revisarlo en tu app.");
+                $phone = preg_replace('/[^0-9]/', '', $client->phone);
+                $redirect->with('whatsapp_url', "https://wa.me/{$phone}?text={$message}");
+            }
+        }
+
+        return $redirect;
     }
 
     public function destroy(NutritionPlan $nutritionPlan)

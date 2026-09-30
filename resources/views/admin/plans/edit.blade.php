@@ -1,12 +1,13 @@
 @extends('layouts.admin')
 
-@section('header', 'Crear Plan de Entrenamiento')
+@section('header', 'Editar Plan de Entrenamiento')
 
 @section('content')
     <div class="max-w-6xl mx-auto py-6 sm:px-6 lg:px-8 relative">
         <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-            <form action="{{ route('admin.plans.store') }}" method="POST" class="p-6" id="planForm">
+            <form action="{{ route('admin.plans.update', $plan) }}" method="POST" class="p-6" id="planForm">
                 @csrf
+                @method('PUT')
             
                 @if ($errors->any())
                     <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
@@ -27,7 +28,7 @@
                             required>
                             <option value="">Selecciona un cliente</option>
                             @foreach($clients as $client)
-                                <option value="{{ $client->id }}" data-phone="{{ $client->phone ?? '' }}" data-name="{{ $client->name }}">{{ $client->name }} ({{ $client->email }})</option>
+                                <option value="{{ $client->id }}" data-phone="{{ $client->phone ?? '' }}" data-name="{{ $client->name }}" {{ (old('assigned_client_id', $plan->assigned_client_id) == $client->id) ? 'selected' : '' }}>{{ $client->name }} ({{ $client->email }})</option>
                             @endforeach
                         </select>
                     </div>
@@ -38,14 +39,14 @@
                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                             required>
                             @foreach(['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'] as $m)
-                                <option value="{{ $m }}">{{ $m }}</option>
+                                <option value="{{ $m }}" {{ (old('month', $plan->month) == $m) ? 'selected' : '' }}>{{ $m }}</option>
                             @endforeach
                         </select>
                     </div>
 
                     <div class="sm:col-span-1">
                         <label for="year" class="block text-sm font-medium text-gray-700">Año</label>
-                        <input type="number" name="year" id="year" value="{{ date('Y') }}"
+                        <input type="number" name="year" id="year" value="{{ old('year', $plan->year) }}"
                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                             required>
                     </div>
@@ -57,17 +58,15 @@
                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                             required>
                             <option value="">Seleccionar...</option>
-                            <option value="Empuje">Empuje</option>
-                            <option value="Traccion">Traccion</option>
-                            <option value="Pierna">Pierna</option>
-                            <option value="Full Body">Full Body</option>
-                            <option value="Personalizado">Personalizado</option>
+                            @foreach(['Empuje', 'Traccion', 'Pierna', 'Full Body', 'Personalizado'] as $st)
+                                <option value="{{ $st }}" {{ (old('split_type', $plan->split_type) == $st) ? 'selected' : '' }}>{{ $st }}</option>
+                            @endforeach
                         </select>
                     </div>
 
                     <div class="sm:col-span-1">
                         <label for="days_per_week" class="block text-sm font-medium text-gray-700">Días por semana</label>
-                        <input type="number" name="days_per_week" id="days_per_week" min="1" max="7" value="3"
+                        <input type="number" name="days_per_week" id="days_per_week" min="1" max="7" value="{{ old('days_per_week', $plan->days_per_week) }}"
                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                             required>
                     </div>
@@ -548,15 +547,65 @@
             });
         }
 
+        function addDayWithData(dayData) {
+            addDay();
+            const currentIndex = dayIndex - 1;
+            const currentDayBlock = document.querySelector(`.day-block[data-day-index="${currentIndex}"]`);
+            
+            // Set label and day number
+            currentDayBlock.querySelector(`input[name="days[${currentIndex}][label]"]`).value = dayData.label || '';
+            currentDayBlock.querySelector(`input[name="days[${currentIndex}][day_number]"]`).value = dayData.day_number || (currentIndex + 1);
+
+            // Check muscle groups
+            if (dayData.muscle_groups) {
+                dayData.muscle_groups.forEach(mg => {
+                    const cb = currentDayBlock.querySelector(`input[type="checkbox"][value="${mg}"]`);
+                    if (cb) cb.checked = true;
+                });
+            }
+
+            // Add exercises
+            if (dayData.planned_exercises) {
+                const container = currentDayBlock.querySelector('.exercises-container');
+                dayData.planned_exercises.forEach((pe, index) => {
+                    const template = document.getElementById('exercise-template').content.cloneNode(true);
+                    const newRow = template.querySelector('.exercise-row');
+
+                    newRow.querySelector('.exercise-id').value = pe.exercise_id;
+                    if (pe.exercise) {
+                        newRow.querySelector('.exercise-name-display').textContent = pe.exercise.name;
+                    }
+                    newRow.querySelector('.exercise-sets').value = pe.sets || 3;
+                    newRow.querySelector('.exercise-min').value = pe.min_reps || 8;
+                    newRow.querySelector('.exercise-max').value = pe.max_reps || 12;
+
+                    newRow.querySelector('.remove-exercise').addEventListener('click', function () {
+                        newRow.remove();
+                        updateExerciseIndices(currentDayBlock);
+                    });
+
+                    container.appendChild(newRow);
+                });
+                updateExerciseIndices(currentDayBlock);
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
-            addDay(); // Añadir un día inicial al cargar
+            const planDays = @json($plan->trainingDays);
+            if (planDays && planDays.length > 0) {
+                planDays.forEach(day => {
+                    addDayWithData(day);
+                });
+            } else {
+                addDay(); // Añadir un día inicial al cargar
+            }
 
             document.getElementById('planForm').addEventListener('submit', function (e) {
                 if (!this.dataset.confirmed) {
                     e.preventDefault();
                     Swal.fire({
                         title: '¿Avisar por WhatsApp?',
-                        text: '¿Deseas avisar a este cliente por WhatsApp sobre este nuevo plan?',
+                        text: '¿Deseas avisar a este cliente por WhatsApp sobre la actualización de su plan?',
                         icon: 'question',
                         showCancelButton: true,
                         confirmButtonText: 'Sí, avisar y guardar',
@@ -565,7 +614,7 @@
                     }).then((result) => {
                         if (result.isConfirmed) {
                             const select = document.getElementById('assigned_client_id');
-                            if (select.selectedIndex > 0) {
+                            if (select.selectedIndex >= 0) {
                                 const option = select.options[select.selectedIndex];
                                 const phone = option.getAttribute('data-phone');
                                 const name = option.getAttribute('data-name');
@@ -574,7 +623,7 @@
                                     const cleanPhone = phone.replace(/[^0-9]/g, '');
                                     const month = document.getElementById('month').value;
                                     const year = document.getElementById('year').value;
-                                    const message = encodeURIComponent(`Hola ${name}, te he asignado un nuevo plan de entrenamiento para ${month} ${year}. Puedes revisarlo en tu app.`);
+                                    const message = encodeURIComponent(`Hola ${name}, he actualizado tu plan de entrenamiento para ${month} ${year}. Puedes revisarlo en tu app.`);
                                     window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
                                 }
                             }

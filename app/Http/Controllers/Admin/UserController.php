@@ -40,6 +40,7 @@ class UserController extends Controller
             'weight' => 'nullable|numeric',
             'height' => 'nullable|numeric',
             'age' => 'nullable|integer',
+            'phone' => 'nullable|string|max:20',
             'training_time' => 'nullable|string',
             'objectives' => 'nullable|string',
             'front_photo' => 'nullable|image|max:20480',
@@ -78,6 +79,7 @@ class UserController extends Controller
             'weight' => $request->weight,
             'height' => $request->height,
             'age' => $request->age,
+            'phone' => $request->phone,
             'training_time' => $request->training_time,
             'objectives' => $request->objectives,
         ]);
@@ -150,7 +152,15 @@ class UserController extends Controller
             }
         }
 
-        return redirect()->route('admin.users.index')->with('success', 'Usuario creado correctamente.');
+        $redirect = redirect()->route('admin.users.index')->with('success', 'Usuario creado correctamente.');
+
+        if ($request->boolean('notify_whatsapp') && !empty($user->phone)) {
+            $message = urlencode("Hola {$user->name}, tu cuenta ha sido creada. Tu usuario es: {$user->username} y tu contraseña es: {$request->password}. Puedes iniciar sesión en la app.");
+            $phone = preg_replace('/[^0-9]/', '', $user->phone);
+            $redirect->with('whatsapp_url', "https://wa.me/{$phone}?text={$message}");
+        }
+
+        return $redirect;
     }
 
     public function show(User $user)
@@ -188,6 +198,7 @@ class UserController extends Controller
             'weight' => 'nullable|numeric',
             'height' => 'nullable|numeric',
             'age' => 'nullable|integer',
+            'phone' => 'nullable|string|max:20',
             'training_time' => 'nullable|string',
             'objectives' => 'nullable|string',
             'front_photo' => 'nullable|image|max:20480',
@@ -223,6 +234,7 @@ class UserController extends Controller
             'weight' => $request->weight,
             'height' => $request->height,
             'age' => $request->age,
+            'phone' => $request->phone,
             'training_time' => $request->training_time,
             'objectives' => $request->objectives,
         ];

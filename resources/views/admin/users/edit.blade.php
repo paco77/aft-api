@@ -51,6 +51,16 @@
                     </div>
                 </div>
 
+                <div class="sm:col-span-2">
+                    <div class="flex w-full flex-col gap-1 text-on-surface dark:text-on-surface-dark">
+                        <label for="phone" class="w-fit pl-0.5 text-sm">Teléfono (Opcional)</label>
+                        <input type="text" name="phone" id="phone" value="{{ old('phone', $user->phone) }}" 
+                            class="w-full rounded-radius bg-surface-alt px-2 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-75 dark:bg-surface-dark-alt/50 dark:focus-visible:outline-primary-dark @error('phone') border border-red-500 @enderror"
+                            placeholder="Ej. +123456789">
+                        @error('phone') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+
                 @if(auth()->user()->role === 'admin')
                 <div class="sm:col-span-3">
                     <div class="flex w-full flex-col gap-1 text-on-surface dark:text-on-surface-dark">

@@ -20,7 +20,7 @@ class User extends Authenticatable
         static::deleting(function ($user) {
             // Eliminar todos los archivos e imágenes del cliente en S3 / Storage
             Storage::deleteDirectory("clients/{$user->id}");
-            
+
             // Eliminar planes asignados al cliente
             \App\Models\NutritionPlan::where('client_id', $user->id)->delete();
             \App\Models\MonthlyPlan::where('assigned_client_id', $user->id)->delete();
@@ -56,12 +56,12 @@ class User extends Authenticatable
 
     public function coach()
     {
-        return $this->belongsTo(User::class , 'coach_id');
+        return $this->belongsTo(User::class, 'coach_id');
     }
 
     public function clients()
     {
-        return $this->hasMany(User::class , 'coach_id');
+        return $this->hasMany(User::class, 'coach_id');
     }
 
     public function progressLogs()
@@ -127,7 +127,7 @@ class User extends Authenticatable
 
     public function assignedPlans()
     {
-        return $this->hasMany(MonthlyPlan::class , 'assigned_client_id');
+        return $this->hasMany(MonthlyPlan::class, 'assigned_client_id');
     }
 
     public function workoutSessions()
@@ -135,3 +135,4 @@ class User extends Authenticatable
         return $this->hasMany(WorkoutSession::class);
     }
 }
+

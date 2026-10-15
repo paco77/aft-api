@@ -98,6 +98,7 @@ class AuthController extends Controller
             'username' => 'sometimes|required|string|max:255|unique:users,username,' . $user->id,
             'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8',
+            'phone' => 'nullable|string|max:20',
             'weight' => 'nullable|numeric',
             'height' => 'nullable|numeric',
             'age' => 'nullable|integer',

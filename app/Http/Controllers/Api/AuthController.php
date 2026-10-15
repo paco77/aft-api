@@ -107,6 +107,7 @@ class AuthController extends Controller
             'experience_years' => 'nullable|integer',
             'training_info' => 'nullable|string',
             'profile_photo' => 'nullable|image|max:20480', // Max 20MB
+            'measurements' => 'nullable',
         ]);
 
         if (!empty($data['password'])) {
@@ -130,6 +131,31 @@ class AuthController extends Controller
 
         $user->update(array_filter($data, fn($v) => !is_null($v)));
         $user->save();
+
+        if ($request->has('measurements')) {
+            $measurements = $request->measurements;
+            if (is_string($measurements)) {
+                $measurements = json_decode($measurements, true);
+            }
+            if (is_array($measurements)) {
+                $latestLog = $user->progressLogs()->latest('recorded_at')->first();
+                if ($latestLog) {
+                    $logUpdates = ['measurements' => $measurements];
+                    if (isset($data['weight'])) {
+                        $logUpdates['weight'] = $data['weight'];
+                    }
+                    $latestLog->update($logUpdates);
+                } else {
+                    $user->progressLogs()->create([
+                        'coach_id' => $user->coach_id ?? $user->id,
+                        'weight' => $data['weight'] ?? $user->weight,
+                        'measurements' => $measurements,
+                        'comments' => 'Registro inicial',
+                        'recorded_at' => now(),
+                    ]);
+                }
+            }
+        }
 
         return new UserResource($user);
     }

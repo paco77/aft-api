@@ -31,6 +31,12 @@ class PlanController extends Controller
                 // Coach ve TODOS sus planes (personales + de clientes)
                 $query->where('user_id', $user->id);
             }
+            elseif ($user->isIndependent()) {
+                // Independiente ve los planes creados por él o asignados a él
+                $query->where(function ($q) use ($user) {
+                    $q->where('user_id', $user->id)->orWhere('assigned_client_id', $user->id);
+                });
+            }
             else {
                 // Cliente solo ve sus planes asignados
                 $query->where('assigned_client_id', $user->id);
@@ -85,8 +91,11 @@ class PlanController extends Controller
         return DB::transaction(function () use ($request, $data) {
             $assignedClientId = $data['assigned_client_id'] ?? $request->user()->id;
 
-            // Si se asigna a otro usuario, verificar que sea un cliente de este coach
-            if ($assignedClientId != $request->user()->id) {
+            if ($request->user()->isIndependent()) {
+                // El usuario independiente siempre crea sus planes para sí mismo
+                $assignedClientId = $request->user()->id;
+            } elseif ($assignedClientId != $request->user()->id) {
+                // Si se asigna a otro usuario, verificar que sea un cliente de este coach
                 $client = User::find($assignedClientId);
                 if (!$client || $client->coach_id !== $request->user()->id) {
                     abort(403, 'No tienes permiso para asignar planes a este usuario.');
@@ -196,8 +205,13 @@ class PlanController extends Controller
                 abort(403, 'Unauthorized');
             }
 
+            if ($request->user()->isIndependent()) {
+                $assignedClientId = $request->user()->id;
+            } else {
+                $assignedClientId = $data['assigned_client_id'] ?? $request->user()->id;
+            }
             $plan->update([
-                'assigned_client_id' => $data['assigned_client_id'] ?? $request->user()->id,
+                'assigned_client_id' => $assignedClientId,
                 'month' => $data['month'],
                 'year' => $data['year'],
                 'days_per_week' => $data['days_per_week'],

@@ -54,6 +54,17 @@ class User extends Authenticatable
         'phone',
     ];
 
+    public const ROLE_INDEPENDENT = 'independiente';
+
+    /**
+     * Perfil "independiente": gestiona sus propios planes de entrenamiento,
+     * planes de alimentación, sesiones y progreso, sin coach.
+     */
+    public function isIndependent(): bool
+    {
+        return $this->role === self::ROLE_INDEPENDENT;
+    }
+
     public function coach()
     {
         return $this->belongsTo(User::class, 'coach_id');

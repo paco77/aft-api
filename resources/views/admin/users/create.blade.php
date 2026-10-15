@@ -77,6 +77,7 @@
                                     <option value="usuario" {{ old('role') == 'usuario' ? 'selected' : '' }}>Usuario (Básico)
                                     </option>
                                     <option value="client" {{ old('role') == 'client' ? 'selected' : '' }}>Cliente</option>
+                                    <option value="independiente" {{ old('role') == 'independiente' ? 'selected' : '' }}>Independiente</option>
                                     <option value="coach" {{ old('role') == 'coach' ? 'selected' : '' }}>Coach</option>
                                     <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Super Administrador
                                     </option>
@@ -134,8 +135,10 @@
                                     } else if (coachSelector) {
                                         coachSelector.style.display = 'none';
                                         if (clientFields) {
-                                            clientFields.classList.add('hidden');
-                                            clientFields.classList.remove('grid');
+                                            // Independiente conserva sus datos físicos, pero sin coach
+                                            const showFields = roleSelect && roleSelect.value === 'independiente';
+                                            clientFields.classList.toggle('hidden', !showFields);
+                                            clientFields.classList.toggle('grid', showFields);
                                         }
                                         if (coachSelect) coachSelect.value = '';
                                     }
@@ -149,7 +152,7 @@
                     @endif
 
                     <!-- Client Only Fields -->
-                    <div class="sm:col-span-6 grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6 {{ old('role') === 'client' || auth()->user()->role !== 'admin' ? 'grid' : 'hidden' }}"
+                    <div class="sm:col-span-6 grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6 {{ in_array(old('role'), ['client', 'independiente']) || auth()->user()->role !== 'admin' ? 'grid' : 'hidden' }}"
                         id="client-fields">
 
                         <div class="sm:col-span-2">

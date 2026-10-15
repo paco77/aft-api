@@ -69,6 +69,7 @@
                             class="w-full rounded-radius bg-surface-alt px-2 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-75 dark:bg-surface-dark-alt/50 dark:focus-visible:outline-primary-dark @error('role') border border-red-500 @enderror">
                             <option value="usuario" {{ old('role', $user->role) == 'usuario' ? 'selected' : '' }}>Usuario (Básico)</option>
                             <option value="client" {{ old('role', $user->role) == 'client' ? 'selected' : '' }}>Cliente</option>
+                            <option value="independiente" {{ old('role', $user->role) == 'independiente' ? 'selected' : '' }}>Independiente</option>
                             <option value="coach" {{ old('role', $user->role) == 'coach' ? 'selected' : '' }}>Coach</option>
                             <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Super Administrador</option>
                         </select>
@@ -123,8 +124,10 @@
                                 coachSelector.classList.add('hidden');
                                 coachSelector.classList.remove('block');
                                 if (clientFields) {
-                                    clientFields.classList.add('hidden');
-                                    clientFields.classList.remove('grid');
+                                    // Independiente conserva sus datos físicos, pero sin coach
+                                    const showFields = roleSelect && roleSelect.value === 'independiente';
+                                    clientFields.classList.toggle('hidden', !showFields);
+                                    clientFields.classList.toggle('grid', showFields);
                                 }
                                 if (coachSelect) coachSelect.value = '';
                             }
@@ -138,7 +141,7 @@
                 @endif
 
                 <!-- Client Only Fields -->
-                <div class="sm:col-span-6 grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6 {{ old('role', $user->role) === 'client' || auth()->user()->role !== 'admin' ? 'grid' : 'hidden' }}" id="client-fields">
+                <div class="sm:col-span-6 grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6 {{ in_array(old('role', $user->role), ['client', 'independiente']) || auth()->user()->role !== 'admin' ? 'grid' : 'hidden' }}" id="client-fields">
                     
                     <div class="sm:col-span-2">
                         <div class="flex w-full flex-col gap-1 text-on-surface dark:text-on-surface-dark">

@@ -49,7 +49,7 @@ class UserController extends Controller
         ];
 
         if (auth()->user()->role === 'admin') {
-            $rules['role'] = 'required|string|in:coach,client,usuario,admin';
+            $rules['role'] = 'required|string|in:coach,client,usuario,admin,independiente';
             $rules['coach_id'] = 'nullable|exists:users,id';
             $rules['is_active'] = 'nullable|boolean';
         }
@@ -127,7 +127,7 @@ class UserController extends Controller
 
             $logData = [
                 'client_id' => $user->id,
-                'coach_id' => $coach_id,
+                'coach_id' => $coach_id ?? ($role === User::ROLE_INDEPENDENT ? $user->id : null),
                 'weight' => $request->weight,
                 'measurements' => $measurements,
                 'comments' => 'Registro inicial',
@@ -207,7 +207,7 @@ class UserController extends Controller
         ];
 
         if (auth()->user()->role === 'admin') {
-            $rules['role'] = 'required|string|in:coach,client,usuario,admin';
+            $rules['role'] = 'required|string|in:coach,client,usuario,admin,independiente';
             $rules['coach_id'] = 'nullable|exists:users,id';
             $rules['is_active'] = 'nullable|boolean';
         }
@@ -285,7 +285,7 @@ class UserController extends Controller
 
             ClientProgressLog::create([
                 'client_id' => $user->id,
-                'coach_id' => $coach_id ?? $user->coach_id,
+                'coach_id' => $coach_id ?? $user->coach_id ?? ($role === User::ROLE_INDEPENDENT ? $user->id : null),
                 'weight' => $request->weight,
                 'measurements' => $measurements,
                 'comments' => 'Actualizado desde el perfil',

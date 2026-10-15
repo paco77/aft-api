@@ -23,6 +23,9 @@ class ClientProgressController extends Controller
         if ($user->role === 'client' && $user->id !== $client->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
+        if ($user->isIndependent() && $user->id !== $client->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
 
         $logs = $client->progressLogs()->latest('recorded_at')->get();
         return response()->json($logs);
@@ -30,9 +33,9 @@ class ClientProgressController extends Controller
 
     public function store(Request $request, User $client)
     {
-        // Solo el coach de este cliente puede agregar progreso
+        // Solo el coach de este cliente (o el propio usuario independiente) puede agregar progreso
         $user = $request->user();
-        if ($user->role !== 'coach' || $client->coach_id !== $user->id) {
+        if (!$this->canManageProgress($user, $client)) {
             return response()->json(['message' => 'Unauthorized. Solo el coach puede registrar el progreso.'], 403);
         }
 
@@ -78,7 +81,7 @@ class ClientProgressController extends Controller
     public function update(Request $request, User $client, ClientProgressLog $progress)
     {
         $user = $request->user();
-        if ($user->role !== 'coach' || $client->coach_id !== $user->id) {
+        if (!$this->canManageProgress($user, $client)) {
             return response()->json(['message' => 'Unauthorized. Solo el coach puede modificar el progreso.'], 403);
         }
 
@@ -122,7 +125,7 @@ class ClientProgressController extends Controller
     public function destroy(Request $request, User $client, ClientProgressLog $progress)
     {
         $user = $request->user();
-        if ($user->role !== 'coach' || $client->coach_id !== $user->id) {
+        if (!$this->canManageProgress($user, $client)) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -133,5 +136,17 @@ class ClientProgressController extends Controller
         $progress->delete();
 
         return response()->json(['message' => 'Registro de progreso eliminado correctamente.']);
+    }
+
+    /**
+     * Coach de este cliente, o usuario independiente gestionando su propio progreso.
+     */
+    private function canManageProgress(User $user, User $client): bool
+    {
+        if ($user->role === 'coach' && $client->coach_id === $user->id) {
+            return true;
+        }
+
+        return $user->isIndependent() && $user->id === $client->id;
     }
 }

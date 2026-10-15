@@ -16,6 +16,11 @@ class NutritionPlanController extends Controller
 
         if ($user->role === 'coach') {
             $query->where('coach_id', $user->id);
+        } elseif ($user->isIndependent()) {
+            // Independiente: ve los planes que él mismo creó o que tiene asignados
+            $query->where(function ($q) use ($user) {
+                $q->where('coach_id', $user->id)->orWhere('client_id', $user->id);
+            });
         } else {
             $query->where('client_id', $user->id);
         }
@@ -57,6 +62,11 @@ class NutritionPlanController extends Controller
             'meals.*.foods.*.carbs' => 'required|numeric',
             'meals.*.foods.*.fat' => 'required|numeric',
         ]);
+
+        // Independiente: el plan siempre es para sí mismo
+        if ($request->user()->isIndependent()) {
+            $validated['client_id'] = $request->user()->id;
+        }
 
         $plan = NutritionPlan::create([
             'coach_id' => $request->user()->id,
@@ -132,6 +142,11 @@ class NutritionPlanController extends Controller
             'meals.*.foods.*.carbs' => 'required|numeric',
             'meals.*.foods.*.fat' => 'required|numeric',
         ]);
+
+        // Independiente: el plan siempre es para sí mismo
+        if ($request->user()->isIndependent()) {
+            $validated['client_id'] = $request->user()->id;
+        }
 
         $plan->update([
             'client_id' => $validated['client_id'] ?? $plan->client_id,

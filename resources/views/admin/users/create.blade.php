@@ -78,6 +78,7 @@
                                     </option>
                                     <option value="client" {{ old('role') == 'client' ? 'selected' : '' }}>Cliente</option>
                                     <option value="independiente" {{ old('role') == 'independiente' ? 'selected' : '' }}>Independiente</option>
+                                    <option value="gimnasio" {{ old('role') == 'gimnasio' ? 'selected' : '' }}>Gimnasio / Centro Deportivo</option>
                                     <option value="coach" {{ old('role') == 'coach' ? 'selected' : '' }}>Coach</option>
                                     <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Super Administrador
                                     </option>

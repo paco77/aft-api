@@ -49,7 +49,7 @@ class UserController extends Controller
         ];
 
         if (auth()->user()->role === 'admin') {
-            $rules['role'] = 'required|string|in:coach,client,usuario,admin,independiente';
+            $rules['role'] = 'required|string|in:coach,client,usuario,admin,independiente,gimnasio';
             $rules['coach_id'] = 'nullable|exists:users,id';
             $rules['is_active'] = 'nullable|boolean';
         }
@@ -207,7 +207,7 @@ class UserController extends Controller
         ];
 
         if (auth()->user()->role === 'admin') {
-            $rules['role'] = 'required|string|in:coach,client,usuario,admin,independiente';
+            $rules['role'] = 'required|string|in:coach,client,usuario,admin,independiente,gimnasio';
             $rules['coach_id'] = 'nullable|exists:users,id';
             $rules['is_active'] = 'nullable|boolean';
         }

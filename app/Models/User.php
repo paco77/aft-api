@@ -55,6 +55,7 @@ class User extends Authenticatable
     ];
 
     public const ROLE_INDEPENDENT = 'independiente';
+    public const ROLE_GYM = 'gimnasio';
 
     /**
      * Perfil "independiente": gestiona sus propios planes de entrenamiento,
@@ -63,6 +64,14 @@ class User extends Authenticatable
     public function isIndependent(): bool
     {
         return $this->role === self::ROLE_INDEPENDENT;
+    }
+
+    /**
+     * Perfil "gimnasio": crea rutinas abiertas ligadas al gimnasio con acceso vía código QR.
+     */
+    public function isGym(): bool
+    {
+        return $this->role === self::ROLE_GYM;
     }
 
     public function coach()
@@ -144,6 +153,11 @@ class User extends Authenticatable
     public function workoutSessions()
     {
         return $this->hasMany(WorkoutSession::class);
+    }
+
+    public function gymRoutines()
+    {
+        return $this->hasMany(TrainingDay::class, 'user_id');
     }
 }
 

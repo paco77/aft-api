@@ -7,9 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class TrainingDay extends Model
 {
     protected $fillable = [
+        'user_id',
         'monthly_plan_id',
         'label',
+        'description',
         'day_number',
+        'estimated_minutes',
         'muscle_groups',
         'target_volumes',
         'comment',
@@ -18,7 +21,13 @@ class TrainingDay extends Model
     protected $casts = [
         'muscle_groups' => 'array',
         'target_volumes' => 'array',
+        'estimated_minutes' => 'integer',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function monthlyPlan()
     {

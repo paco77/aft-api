@@ -12,6 +12,7 @@ class SetLog extends Model
         'weight',
         'weight_lb',
         'reps',
+        'rpe',
     ];
 
     public function exerciseLog()

@@ -8,6 +8,7 @@ class WorkoutSession extends Model
 {
     protected $fillable = [
         'user_id',
+        'guest_name',
         'training_day_id',
         'start_time',
         'end_time',

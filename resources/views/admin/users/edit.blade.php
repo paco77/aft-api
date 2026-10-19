@@ -70,6 +70,7 @@
                             <option value="usuario" {{ old('role', $user->role) == 'usuario' ? 'selected' : '' }}>Usuario (Básico)</option>
                             <option value="client" {{ old('role', $user->role) == 'client' ? 'selected' : '' }}>Cliente</option>
                             <option value="independiente" {{ old('role', $user->role) == 'independiente' ? 'selected' : '' }}>Independiente</option>
+                            <option value="gimnasio" {{ old('role', $user->role) == 'gimnasio' ? 'selected' : '' }}>Gimnasio / Centro Deportivo</option>
                             <option value="coach" {{ old('role', $user->role) == 'coach' ? 'selected' : '' }}>Coach</option>
                             <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Super Administrador</option>
                         </select>

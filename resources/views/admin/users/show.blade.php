@@ -50,6 +50,7 @@
                                 @elseif($user->role == 'coach') bg-green-100 text-green-800 
                                 @elseif($user->role == 'client') bg-blue-100 text-blue-800 
                                 @elseif($user->role == 'independiente') bg-purple-100 text-purple-800 
+                                @elseif($user->role == 'gimnasio') bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300
                                 @else bg-gray-100 text-gray-800 @endif">
                                 {{ ucfirst($user->role) }}
                             </span>

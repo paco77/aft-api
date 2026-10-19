@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     if (auth()->check()) {
-        if (in_array(auth()->user()->role, ['admin', 'coach'])) {
+        if (in_array(auth()->user()->role, ['admin', 'coach', 'gimnasio'])) {
             return redirect()->route('admin.dashboard');
         }
     }
@@ -55,7 +55,17 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/users/{user}/nutrition-plans', [\App\Http\Controllers\Admin\UserController::class, 'nutritionPlans'])->name('users.nutrition-plans');
     Route::get('/workouts/{session}', [\App\Http\Controllers\Admin\WorkoutController::class, 'show'])->name('workouts.show');
 
-    // Perfil de Coach
+    // Rutas para Rutinas de Gimnasio (No ligadas a planes mensuales)
+    Route::get('gym-routines/qr', [\App\Http\Controllers\Admin\GymRoutineController::class, 'qr'])->name('gym-routines.qr');
+    Route::resource('gym-routines', \App\Http\Controllers\Admin\GymRoutineController::class);
+
+    // Perfil de Coach / Gimnasio
     Route::get('/profile', [\App\Http\Controllers\ProfileController::class , 'edit'])->name('profile.edit');
     Route::post('/profile', [\App\Http\Controllers\ProfileController::class , 'update'])->name('profile.update');
 });
+
+// Rutas Públicas de Gimnasio (Acceso mediante escaneo de Código QR)
+Route::get('/gimnasio/{identifier}', [\App\Http\Controllers\GymPublicController::class, 'showRoutines'])->name('gym.routines');
+Route::get('/gimnasio/{identifier}/rutina/{trainingDay}/entrenar', [\App\Http\Controllers\GymPublicController::class, 'liveWorkout'])->name('gym.workout');
+Route::post('/gimnasio/workout/save', [\App\Http\Controllers\GymPublicController::class, 'saveWorkout'])->name('gym.workout.save');
+

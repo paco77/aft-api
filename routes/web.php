@@ -7,9 +7,8 @@ Route::get('/', function () {
         if (in_array(auth()->user()->role, ['admin', 'coach'])) {
             return redirect()->route('admin.dashboard');
         }
-        return view('welcome');
     }
-    return redirect()->route('login');
+    return view('welcome');
 });
 
 // Rutas de Autenticación

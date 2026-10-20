@@ -54,8 +54,18 @@ class User extends Authenticatable
         'phone',
     ];
 
+    public const ROLE_ADMIN = 'admin';
+    public const ROLE_SUPER_ADMIN = 'super_admin';
     public const ROLE_INDEPENDENT = 'independiente';
     public const ROLE_GYM = 'gimnasio';
+
+    /**
+     * Verifica si el usuario es Administrador / Super Administrador.
+     */
+    public function isSuperAdmin(): bool
+    {
+        return in_array($this->role, [self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN]);
+    }
 
     /**
      * Perfil "independiente": gestiona sus propios planes de entrenamiento,

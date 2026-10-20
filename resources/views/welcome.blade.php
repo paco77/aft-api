@@ -1,11 +1,14 @@
+@php
+    $settings = $settings ?? \App\Models\LandingSetting::getAllSettings();
+@endphp
 <!DOCTYPE html>
 <html class="dark" lang="es" style="scroll-behavior: smooth;">
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=5.0" name="viewport"/>
     <meta content="web_standard" name="shell-type"/>
-    <title>AF Training | Plataforma Definitiva de Entrenamiento, Nutrición & Gestión Deportiva</title>
-    <meta name="description" content="AF Training - La plataforma de alto rendimiento para Head Coaches, gimnasios, atletas independientes y clientes. TDEE automatizado, periodización y biometría 360°.">
+    <title>{{ $settings['site_title'] ?? 'AF Training | Plataforma Definitiva de Entrenamiento, Nutrición & Gestión Deportiva' }}</title>
+    <meta name="description" content="{{ $settings['meta_description'] ?? 'AF Training - La plataforma de alto rendimiento para Head Coaches, gimnasios, atletas independientes y clientes. TDEE automatizado, periodización y biometría 360°.' }}">
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -312,42 +315,42 @@
                         <div class="lg:col-span-7 flex flex-col gap-4 sm:gap-space-lg text-left">
                             <div class="inline-flex items-center gap-2 px-3 sm:px-space-md py-1 sm:py-space-xs rounded-full bg-surface-container-high w-fit shadow-sm border border-outline-variant/30">
                                 <span class="inline-block w-2 h-2 rounded-full bg-secondary animate-pulse shrink-0"></span>
-                                <span class="font-label-caps text-[10px] sm:text-label-caps uppercase tracking-wider text-primary">Plataforma Todo-en-Uno • Versión 3.0</span>
+                                <span class="font-label-caps text-[10px] sm:text-label-caps uppercase tracking-wider text-primary">{{ $settings['hero_badge'] ?? 'Plataforma Todo-en-Uno • Versión 3.0' }}</span>
                             </div>
 
                             <h1 class="font-display-lg text-3xl sm:text-4xl md:text-5xl lg:text-[48px] lg:leading-[54px] tracking-tight text-on-surface uppercase font-black">
-                                La Plataforma Definitiva de <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-container to-secondary">Entrenamiento, Nutrición</span> &amp; Gestión Deportiva
+                                {{ $settings['hero_title_prefix'] ?? 'La Plataforma Definitiva de' }} <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-container to-secondary">{{ $settings['hero_title_highlight'] ?? 'Entrenamiento, Nutrición' }}</span> {{ $settings['hero_title_suffix'] ?? '& Gestión Deportiva' }}
                             </h1>
 
                             <p class="font-body-lg text-sm sm:text-base lg:text-body-lg text-on-surface-variant max-w-2xl leading-relaxed">
-                                Diseñada para Head Coaches de alto rendimiento, gimnasios comerciales, atletas independientes y sus clientes. Integra prescripción de rutinas, bioimpedancia, ajuste de macros y control de staff en un ecosistema quirúrgico.
+                                {{ $settings['hero_subtitle'] ?? 'Diseñada para Head Coaches de alto rendimiento, gimnasios comerciales, atletas independientes y sus clientes. Integra prescripción de rutinas, bioimpedancia, ajuste de macros y control de staff en un ecosistema quirúrgico.' }}
                             </p>
 
                             <!-- Metrics Badges (Responsive 3 Columns) -->
                             <div class="grid grid-cols-3 gap-2 sm:gap-space-md pt-1 sm:pt-space-xs">
                                 <div class="flex flex-col p-2.5 sm:p-space-md rounded-xl bg-surface-container-low border border-outline-variant/20 shadow-sm text-center sm:text-left">
-                                    <span class="font-headline-lg text-lg sm:text-2xl lg:text-headline-lg text-primary font-bold leading-tight">+5,000</span>
-                                    <span class="font-body-sm text-[10px] sm:text-body-sm text-on-surface-variant leading-tight mt-0.5">Planes Activos</span>
+                                    <span class="font-headline-lg text-lg sm:text-2xl lg:text-headline-lg text-primary font-bold leading-tight">{{ $settings['metric_1_value'] ?? '+5,000' }}</span>
+                                    <span class="font-body-sm text-[10px] sm:text-body-sm text-on-surface-variant leading-tight mt-0.5">{{ $settings['metric_1_label'] ?? 'Planes Activos' }}</span>
                                 </div>
                                 <div class="flex flex-col p-2.5 sm:p-space-md rounded-xl bg-surface-container-low border border-outline-variant/20 shadow-sm text-center sm:text-left">
-                                    <span class="font-headline-lg text-lg sm:text-2xl lg:text-headline-lg text-secondary font-bold leading-tight">100%</span>
-                                    <span class="font-body-sm text-[10px] sm:text-body-sm text-on-surface-variant leading-tight mt-0.5">TDEE Auto</span>
+                                    <span class="font-headline-lg text-lg sm:text-2xl lg:text-headline-lg text-secondary font-bold leading-tight">{{ $settings['metric_2_value'] ?? '100%' }}</span>
+                                    <span class="font-body-sm text-[10px] sm:text-body-sm text-on-surface-variant leading-tight mt-0.5">{{ $settings['metric_2_label'] ?? 'TDEE Auto' }}</span>
                                 </div>
                                 <div class="flex flex-col p-2.5 sm:p-space-md rounded-xl bg-surface-container-low border border-outline-variant/20 shadow-sm text-center sm:text-left">
-                                    <span class="font-headline-lg text-lg sm:text-2xl lg:text-headline-lg text-on-surface font-bold leading-tight">360°</span>
-                                    <span class="font-body-sm text-[10px] sm:text-body-sm text-on-surface-variant leading-tight mt-0.5">Biometría</span>
+                                    <span class="font-headline-lg text-lg sm:text-2xl lg:text-headline-lg text-on-surface font-bold leading-tight">{{ $settings['metric_3_value'] ?? '360°' }}</span>
+                                    <span class="font-body-sm text-[10px] sm:text-body-sm text-on-surface-variant leading-tight mt-0.5">{{ $settings['metric_3_label'] ?? 'Biometría' }}</span>
                                 </div>
                             </div>
 
                             <!-- CTAs (Stacked on Mobile, Side-by-Side on Desktop) -->
                             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-space-md pt-2 sm:pt-space-sm w-full sm:w-auto">
-                                <a class="inline-flex items-center justify-center gap-2 font-headline-md text-xs sm:text-title-sm uppercase tracking-wider bg-primary text-on-primary hover:bg-primary-container px-5 sm:px-space-xl py-3.5 sm:py-4 rounded-xl transition-all shadow-[0_0_24px_rgba(77,142,255,0.35)] hover:scale-[1.02] text-center" href="#roles">
-                                    <span>Comenzar Prueba Gratuita</span>
+                                <a class="inline-flex items-center justify-center gap-2 font-headline-md text-xs sm:text-title-sm uppercase tracking-wider bg-primary text-on-primary hover:bg-primary-container px-5 sm:px-space-xl py-3.5 sm:py-4 rounded-xl transition-all shadow-[0_0_24px_rgba(77,142,255,0.35)] hover:scale-[1.02] text-center" href="{{ $settings['hero_cta_primary_url'] ?? '#roles' }}">
+                                    <span>{{ $settings['hero_cta_primary_text'] ?? 'Comenzar Prueba Gratuita' }}</span>
                                     <span class="material-symbols-outlined text-[18px] sm:text-[20px]">arrow_forward</span>
                                 </a>
-                                <a class="inline-flex items-center justify-center gap-2 font-headline-md text-xs sm:text-title-sm uppercase tracking-wider bg-surface-container-high text-on-surface hover:bg-surface-bright border border-outline-variant/30 px-5 sm:px-space-lg py-3.5 sm:py-4 rounded-xl transition-all text-center" href="#modulos">
+                                <a class="inline-flex items-center justify-center gap-2 font-headline-md text-xs sm:text-title-sm uppercase tracking-wider bg-surface-container-high text-on-surface hover:bg-surface-bright border border-outline-variant/30 px-5 sm:px-space-lg py-3.5 sm:py-4 rounded-xl transition-all text-center" href="{{ $settings['hero_cta_secondary_url'] ?? '#modulos' }}">
                                     <span class="material-symbols-outlined text-primary text-[18px] sm:text-[20px]">view_in_ar</span>
-                                    <span>Explorar Ecosistema</span>
+                                    <span>{{ $settings['hero_cta_secondary_text'] ?? 'Explorar Ecosistema' }}</span>
                                 </a>
                             </div>
 
@@ -358,7 +361,7 @@
                                     <div class="inline-block h-8 w-8 sm:h-9 sm:w-9 rounded-full ring-2 ring-surface bg-primary text-on-primary flex items-center justify-center font-bold text-xs">AF</div>
                                     <div class="inline-block h-8 w-8 sm:h-9 sm:w-9 rounded-full ring-2 ring-surface bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold text-xs">PRO</div>
                                 </div>
-                                <span class="font-body-sm text-xs sm:text-body-sm text-on-surface-variant">Usado por entrenadores certificados NSCA, IFBB Pro y centros élite.</span>
+                                <span class="font-body-sm text-xs sm:text-body-sm text-on-surface-variant">{{ $settings['hero_proof_text'] ?? 'Usado por entrenadores certificados NSCA, IFBB Pro y centros élite.' }}</span>
                             </div>
                         </div>
 
@@ -372,15 +375,15 @@
                                 <div class="relative z-20 w-48 sm:w-60 md:w-64 lg:w-72 rounded-[24px] sm:rounded-[32px] p-1.5 sm:p-2 bg-surface-container-highest border border-outline-variant/40 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.8)] -rotate-3 transition-transform duration-500 hover:rotate-0 hover:scale-105 shrink-0">
                                     <div class="w-full h-fit rounded-[18px] sm:rounded-[24px] overflow-hidden bg-surface-container-lowest">
                                         <img alt="Planes de Entrenamiento AF Training" class="w-full h-auto object-cover block" 
-                                             src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-qYG8vfXEAYGPCa2ECcMFu7pkAHmAYwPtuCkmyLsg4ruvNnm9Z0eeeTeRYREjy4oV5zeE0SPX2Rc0hwRKZM2CxzmfIimTwdHaGgqZoJekJ4uEkOgZE8P1yKlfvu5EMBkouRRqtCZhzAJGiIqLXdxC0aAQtdcmQu3GHykN_k_D-vRBnuOhlf7O8ZB0SdRoSXL3SoxhRtJjQoOFPxC30cdkiHZXZIl-lg_hNIYKR5IWEAPltEnnwsWk2IkDppEdHyXx5BA"/>
+                                             src="{{ $settings['hero_image_1'] ?? 'https://lh3.googleusercontent.com/aida-public/AB6AXuD-qYG8vfXEAYGPCa2ECcMFu7pkAHmAYwPtuCkmyLsg4ruvNnm9Z0eeeTeRYREjy4oV5zeE0SPX2Rc0hwRKZM2CxzmfIimTwdHaGgqZoJekJ4uEkOgZE8P1yKlfvu5EMBkouRRqtCZhzAJGiIqLXdxC0aAQtdcmQu3GHykN_k_D-vRBnuOhlf7O8ZB0SdRoSXL3SoxhRtJjQoOFPxC30cdkiHZXZIl-lg_hNIYKR5IWEAPltEnnwsWk2IkDppEdHyXx5BA' }}"/>
                                     </div>
                                 </div>
 
                                 <!-- Rear Device (Perfil Head Coach) -->
                                 <div class="relative z-10 w-44 sm:w-56 md:w-60 lg:w-68 rounded-[24px] sm:rounded-[32px] p-1.5 sm:p-2 bg-surface-container-high border border-outline-variant/30 shadow-2xl rotate-6 -ml-16 sm:-ml-20 md:-ml-24 mt-6 sm:mt-10 md:mt-12 transition-transform duration-500 hover:rotate-3 hover:scale-105 shrink-0">
                                     <div class="w-full h-fit rounded-[18px] sm:rounded-[24px] overflow-hidden bg-surface-container-lowest">
-                                        <img alt="Perfil Head Coach Francisco Eduardo" class="w-full h-auto object-cover block" 
-                                             src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLj6DXqEIz4H8L3cblxP2KF4DYgtYeMgH53WgTQofY8Ba5OwaxXgmFcN1XWb1uS2CiLUUgsl6go-HKftCm-oT9T7xJix9x78hMlmHHuveiMsAJOjpa-ENg2aXulO9wLlSzURtMDoYe50IWMxZNfSOPVd75xJrc5TpkfkkW9XJatJk0pLNCljEdgewUFNpI8W0zBd4xkeEsaO6uogHkKDXSaEyClWGwDXho0dlTMXNawfE4YoJKeDmegvY1I_p2bB9Ndgk"/>
+                                        <img alt="Perfil Head Coach" class="w-full h-auto object-cover block" 
+                                             src="{{ $settings['hero_image_2'] ?? 'https://lh3.googleusercontent.com/aida-public/AB6AXuBLj6DXqEIz4H8L3cblxP2KF4DYgtYeMgH53WgTQofY8Ba5OwaxXgmFcN1XWb1uS2CiLUUgsl6go-HKftCm-oT9T7xJix9x78hMlmHHuveiMsAJOjpa-ENg2aXulO9wLlSzURtMDoYe50IWMxZNfSOPVd75xJrc5TpkfkkW9XJatJk0pLNCljEdgewUFNpI8W0zBd4xkeEsaO6uogHkKDXSaEyClWGwDXho0dlTMXNawfE4YoJKeDmegvY1I_p2bB9Ndgk' }}"/>
                                     </div>
                                 </div>
 
@@ -399,6 +402,7 @@
                 </div>
             </section>
 
+            @if(($settings['section_roles_enabled'] ?? '1') == '1')
             <!-- ROLES & ADAPTIVE ECOSYSTEM SECTION -->
             <section class="w-full py-14 sm:py-20 bg-surface-container-lowest" id="roles">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 flex flex-col gap-8 sm:gap-space-xl">
@@ -568,7 +572,9 @@
                     </div>
                 </div>
             </section>
+            @endif
 
+            @if(($settings['section_modules_enabled'] ?? '1') == '1')
             <!-- DEEP-DIVE MODULES SECTION -->
             <section class="w-full py-16 sm:py-24 bg-surface relative" id="modulos">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 flex flex-col gap-16 sm:gap-24 lg:gap-28">
@@ -773,7 +779,9 @@
 
                 </div>
             </section>
+            @endif
 
+            @if(($settings['section_workflow_enabled'] ?? '1') == '1')
             <!-- STEP-BY-STEP WORKFLOW SECTION -->
             <section class="w-full py-14 sm:py-20 bg-surface-container-lowest" id="workflow">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 flex flex-col gap-8 sm:gap-space-xl">
@@ -837,7 +845,9 @@
 
                 </div>
             </section>
+            @endif
 
+            @if(($settings['section_philosophy_enabled'] ?? '1') == '1')
             <!-- OFFICIAL LOGO SHOWCASE / BRAND STORY -->
             <section class="w-full py-12 sm:py-16 bg-surface">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
@@ -849,10 +859,10 @@
                                      onerror="this.src='{{ asset('images/logo.png') }}'"/>
                             </div>
                             <div class="flex flex-col gap-1 sm:gap-space-xs">
-                                <span class="font-label-caps text-xs text-secondary uppercase font-bold tracking-widest">Filosofía de Rendimiento</span>
-                                <h3 class="font-headline-md text-xl sm:text-headline-md text-on-surface uppercase">Elevate Your Fitness</h3>
+                                <span class="font-label-caps text-xs text-secondary uppercase font-bold tracking-widest">{{ $settings['philosophy_badge'] ?? 'Filosofía de Rendimiento' }}</span>
+                                <h3 class="font-headline-md text-xl sm:text-headline-md text-on-surface uppercase">{{ $settings['philosophy_title'] ?? 'Elevate Your Fitness' }}</h3>
                                 <p class="font-body-sm text-xs sm:text-body-sm text-on-surface-variant max-w-lg leading-relaxed">
-                                    La llama naranja y la onda azul de nuestro isotipo representan la combustión metabólica y la precisión metódica. Convertimos el entrenamiento de fuerza en ciencia medible.
+                                    {{ $settings['philosophy_description'] ?? 'La llama naranja y la onda azul de nuestro isotipo representan la combustión metabólica y la precisión metódica. Convertimos el entrenamiento de fuerza en ciencia medible.' }}
                                 </p>
                             </div>
                         </div>
@@ -871,7 +881,9 @@
                     </div>
                 </div>
             </section>
+            @endif
 
+            @if(($settings['section_final_cta_enabled'] ?? '1') == '1')
             <!-- FINAL CTA & CONVERSION BANNER -->
             <section class="w-full py-16 sm:py-24 bg-surface-container-lowest relative overflow-hidden">
                 <!-- Atmospheric Flare -->
@@ -881,47 +893,50 @@
                     <div class="rounded-2xl sm:rounded-3xl p-6 sm:p-10 lg:p-16 bg-gradient-to-br from-surface-container-high via-surface-container to-surface-container-lowest border border-outline-variant/30 shadow-2xl flex flex-col items-center text-center gap-4 sm:gap-space-lg">
                         <div class="inline-flex items-center gap-1.5 sm:gap-space-sm px-3 sm:px-space-md py-1 sm:py-space-xs rounded-full bg-secondary-container/20 text-secondary border border-secondary/30">
                             <span class="material-symbols-outlined text-[16px] sm:text-[18px]">verified</span>
-                            <span class="font-label-caps text-xs sm:text-label-caps uppercase tracking-wider font-bold">14 Días de Prueba Ilimitada</span>
+                            <span class="font-label-caps text-xs sm:text-label-caps uppercase tracking-wider font-bold">{{ $settings['final_cta_badge'] ?? '14 Días de Prueba Ilimitada' }}</span>
                         </div>
 
                         <h2 class="font-display-lg text-2xl sm:text-3xl md:text-4xl lg:text-[44px] uppercase text-on-surface max-w-3xl font-black">
-                            ¿Listo para elevar tu estándar de <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">entrenamiento</span>?
+                            {{ $settings['final_cta_title'] ?? '¿Listo para elevar tu estándar de entrenamiento?' }}
                         </h2>
 
                         <p class="font-body-lg text-sm sm:text-base lg:text-body-lg text-on-surface-variant max-w-2xl leading-relaxed">
-                            Únete a la nueva era del fitness inteligente. Gestiona clientes, automatiza el cálculo de calorías y lleva el control absoluto de tus sesiones en una sola pantalla.
+                            {{ $settings['final_cta_subtitle'] ?? 'Únete a la nueva era del fitness inteligente. Gestiona clientes, automatiza el cálculo de calorías y lleva el control absoluto de tus sesiones en una sola pantalla.' }}
                         </p>
 
                         <!-- CTA Buttons -->
                         <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-space-md pt-2 sm:pt-space-sm w-full sm:w-auto">
-                            <a class="inline-flex items-center justify-center gap-2 font-headline-md text-xs sm:text-title-sm uppercase tracking-wider bg-secondary-container text-on-secondary-container hover:bg-secondary hover:text-on-secondary px-6 sm:px-space-xl py-3.5 sm:py-4 rounded-xl transition-all shadow-[0_0_24px_rgba(236,106,6,0.35)] hover:scale-[1.02] text-center" href="{{ Route::has('login') ? route('login') : '/login' }}">
+                            <a class="inline-flex items-center justify-center gap-2 font-headline-md text-xs sm:text-title-sm uppercase tracking-wider bg-secondary-container text-on-secondary-container hover:bg-secondary hover:text-on-secondary px-6 sm:px-space-xl py-3.5 sm:py-4 rounded-xl transition-all shadow-[0_0_24px_rgba(236,106,6,0.35)] hover:scale-[1.02] text-center" href="{{ $settings['final_cta_btn1_url'] ?? (Route::has('login') ? route('login') : '/login') }}">
                                 <span class="material-symbols-outlined text-[18px] sm:text-[20px]">rocket_launch</span>
-                                <span>Crear Cuenta Gratis</span>
+                                <span>{{ $settings['final_cta_btn1_text'] ?? 'Crear Cuenta Gratis' }}</span>
                             </a>
-                            <a class="inline-flex items-center justify-center gap-2 font-headline-md text-xs sm:text-title-sm uppercase tracking-wider bg-surface-bright text-on-surface hover:bg-surface-container-highest border border-outline-variant/30 px-6 sm:px-space-xl py-3.5 sm:py-4 rounded-xl transition-all text-center" href="#roles">
+                            <a class="inline-flex items-center justify-center gap-2 font-headline-md text-xs sm:text-title-sm uppercase tracking-wider bg-surface-bright text-on-surface hover:bg-surface-container-highest border border-outline-variant/30 px-6 sm:px-space-xl py-3.5 sm:py-4 rounded-xl transition-all text-center" href="{{ $settings['final_cta_btn2_url'] ?? '#roles' }}">
                                 <span class="material-symbols-outlined text-primary text-[18px] sm:text-[20px]">calendar_today</span>
-                                <span>Agendar Demo de Gimnasio</span>
+                                <span>{{ $settings['final_cta_btn2_text'] ?? 'Agendar Demo de Gimnasio' }}</span>
                             </a>
                         </div>
 
+                        @if(($settings['show_app_downloads'] ?? '1') == '1')
                         <!-- Download Buttons Strip -->
                         <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-space-md pt-4 sm:pt-space-lg text-on-surface-variant text-center">
                             <span class="font-body-sm text-xs sm:text-body-sm">Disponible para smartphones y tablets:</span>
                             <div class="flex items-center gap-2 sm:gap-space-sm">
-                                <div class="flex items-center gap-1.5 px-3 sm:px-space-md py-1.5 sm:py-space-xs rounded-lg bg-surface-container border border-outline-variant/20 cursor-pointer hover:bg-surface-bright transition-colors">
+                                <a href="{{ $settings['app_store_url'] ?? '#' }}" target="_blank" class="flex items-center gap-1.5 px-3 sm:px-space-md py-1.5 sm:py-space-xs rounded-lg bg-surface-container border border-outline-variant/20 cursor-pointer hover:bg-surface-bright transition-colors">
                                     <span class="material-symbols-outlined text-[16px] sm:text-[18px] text-on-surface">phone_iphone</span>
                                     <span class="font-title-sm text-xs sm:text-body-sm text-on-surface font-semibold">App Store</span>
-                                </div>
-                                <div class="flex items-center gap-1.5 px-3 sm:px-space-md py-1.5 sm:py-space-xs rounded-lg bg-surface-container border border-outline-variant/20 cursor-pointer hover:bg-surface-bright transition-colors">
+                                </a>
+                                <a href="{{ $settings['play_store_url'] ?? '#' }}" target="_blank" class="flex items-center gap-1.5 px-3 sm:px-space-md py-1.5 sm:py-space-xs rounded-lg bg-surface-container border border-outline-variant/20 cursor-pointer hover:bg-surface-bright transition-colors">
                                     <span class="material-symbols-outlined text-[16px] sm:text-[18px] text-secondary">play_arrow</span>
                                     <span class="font-title-sm text-xs sm:text-body-sm text-on-surface font-semibold">Google Play</span>
-                                </div>
+                                </a>
                             </div>
                         </div>
+                        @endif
 
                     </div>
                 </div>
             </section>
+            @endif
 
         </div>
     </main>
@@ -941,25 +956,27 @@
                     <p class="font-body-sm text-xs sm:text-body-sm text-on-surface-variant leading-relaxed">
                         Plataforma integral de alto rendimiento para entrenadores, centros deportivos y atletas de élite. Ciencia y disciplina aplicadas.
                     </p>
+                    @if(($settings['show_app_downloads'] ?? '1') == '1')
                     <div class="flex flex-col gap-2 mt-2">
                         <span class="font-label-caps text-xs text-primary uppercase font-bold">Descarga Nuestra App</span>
                         <div class="flex flex-row sm:flex-col gap-2">
-                            <div class="flex-1 flex items-center gap-2 px-3 py-2 bg-surface-container border border-outline-variant/20 rounded-lg hover:bg-surface-container-high cursor-pointer transition-colors">
+                            <a href="{{ $settings['app_store_url'] ?? '#' }}" target="_blank" class="flex-1 flex items-center gap-2 px-3 py-2 bg-surface-container border border-outline-variant/20 rounded-lg hover:bg-surface-container-high cursor-pointer transition-colors">
                                 <span class="material-symbols-outlined text-primary text-[18px]">phone_iphone</span>
                                 <div class="flex flex-col">
                                     <span class="font-body-sm text-[9px] text-on-surface-variant leading-none">Disponible en</span>
                                     <span class="font-title-sm text-xs text-on-surface font-semibold leading-tight">App Store</span>
                                 </div>
-                            </div>
-                            <div class="flex-1 flex items-center gap-2 px-3 py-2 bg-surface-container border border-outline-variant/20 rounded-lg hover:bg-surface-container-high cursor-pointer transition-colors">
+                            </a>
+                            <a href="{{ $settings['play_store_url'] ?? '#' }}" target="_blank" class="flex-1 flex items-center gap-2 px-3 py-2 bg-surface-container border border-outline-variant/20 rounded-lg hover:bg-surface-container-high cursor-pointer transition-colors">
                                 <span class="material-symbols-outlined text-secondary text-[18px]">play_arrow</span>
                                 <div class="flex flex-col">
                                     <span class="font-body-sm text-[9px] text-on-surface-variant leading-none">Consíguelo en</span>
                                     <span class="font-title-sm text-xs text-on-surface font-semibold leading-tight">Google Play</span>
                                 </div>
-                            </div>
+                            </a>
                         </div>
                     </div>
+                    @endif
                 </div>
 
                 <div class="flex flex-col gap-2 sm:gap-space-sm">
@@ -1046,6 +1063,23 @@
             }
         });
     </script>
+
+    @if(!empty($settings['contact_whatsapp']))
+        @php
+            $waNum = preg_replace('/[^0-9]/', '', $settings['contact_whatsapp']);
+            $waMsg = urlencode($settings['contact_whatsapp_message'] ?? 'Hola, me interesa conocer más sobre AF Training');
+            $waUrl = "https://wa.me/{$waNum}?text={$waMsg}";
+        @endphp
+        <aside aria-label="Contacto por WhatsApp" class="fixed bottom-6 right-6 z-50">
+            <a href="{{ $waUrl }}" target="_blank" rel="noopener noreferrer"
+                class="flex items-center gap-2.5 px-4 py-3 bg-emerald-500 hover:bg-emerald-400 text-white rounded-full shadow-[0_10px_30px_rgba(16,185,129,0.4)] transition-all duration-300 hover:scale-105 group font-bold text-xs uppercase tracking-wider">
+                <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                    <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.669-.699c.969.585 1.77.893 2.79.894h.002c3.18 0 5.767-2.586 5.768-5.766.001-3.181-2.586-5.768-5.769-5.768zm7.558 5.766c-.002 4.167-3.391 7.556-7.559 7.556-1.332 0-2.593-.349-3.696-.988l-4.103 1.077 1.096-4.004c-.732-1.157-1.12-2.518-1.12-3.641.002-4.167 3.392-7.556 7.56-7.556 4.168 0 7.558 3.389 7.559 7.556z"/>
+                </svg>
+                <span class="hidden sm:inline-block">Contáctanos</span>
+            </a>
+        </aside>
+    @endif
 
 </body>
 </html>

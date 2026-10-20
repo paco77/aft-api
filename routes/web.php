@@ -5,11 +5,15 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     if (auth()->check()) {
         if (in_array(auth()->user()->role, ['admin', 'coach', 'gimnasio'])) {
-            return redirect()->route('admin.dashboard');
+            // Si el admin no está pidiendo vista previa explícita, redirigir a dashboard
+            if (!request()->has('preview')) {
+                return redirect()->route('admin.dashboard');
+            }
         }
     }
-    return view('welcome');
-});
+    $settings = \App\Models\LandingSetting::getAllSettings();
+    return view('welcome', compact('settings'));
+})->name('landing.home');
 
 // Rutas de Autenticación
 Route::get('/login', [App\Http\Controllers\Auth\LoginController::class , 'showLoginForm'])->name('login');
@@ -62,6 +66,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Perfil de Coach / Gimnasio
     Route::get('/profile', [\App\Http\Controllers\ProfileController::class , 'edit'])->name('profile.edit');
     Route::post('/profile', [\App\Http\Controllers\ProfileController::class , 'update'])->name('profile.update');
+
+    // Gestión del Landing Page (Exclusivo Super Administrador)
+    Route::get('/landing', [\App\Http\Controllers\Admin\LandingPageController::class, 'edit'])->name('landing.edit');
+    Route::put('/landing', [\App\Http\Controllers\Admin\LandingPageController::class, 'update'])->name('landing.update');
+    Route::post('/landing/reset', [\App\Http\Controllers\Admin\LandingPageController::class, 'resetDefaults'])->name('landing.reset');
 });
 
 // Rutas Públicas de Gimnasio (Acceso mediante escaneo de Código QR)

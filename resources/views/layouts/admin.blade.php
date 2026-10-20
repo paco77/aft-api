@@ -159,6 +159,23 @@
                         </svg>
                         <span>Mi Perfil</span>
                     </a>
+
+                    @if(in_array(auth()->user()->role, ['admin', 'super_admin']))
+                    <div class="pt-3 pb-1 border-t border-slate-800/80 mt-2">
+                        <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-amber-400/90 flex items-center gap-1.5">
+                            <span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                            <span>Super Admin</span>
+                        </p>
+                    </div>
+
+                    <a href="{{ route('admin.landing.edit') }}"
+                        class="flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.landing.*') ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                        <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        <span>Landing Page</span>
+                    </a>
+                    @endif
                 </nav>
             </div>
 

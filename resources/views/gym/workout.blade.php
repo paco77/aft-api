@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es" class="dark">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -7,7 +8,9 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;600;700;800;900&display=swap"
+        rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <script>
@@ -44,34 +47,41 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
+
         .pulse-live {
             box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7);
             animation: pulse-orange 1.8s infinite;
         }
+
         @keyframes pulse-orange {
             0% {
                 transform: scale(0.95);
                 box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7);
             }
+
             70% {
                 transform: scale(1);
                 box-shadow: 0 0 0 8px rgba(249, 115, 22, 0);
             }
+
             100% {
                 transform: scale(0.95);
                 box-shadow: 0 0 0 0 rgba(249, 115, 22, 0);
             }
         }
+
         /* Custom scrollbar for sequence */
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
+
         .no-scrollbar {
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
     </style>
 </head>
+
 <body class="min-h-screen antialiased flex flex-col justify-between pb-28">
 
     <div class="max-w-md md:max-w-xl mx-auto w-full px-4 pt-4 space-y-4">
@@ -79,31 +89,36 @@
         <!-- 1. TOP BAR HEADER (Matching Image 2) -->
         <header class="flex items-center justify-between pb-1">
             <div class="flex items-center gap-3">
-                <a href="{{ route('gym.routines', ['identifier' => $gym->username ?: $gym->id, 'selected' => $trainingDay->id]) }}" 
-                   class="p-2 -ml-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                <a href="{{ route('gym.routines', ['identifier' => $gym->username ?: $gym->id, 'selected' => $trainingDay->id]) }}"
+                    class="p-2 -ml-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
                 </a>
                 <div>
-                    <h1 class="text-sm font-bold text-white tracking-tight">Active Workout Session</h1>
+                    <h1 class="text-sm font-bold text-white tracking-tight">Sesión activa</h1>
                     <p class="text-2xs font-extrabold uppercase tracking-widest text-slate-400">AF TRAINING</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-2">
-                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-950/80 border border-orange-500/40 text-orange-400 text-2xs font-extrabold tracking-wider uppercase">
+                <div
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-950/80 border border-orange-500/40 text-orange-400 text-2xs font-extrabold tracking-wider uppercase">
                     <span class="w-2 h-2 rounded-full bg-orange-500 pulse-live"></span>
                     <span>LIVE</span>
                 </div>
                 <button type="button" class="p-1.5 text-slate-400 hover:text-white rounded-lg">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                        <path
+                            d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                     </svg>
                 </button>
-                <div class="w-8 h-8 rounded-full bg-blue-600/30 border border-blue-400/40 flex items-center justify-center text-blue-200">
+                <div
+                    class="w-8 h-8 rounded-full bg-blue-600/30 border border-blue-400/40 flex items-center justify-center text-blue-200">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                 </div>
             </div>
@@ -112,13 +127,15 @@
         <!-- 2. WORKOUT SUBHEADER -->
         <div class="space-y-1.5">
             <div class="flex items-center justify-between text-xs">
-                <div class="inline-flex items-center gap-1.5 text-orange-400 font-bold tracking-wide uppercase text-2xs sm:text-xs">
+                <div
+                    class="inline-flex items-center gap-1.5 text-orange-400 font-bold tracking-wide uppercase text-2xs sm:text-xs">
                     <span class="w-2 h-2 rounded-full bg-orange-500"></span>
                     <span>EN VIVO &bull; HIPERTROFIA & RENDIMIENTO</span>
                 </div>
                 <div class="flex items-center gap-1 text-slate-300 font-mono text-xs font-semibold">
                     <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span id="elapsedTimer">00:00:00</span>
                 </div>
@@ -140,7 +157,8 @@
                 <div class="flex items-center gap-2">
                     <div class="p-2 rounded-xl bg-slate-800/80 text-slate-300">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </div>
                     <div>
@@ -149,30 +167,38 @@
                 </div>
 
                 <div class="text-right">
-                    <span id="restDisplay" class="font-display font-black text-2xl sm:text-3xl text-orange-500 tracking-tight">01:30</span>
+                    <span id="restDisplay"
+                        class="font-display font-black text-2xl sm:text-3xl text-orange-500 tracking-tight">01:30</span>
                     <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider ml-1">rest</span>
                 </div>
             </div>
 
             <!-- Progress bar -->
             <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                <div id="restProgressBar" class="bg-gradient-to-r from-orange-600 to-orange-400 h-full w-full transition-all duration-300"></div>
+                <div id="restProgressBar"
+                    class="bg-gradient-to-r from-orange-600 to-orange-400 h-full w-full transition-all duration-300">
+                </div>
             </div>
 
             <!-- Timer controls -->
             <div class="grid grid-cols-4 gap-2 pt-1">
-                <button type="button" onclick="adjustRest(-15)" class="py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 transition active:scale-95">
+                <button type="button" onclick="adjustRest(-15)"
+                    class="py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 transition active:scale-95">
                     -15s
                 </button>
-                <button type="button" onclick="adjustRest(15)" class="py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 transition active:scale-95">
+                <button type="button" onclick="adjustRest(15)"
+                    class="py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 transition active:scale-95">
                     +15s
                 </button>
-                <button type="button" onclick="resetRest()" class="py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 transition active:scale-95 flex items-center justify-center">
+                <button type="button" onclick="resetRest()"
+                    class="py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 transition active:scale-95 flex items-center justify-center">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
                 </button>
-                <button type="button" id="pauseRestBtn" onclick="toggleRest()" class="py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-xs font-black uppercase tracking-wider text-white transition active:scale-95 shadow-md shadow-orange-600/30">
+                <button type="button" id="pauseRestBtn" onclick="toggleRest()"
+                    class="py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-xs font-black uppercase tracking-wider text-white transition active:scale-95 shadow-md shadow-orange-600/30">
                     Pausar
                 </button>
             </div>
@@ -180,20 +206,21 @@
 
         <!-- 4. COMENTARIO DEL COACH AF (Matching Image 2) -->
         @if($trainingDay->comment)
-        <div class="bg-af-card border border-af-border rounded-2xl p-4 space-y-2">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2 text-2xs font-bold uppercase tracking-wider text-blue-400">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                    </svg>
-                    <span>COMENTARIO DEL COACH AF</span>
+            <div class="bg-af-card border border-af-border rounded-2xl p-4 space-y-2">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-2xs font-bold uppercase tracking-wider text-blue-400">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                        </svg>
+                        <span>COMENTARIO DEL COACH AF</span>
+                    </div>
+                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
                 </div>
-                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    {{ $trainingDay->comment }}
+                </p>
             </div>
-            <p class="text-xs text-slate-300 leading-relaxed">
-                {{ $trainingDay->comment }}
-            </p>
-        </div>
         @endif
 
         <!-- 5. SECUENCIA DEL ENTRENAMIENTO (Horizontal Exercise Carousel) -->
@@ -205,19 +232,21 @@
 
             <div class="flex items-center gap-2.5 overflow-x-auto no-scrollbar pb-1" id="exerciseCarousel">
                 @foreach($trainingDay->plannedExercises as $idx => $pExercise)
-                    <button type="button" 
-                            onclick="selectExercise({{ $idx }})" 
-                            id="seqTab{{ $idx }}"
-                            class="seq-tab flex-shrink-0 w-36 text-left p-3 rounded-2xl border transition-all duration-200 {{ $idx === 0 ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-600/30' : 'bg-af-card border-af-border text-slate-300 hover:border-slate-700' }}">
+                    <button type="button" onclick="selectExercise({{ $idx }})" id="seqTab{{ $idx }}"
+                        class="seq-tab flex-shrink-0 w-36 text-left p-3 rounded-2xl border transition-all duration-200 {{ $idx === 0 ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-600/30' : 'bg-af-card border-af-border text-slate-300 hover:border-slate-700' }}">
                         <div class="flex items-center justify-between mb-1.5">
-                            <span class="w-5 h-5 rounded-full {{ $idx === 0 ? 'bg-white text-blue-700' : 'bg-slate-800 text-slate-300' }} text-2xs font-bold flex items-center justify-center">
+                            <span
+                                class="w-5 h-5 rounded-full {{ $idx === 0 ? 'bg-white text-blue-700' : 'bg-slate-800 text-slate-300' }} text-2xs font-bold flex items-center justify-center">
                                 {{ $idx + 1 }}
                             </span>
-                            <svg class="w-3.5 h-3.5 {{ $idx === 0 ? 'text-white' : 'text-slate-500' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                            <svg class="w-3.5 h-3.5 {{ $idx === 0 ? 'text-white' : 'text-slate-500' }}" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                             </svg>
                         </div>
-                        <div class="font-bold text-xs truncate leading-snug">{{ $pExercise->exercise->name ?? 'Ejercicio' }}</div>
+                        <div class="font-bold text-xs truncate leading-snug">{{ $pExercise->exercise->name ?? 'Ejercicio' }}
+                        </div>
                         <div class="text-2xs uppercase tracking-wider mt-0.5 opacity-80">{{ $pExercise->sets }} SERIES</div>
                     </button>
                 @endforeach
@@ -235,28 +264,31 @@
     <div class="fixed bottom-0 left-0 right-0 z-40 bg-[#070a12]/95 backdrop-blur-md border-t border-af-border p-3">
         <div class="max-w-md md:max-w-xl mx-auto space-y-2">
             <!-- Next / Save Exercise CTA -->
-            <button type="button" onclick="nextExercise()" 
-                    class="w-full py-3.5 px-4 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-extrabold text-sm uppercase tracking-wider shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 transition active:scale-[0.99]">
+            <button type="button" onclick="nextExercise()"
+                class="w-full py-3.5 px-4 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-extrabold text-sm uppercase tracking-wider shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 transition active:scale-[0.99]">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                        d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
                 <span id="nextBtnText">Guardar y Siguiente Ejercicio</span>
             </button>
 
             <!-- Bottom dual secondary actions -->
             <div class="grid grid-cols-2 gap-2">
-                <button type="button" onclick="openNoteModal()" 
-                        class="py-2.5 px-3 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center justify-center gap-1.5">
+                <button type="button" onclick="openNoteModal()"
+                    class="py-2.5 px-3 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center justify-center gap-1.5">
                     <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                     <span>Añadir Nota</span>
                 </button>
 
-                <button type="button" onclick="openFinishModal()" 
-                        class="py-2.5 px-3 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-orange-400 hover:text-orange-300 hover:bg-slate-800 transition flex items-center justify-center gap-1.5">
+                <button type="button" onclick="openFinishModal()"
+                    class="py-2.5 px-3 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-orange-400 hover:text-orange-300 hover:bg-slate-800 transition flex items-center justify-center gap-1.5">
                     <svg class="w-4 h-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
                     </svg>
                     <span>Terminar Sesión</span>
                 </button>
@@ -265,30 +297,39 @@
     </div>
 
     <!-- MODAL: AÑADIR NOTA -->
-    <div id="noteModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div id="noteModal"
+        class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-af-card border border-af-border rounded-2xl p-6 max-w-sm w-full space-y-4">
             <h3 class="text-base font-bold text-white">Notas de la Sesión</h3>
-            <textarea id="sessionNotesInput" rows="4" placeholder="Sensaciones, peso corporal, dolores articulares o ajustes para la próxima semana..."
-                      class="w-full rounded-xl bg-slate-900 border border-slate-700 p-3 text-xs text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            <textarea id="sessionNotesInput" rows="4"
+                placeholder="Sensaciones, peso corporal, dolores articulares o ajustes para la próxima semana..."
+                class="w-full rounded-xl bg-slate-900 border border-slate-700 p-3 text-xs text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
             <div class="flex justify-end gap-2">
-                <button type="button" onclick="closeNoteModal()" class="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white">Cerrar</button>
-                <button type="button" onclick="closeNoteModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold">Guardar Nota</button>
+                <button type="button" onclick="closeNoteModal()"
+                    class="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white">Cerrar</button>
+                <button type="button" onclick="closeNoteModal()"
+                    class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold">Guardar
+                    Nota</button>
             </div>
         </div>
     </div>
 
     <!-- MODAL: TERMINAR SESIÓN & REGISTRAR -->
-    <div id="finishModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div id="finishModal"
+        class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-af-card border border-af-border rounded-2xl p-6 max-w-sm w-full space-y-4 text-center">
-            <div class="w-14 h-14 mx-auto rounded-full bg-orange-600/20 border border-orange-500/40 text-orange-400 flex items-center justify-center">
+            <div
+                class="w-14 h-14 mx-auto rounded-full bg-orange-600/20 border border-orange-500/40 text-orange-400 flex items-center justify-center">
                 <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             </div>
 
             <div>
                 <h3 class="text-lg font-bold text-white">¡Gran Trabajo en la Sala!</h3>
-                <p class="text-xs text-slate-400 mt-1">Has completado la rutina de hoy. Registra tu sesión para guardar tus series y sobrecargas.</p>
+                <p class="text-xs text-slate-400 mt-1">Has completado la rutina de hoy. Registra tu sesión para guardar
+                    tus series y sobrecargas.</p>
             </div>
 
             <!-- Stats Recap -->
@@ -304,20 +345,21 @@
             </div>
 
             @guest
-            <div class="text-left space-y-1">
-                <label class="block text-2xs font-semibold text-slate-400 uppercase">Tu Nombre o Alias (Opcional)</label>
-                <input type="text" id="guestNameInput" placeholder="ej. Carlos M." 
-                       class="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
+                <div class="text-left space-y-1">
+                    <label class="block text-2xs font-semibold text-slate-400 uppercase">Tu Nombre o Alias
+                        (Opcional)</label>
+                    <input type="text" id="guestNameInput" placeholder="ej. Carlos M."
+                        class="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
             @endguest
 
             <div class="flex items-center gap-2 pt-2">
-                <button type="button" onclick="closeFinishModal()" 
-                        class="flex-1 py-2.5 rounded-xl border border-slate-700 text-xs font-semibold text-slate-300 hover:bg-slate-800">
+                <button type="button" onclick="closeFinishModal()"
+                    class="flex-1 py-2.5 rounded-xl border border-slate-700 text-xs font-semibold text-slate-300 hover:bg-slate-800">
                     Seguir Entrenando
                 </button>
-                <button type="button" id="submitSessionBtn" onclick="submitWorkoutSession()" 
-                        class="flex-1 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-orange-600/30">
+                <button type="button" id="submitSessionBtn" onclick="submitWorkoutSession()"
+                    class="flex-1 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-orange-600/30">
                     Guardar Sesión
                 </button>
             </div>
@@ -562,7 +604,7 @@
                             </div>
                             <div>
                                 <span class="text-2xs font-extrabold uppercase text-slate-400 block tracking-wider">VOLUMEN EJERCICIO</span>
-                                <span class="text-base font-black text-white font-mono">${Math.round(totalVolume).toLocaleString()} <span class="text-2xs font-normal text-slate-400">${workoutData.unit.toLowerCase()}</span></span>
+                                <span id="exerciseLiveVolume" class="text-base font-black text-white font-mono">${Math.round(totalVolume).toLocaleString()} <span class="text-2xs font-normal text-slate-400">${workoutData.unit.toLowerCase()}</span></span>
                             </div>
                         </div>
 
@@ -574,7 +616,7 @@
                             </div>
                             <div>
                                 <span class="text-2xs font-extrabold uppercase text-slate-400 block tracking-wider">1RM ESTIMADO</span>
-                                <span class="text-base font-black text-orange-400 font-mono">${max1RM.toFixed(1)} <span class="text-2xs font-normal text-slate-400">${workoutData.unit.toLowerCase()}</span></span>
+                                <span id="exerciseLive1RM" class="text-base font-black text-orange-400 font-mono">${max1RM.toFixed(1)} <span class="text-2xs font-normal text-slate-400">${workoutData.unit.toLowerCase()}</span></span>
                             </div>
                         </div>
                     </div>
@@ -586,13 +628,37 @@
             document.getElementById('nextBtnText').textContent = isLast ? 'Finalizar Todos los Ejercicios' : 'Guardar y Siguiente Ejercicio';
         }
 
+        function updateExerciseLiveMetrics() {
+            const ex = workoutData.plannedExercises[workoutData.currentIndex];
+            if (!ex) return;
+
+            let totalVolume = 0;
+            let max1RM = 0;
+
+            ex.sets.forEach(s => {
+                if (s.checked) {
+                    const w = parseFloat(s.weight) || 0;
+                    const r = parseInt(s.reps, 10) || 0;
+                    totalVolume += (w * r);
+                    const epley = w * (1 + (r / 30));
+                    if (epley > max1RM) max1RM = epley;
+                }
+            });
+
+            const volEl = document.getElementById('exerciseLiveVolume');
+            if (volEl) volEl.innerHTML = `${Math.round(totalVolume).toLocaleString()} <span class="text-2xs font-normal text-slate-400">${workoutData.unit.toLowerCase()}</span>`;
+
+            const rmEl = document.getElementById('exerciseLive1RM');
+            if (rmEl) rmEl.innerHTML = `${max1RM.toFixed(1)} <span class="text-2xs font-normal text-slate-400">${workoutData.unit.toLowerCase()}</span>`;
+        }
+
         function renderSetRow(s, idx) {
-            const checkedClass = s.checked 
-                ? 'bg-blue-950/40 border-blue-500/50' 
+            const checkedClass = s.checked
+                ? 'bg-blue-950/40 border-blue-500/50'
                 : 'bg-slate-900/60 border-slate-800';
 
-            const checkBtnClass = s.checked 
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/40' 
+            const checkBtnClass = s.checked
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/40'
                 : 'bg-slate-800 text-slate-400 hover:text-white';
 
             let diffPill = '';
@@ -601,6 +667,10 @@
                 else if (idx === 1) diffPill = `<span class="text-2xs font-medium text-slate-400">Igualado</span>`;
                 else diffPill = `<span class="text-2xs font-bold text-orange-400">Última serie</span>`;
             }
+
+            const weightVal = (s.weight !== undefined && s.weight !== null && s.weight !== '') ? s.weight : '';
+            const repsVal = (s.reps !== undefined && s.reps !== null && s.reps !== '') ? s.reps : '';
+            const rpeVal = (s.rpe !== undefined && s.rpe !== null && s.rpe !== '') ? s.rpe : '';
 
             return `
                 <div class="rounded-xl border ${checkedClass} p-2.5 transition-all">
@@ -614,20 +684,23 @@
 
                         <!-- Carga (Weight) -->
                         <div class="col-span-3">
-                            <input type="number" step="0.5" value="${s.weight || ''}" onchange="updateSetData(${idx}, 'weight', this.value)"
-                                   class="w-full text-center py-2 px-1 rounded-xl bg-slate-900 border border-slate-700 text-sm font-black text-white font-mono focus:outline-none focus:border-blue-500">
+                            <input type="number" step="0.5" placeholder="0.0" value="${weightVal}" 
+                                   oninput="updateSetData(${idx}, 'weight', this.value)"
+                                   class="w-full text-center py-2 px-1 rounded-xl bg-slate-900 border border-slate-700 text-sm font-black text-white font-mono focus:outline-none focus:border-blue-500 placeholder-slate-600">
                         </div>
 
                         <!-- Reps -->
                         <div class="col-span-3">
-                            <input type="number" value="${s.reps || ''}" onchange="updateSetData(${idx}, 'reps', this.value)"
-                                   class="w-full text-center py-2 px-1 rounded-xl bg-slate-900 border border-slate-700 text-sm font-black text-white font-mono focus:outline-none focus:border-blue-500">
+                            <input type="number" placeholder="0" value="${repsVal}" 
+                                   oninput="updateSetData(${idx}, 'reps', this.value)"
+                                   class="w-full text-center py-2 px-1 rounded-xl bg-slate-900 border border-slate-700 text-sm font-black text-white font-mono focus:outline-none focus:border-blue-500 placeholder-slate-600">
                         </div>
 
                         <!-- RPE -->
                         <div class="col-span-2">
-                            <input type="number" step="0.5" min="5" max="10" value="${s.rpe || ''}" onchange="updateSetData(${idx}, 'rpe', this.value)"
-                                   class="w-full text-center py-2 px-1 rounded-xl bg-slate-900 border border-slate-700 text-sm font-black text-orange-400 font-mono focus:outline-none focus:border-blue-500">
+                            <input type="number" step="0.5" min="0" max="10" placeholder="0.0" value="${rpeVal}" 
+                                   oninput="updateSetData(${idx}, 'rpe', this.value)"
+                                   class="w-full text-center py-2 px-1 rounded-xl bg-slate-900 border border-slate-700 text-sm font-black text-orange-400 font-mono focus:outline-none focus:border-blue-500 placeholder-slate-600">
                         </div>
 
                         <!-- Checkmark Action -->
@@ -654,7 +727,7 @@
             const ex = workoutData.plannedExercises[workoutData.currentIndex];
             if (ex && ex.sets[setIdx]) {
                 ex.sets[setIdx][field] = val;
-                renderActiveExercise();
+                updateExerciseLiveMetrics();
             }
         }
 
@@ -673,12 +746,11 @@
         function addSet() {
             const ex = workoutData.plannedExercises[workoutData.currentIndex];
             if (ex) {
-                const prev = ex.sets[ex.sets.length - 1] || { weight: 40, reps: 10, rpe: 8 };
                 ex.sets.push({
                     set_number: ex.sets.length + 1,
-                    weight: prev.weight,
-                    reps: prev.reps,
-                    rpe: prev.rpe,
+                    weight: '',
+                    reps: '',
+                    rpe: '',
                     checked: false,
                 });
                 renderActiveExercise();
@@ -691,7 +763,9 @@
                 workoutData.unit = newUnit;
                 workoutData.plannedExercises.forEach(ex => {
                     ex.sets.forEach(s => {
-                        if (s.weight) s.weight = (parseFloat(s.weight) * factor).toFixed(1);
+                        if (s.weight !== '' && s.weight !== null && s.weight !== undefined && !isNaN(parseFloat(s.weight))) {
+                            s.weight = (parseFloat(s.weight) * factor).toFixed(1);
+                        }
                     });
                 });
                 renderActiveExercise();
@@ -715,6 +789,31 @@
             }
         }
 
+        // Fill all blank inputs with 0 across all exercises and sets
+        function fillBlankSetsWithZero() {
+            workoutData.plannedExercises.forEach(ex => {
+                ex.sets.forEach(s => {
+                    if (s.weight === '' || s.weight === null || s.weight === undefined || isNaN(parseFloat(s.weight))) {
+                        s.weight = 0;
+                    } else {
+                        s.weight = parseFloat(s.weight);
+                    }
+
+                    if (s.reps === '' || s.reps === null || s.reps === undefined || isNaN(parseInt(s.reps, 10))) {
+                        s.reps = 0;
+                    } else {
+                        s.reps = parseInt(s.reps, 10);
+                    }
+
+                    if (s.rpe === '' || s.rpe === null || s.rpe === undefined || isNaN(parseFloat(s.rpe))) {
+                        s.rpe = 0;
+                    } else {
+                        s.rpe = parseFloat(s.rpe);
+                    }
+                });
+            });
+        }
+
         // Modals
         function openNoteModal() {
             document.getElementById('noteModal').classList.remove('hidden');
@@ -724,6 +823,10 @@
         }
 
         function openFinishModal() {
+            // Automatically fill blank inputs with 0 when finishing session
+            fillBlankSetsWithZero();
+            renderActiveExercise();
+
             // Calculate total volume across all exercises
             let grandVolume = 0;
             workoutData.plannedExercises.forEach(ex => {
@@ -743,6 +846,9 @@
 
         // Submit to Backend
         function submitWorkoutSession() {
+            // Ensure any remaining blank space is automatically 0
+            fillBlankSetsWithZero();
+
             const btn = document.getElementById('submitSessionBtn');
             btn.disabled = true;
             btn.textContent = 'Guardando...';
@@ -760,12 +866,13 @@
                     return {
                         planned_exercise_id: ex.id,
                         sets: ex.sets.map(s => {
+                            const wNum = parseFloat(s.weight) || 0;
                             return {
                                 set_number: s.set_number,
-                                weight: workoutData.unit === 'KG' ? s.weight : (s.weight / 2.20462).toFixed(2),
-                                weight_lb: workoutData.unit === 'LB' ? s.weight : (s.weight * 2.20462).toFixed(2),
-                                reps: s.reps,
-                                rpe: s.rpe,
+                                weight: workoutData.unit === 'KG' ? wNum : parseFloat((wNum / 2.20462).toFixed(2)),
+                                weight_lb: workoutData.unit === 'LB' ? wNum : parseFloat((wNum * 2.20462).toFixed(2)),
+                                reps: parseInt(s.reps, 10) || 0,
+                                rpe: parseFloat(s.rpe) || 0,
                             };
                         })
                     };
@@ -781,22 +888,22 @@
                 },
                 body: JSON.stringify(payload)
             })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    alert('¡Excelente sesión! Entrenamiento guardado con éxito.');
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('¡Excelente sesión! Entrenamiento guardado con éxito.');
+                        window.location.href = "{{ route('gym.routines', ['identifier' => $gym->username ?: $gym->id]) }}";
+                    } else {
+                        alert('Error al guardar la sesión: ' + (data.message || 'Intente nuevamente.'));
+                        btn.disabled = false;
+                        btn.textContent = 'Guardar Sesión';
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Sesión registrada localmente. ¡Buen entrenamiento!');
                     window.location.href = "{{ route('gym.routines', ['identifier' => $gym->username ?: $gym->id]) }}";
-                } else {
-                    alert('Error al guardar la sesión: ' + (data.message || 'Intente nuevamente.'));
-                    btn.disabled = false;
-                    btn.textContent = 'Guardar Sesión';
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert('Sesión registrada localmente. ¡Buen entrenamiento!');
-                window.location.href = "{{ route('gym.routines', ['identifier' => $gym->username ?: $gym->id]) }}";
-            });
+                });
         }
 
         // Initial render
@@ -805,4 +912,5 @@
         });
     </script>
 </body>
+
 </html>

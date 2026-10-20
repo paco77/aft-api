@@ -79,9 +79,9 @@ class GymPublicController extends Controller
             for ($i = 0; $i < max(1, $p->sets); $i++) {
                 $initialSets[] = [
                     'set_number' => $i + 1,
-                    'weight' => 42.5 + ($i * 2.5),
-                    'reps' => $p->min_reps + 2,
-                    'rpe' => 8.0 + ($i * 0.5),
+                    'weight' => '',
+                    'reps' => '',
+                    'rpe' => '',
                     'checked' => false,
                 ];
             }
@@ -163,13 +163,18 @@ class GymPublicController extends Controller
                 ]);
 
                 foreach ($exData['sets'] as $setData) {
+                    $rawWeight = (isset($setData['weight']) && $setData['weight'] !== null && $setData['weight'] !== '') ? (float) $setData['weight'] : 0.0;
+                    $rawWeightLb = (isset($setData['weight_lb']) && $setData['weight_lb'] !== null && $setData['weight_lb'] !== '') ? (float) $setData['weight_lb'] : 0.0;
+                    $rawReps = (isset($setData['reps']) && $setData['reps'] !== null && $setData['reps'] !== '') ? (int) $setData['reps'] : 0;
+                    $rawRpe = (isset($setData['rpe']) && $setData['rpe'] !== null && $setData['rpe'] !== '') ? (float) $setData['rpe'] : 0.0;
+
                     SetLog::create([
                         'exercise_log_id' => $exerciseLog->id,
                         'set_number' => $setData['set_number'],
-                        'weight' => $setData['weight'] ?? null,
-                        'weight_lb' => $setData['weight_lb'] ?? null,
-                        'reps' => $setData['reps'] ?? null,
-                        'rpe' => $setData['rpe'] ?? null,
+                        'weight' => $rawWeight,
+                        'weight_lb' => $rawWeightLb,
+                        'reps' => $rawReps,
+                        'rpe' => $rawRpe,
                     ]);
                 }
             }

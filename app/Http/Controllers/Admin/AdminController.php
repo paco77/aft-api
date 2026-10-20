@@ -19,9 +19,13 @@ class AdminController extends Controller
                 'users' => $user->clients()->count(),
                 'exercises' => Exercise::count(),
                 'plans' => $user->monthlyPlans()->count(),
+                'gym_routines' => 0,
+                'sessions' => 0,
             ];
         } elseif ($user && $user->role === 'gimnasio') {
             $stats = [
+                'users' => 0,
+                'plans' => 0,
                 'gym_routines' => $user->gymRoutines()->count(),
                 'exercises' => Exercise::count(),
                 'sessions' => \App\Models\WorkoutSession::whereIn('training_day_id', $user->gymRoutines()->pluck('id'))->count(),
@@ -32,6 +36,7 @@ class AdminController extends Controller
                 'exercises' => Exercise::count(),
                 'plans' => MonthlyPlan::count(),
                 'gym_routines' => \App\Models\TrainingDay::whereNotNull('user_id')->count(),
+                'sessions' => \App\Models\WorkoutSession::count(),
             ];
         }
 

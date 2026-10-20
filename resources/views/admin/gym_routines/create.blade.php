@@ -3,46 +3,78 @@
 @section('header', 'Nueva Rutina de Gimnasio')
 
 @section('content')
-<div class="max-w-5xl mx-auto space-y-6">
-    <div class="flex items-center justify-between">
-        <div>
-            <a href="{{ route('admin.gym-routines.index') }}" class="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition mb-2">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                </svg>
-                <span>Volver a Rutinas</span>
-            </a>
-            <h1 class="text-2xl font-bold text-slate-900">Crear Rutina para Gimnasio</h1>
-            <p class="text-sm text-slate-500">Configura una sesión de entrenamiento autónoma disponible para escanear por código QR.</p>
+<div class="max-w-6xl mx-auto space-y-8 pb-12 relative">
+    
+    <!-- Hero Header -->
+    <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl border border-slate-800">
+        <div class="absolute -right-10 -top-10 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute right-40 -bottom-10 w-48 h-48 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="space-y-2">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
+                    Módulo de Gimnasio & Código QR
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
+                    <span class="p-2.5 rounded-2xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                    </span>
+                    Crear Rutina para Gimnasio
+                </h2>
+                <p class="text-slate-300 text-sm max-w-2xl leading-relaxed">
+                    Diseña una sesión de entrenamiento autónoma disponible para escanear por código QR en la sala de pesas.
+                </p>
+            </div>
+
+            <div class="flex items-center gap-3 self-start md:self-auto shrink-0">
+                <a href="{{ route('admin.gym-routines.index') }}"
+                    class="px-4 py-2 rounded-xl text-sm font-medium text-slate-300 bg-white/5 hover:bg-white/10 hover:text-white border border-white/10 transition-all flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Volver a Rutinas
+                </a>
+            </div>
         </div>
     </div>
 
-    @if ($errors->any())
-        <div class="p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg">
-            <h4 class="font-semibold text-sm mb-1">Por favor corrige los siguientes errores:</h4>
-            <ul class="list-disc list-inside text-xs space-y-0.5">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
+    @if (isset($errors) && $errors->any())
+        <div class="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl flex items-start gap-3 shadow-xs">
+            <svg class="w-5 h-5 text-rose-500 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+            <div>
+                <h4 class="font-bold text-sm">Por favor corrige los siguientes errores:</h4>
+                <ul class="mt-1 list-disc list-inside text-xs space-y-0.5">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
         </div>
     @endif
 
-    <form action="{{ route('admin.gym-routines.store') }}" method="POST" id="routineForm" class="space-y-6">
+    <form action="{{ route('admin.gym-routines.store') }}" method="POST" id="routineForm" class="space-y-8">
         @csrf
 
         <!-- General Info Card -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-5">
-            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
-                <span>Información General de la Sesión</span>
-            </h3>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 sm:p-8 transition-all hover:shadow-md space-y-6">
+            <div class="flex items-center gap-3 pb-4 border-b border-slate-100">
+                <span class="flex items-center justify-center w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 font-bold text-sm border border-indigo-100">01</span>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900">Configuración General de la Sesión</h3>
+                    <p class="text-xs text-slate-500">Nombre, tiempo estimado y grupos musculares de la rutina</p>
+                </div>
+            </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 @if(auth()->user()->role === 'admin')
                 <div class="sm:col-span-2 lg:col-span-1">
-                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Gimnasio Asignado</label>
-                    <select name="user_id" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Gimnasio Asignado <span class="text-rose-500">*</span></label>
+                    <select name="user_id" required class="w-full rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 text-sm py-2.5 px-3 bg-white transition-colors">
                         @foreach($gymUsers as $g)
                             <option value="{{ $g->id }}" {{ old('user_id') == $g->id ? 'selected' : '' }}>
                                 {{ $g->name }} (@ {{ $g->username }})
@@ -53,37 +85,37 @@
                 @endif
 
                 <div class="{{ auth()->user()->role === 'admin' ? 'sm:col-span-2' : 'sm:col-span-2 lg:col-span-2' }}">
-                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Nombre de la Sesión / Rutina *</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Nombre de la Sesión / Rutina <span class="text-rose-500">*</span></label>
                     <input type="text" name="label" value="{{ old('label') }}" required placeholder="ej. Sesión de Espalda, Bíceps y Hombros"
-                           class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                           class="w-full rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 text-sm py-2.5 px-3 transition-colors">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Tiempo Estimado (Minutos)</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Tiempo Estimado (Minutos)</label>
                     <div class="relative">
                         <input type="number" name="estimated_minutes" value="{{ old('estimated_minutes', 60) }}" min="10" max="180"
-                               class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <span class="absolute right-3 top-2 text-xs text-slate-400">min</span>
+                               class="w-full rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 text-sm py-2.5 px-3 transition-colors">
+                        <span class="absolute right-3.5 top-2.5 text-xs font-semibold text-slate-400">min</span>
                     </div>
                 </div>
 
                 <div class="sm:col-span-2 lg:col-span-3">
-                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Enfoque / Descripción de la Rutina</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Enfoque / Descripción de la Rutina</label>
                     <input type="text" name="description" value="{{ old('description') }}" placeholder="ej. Enfoque en tracciones para amplitud dorsal y trabajo de deltoides posterior y flexores de codo."
-                           class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                           class="w-full rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 text-sm py-2.5 px-3 transition-colors">
                 </div>
 
                 <div class="sm:col-span-2 lg:col-span-3">
-                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Comentario del Coach AF (Cues técnicos en la app)</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Comentario del Coach AF (Cues técnicos en la app)</label>
                     <textarea name="comment" rows="2" placeholder="ej. Mantener retracción escapular estricta en todo el recorrido. Fase excéntrica controlada de 2s, evitar arquear zona lumbar en el punto de máximo estiramiento."
-                              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">{{ old('comment') }}</textarea>
+                              class="w-full rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 text-sm py-2.5 px-3 transition-colors">{{ old('comment') }}</textarea>
                 </div>
 
                 <div class="sm:col-span-2 lg:col-span-3">
-                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Grupos Musculares Principales</label>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Grupos Musculares Tratados</label>
                     <div class="flex flex-wrap gap-2">
                         @foreach(['Espalda', 'Pecho', 'Pierna', 'Cuádriceps', 'Isquios', 'Glúteos', 'Hombros', 'Bíceps', 'Tríceps', 'Abdomen', 'Fullbody'] as $muscle)
-                            <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-xs font-medium text-slate-700 cursor-pointer hover:bg-slate-100 has-[:checked]:bg-indigo-600 has-[:checked]:text-white has-[:checked]:border-indigo-600 transition">
+                            <label class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-700 cursor-pointer hover:bg-slate-100 has-[:checked]:bg-indigo-600 has-[:checked]:text-white has-[:checked]:border-indigo-600 transition shadow-2xs">
                                 <input type="checkbox" name="muscle_groups[]" value="{{ $muscle }}" class="hidden" {{ in_array($muscle, old('muscle_groups', [])) ? 'checked' : '' }}>
                                 <span>{{ $muscle }}</span>
                             </label>
@@ -93,172 +125,557 @@
             </div>
         </div>
 
-        <!-- Exercises Builder Card -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-blue-600"></span>
-                        <span>Secuencia de Ejercicios</span>
-                    </h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Agrega y ordena los ejercicios que integran esta sesión.</p>
+        <!-- Exercises Structure Card (Coach Design) -->
+        <div class="space-y-4">
+            <div class="flex items-center justify-between pb-1">
+                <div class="flex items-center gap-3">
+                    <span class="flex items-center justify-center w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 font-bold text-sm border border-indigo-100">02</span>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Ejercicios de la Rutina</h3>
+                        <p class="text-xs text-slate-500">Arrastra para reordenar la secuencia y ajusta series, repeticiones e indicaciones</p>
+                    </div>
                 </div>
-                <button type="button" id="addExerciseBtn" 
-                        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 font-medium text-xs rounded-lg transition border border-blue-200">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
+                <button type="button" onclick="openExerciseModal()"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md shadow-indigo-500/20 text-xs transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    <span>Agregar Ejercicio</span>
+                    <span>Añadir Ejercicios</span>
                 </button>
             </div>
 
-            <!-- Exercises Container -->
-            <div id="exercisesContainer" class="space-y-3">
-                <!-- Dynamically populated or filled from old() -->
+            <!-- Exercises Container (Sortable rows) -->
+            <div id="exercises-container" class="space-y-3 min-h-[100px] bg-slate-50/50 p-4 rounded-3xl border border-dashed border-slate-300">
+                <!-- Dynamically injected exercise rows -->
             </div>
+
+            <!-- Big Add Exercise Button CTA -->
+            <button type="button" onclick="openExerciseModal()"
+                class="w-full py-4 border-2 border-dashed border-indigo-200 hover:border-indigo-400 bg-white hover:bg-indigo-50/50 text-indigo-600 font-bold rounded-2xl shadow-xs transition-all flex items-center justify-center gap-2.5 text-sm group">
+                <span class="p-1.5 rounded-xl bg-indigo-100 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                </span>
+                <span>Abrir Banco de Ejercicios y Seleccionar</span>
+            </button>
         </div>
 
-        <!-- Submit Bar -->
-        <div class="flex items-center justify-end gap-3 pt-2">
-            <a href="{{ route('admin.gym-routines.index') }}" class="px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg text-sm font-medium transition">
+        <!-- Form Actions Bar -->
+        <div class="flex items-center justify-between pt-6 border-t border-slate-200 flex-wrap gap-4">
+            <a href="{{ route('admin.gym-routines.index') }}"
+                class="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm">
                 Cancelar
             </a>
-            <button type="submit" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition">
-                Guardar Rutina
+            
+            <button type="submit" id="btn_submit"
+                class="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/25 transition-all text-sm flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Guardar Rutina de Gimnasio
             </button>
         </div>
     </form>
 </div>
 
-<!-- Exercise Template (Hidden) -->
-<template id="exerciseTemplate">
-    <div class="exercise-item border border-slate-200 rounded-lg p-4 bg-slate-50/50 hover:bg-white transition-all space-y-3 relative group">
-        <div class="flex items-center justify-between gap-2 border-b border-slate-200 pb-2">
-            <div class="flex items-center gap-2">
-                <span class="exercise-num w-6 h-6 rounded-full bg-slate-200 text-slate-700 text-xs font-bold flex items-center justify-center">1</span>
-                <span class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Configuración de Ejercicio</span>
+<!-- MODAL: BANCO DE EJERCICIOS (Exact Coach Design) -->
+<div id="exercise-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:p-0">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" aria-hidden="true" onclick="closeExerciseModal()"></div>
+
+        <div class="relative z-10 inline-block align-middle bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:max-w-4xl sm:w-full border border-slate-100">
+            <!-- Modal Header -->
+            <div class="px-6 py-5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="p-2.5 rounded-2xl bg-indigo-50 text-indigo-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                    </span>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900" id="modal-title">Banco de Ejercicios</h3>
+                        <p class="text-xs text-slate-500">Selecciona los ejercicios que formarán parte de la sesión</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeExerciseModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
             </div>
-            <button type="button" class="remove-exercise text-slate-400 hover:text-red-500 p-1 transition" title="Eliminar este ejercicio">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
+            <div class="p-6 space-y-4">
+                <!-- Buscador con icono -->
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    <input type="text" id="exercise-search" placeholder="Buscar ejercicio por nombre o movimiento..."
+                        class="w-full pl-10 pr-4 py-2.5 rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 text-sm bg-slate-50/50">
+                </div>
+
+                <!-- Filtros por Grupo Muscular en el Modal -->
+                <div class="space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Filtrar por grupo muscular:</span>
+                        <span id="exercise-count-badge" class="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                            {{ count($exercises) }} ejercicios
+                        </span>
+                    </div>
+                    <div id="modal-mg-filters" class="flex flex-wrap gap-1.5 p-2 rounded-2xl bg-slate-100/70 border border-slate-200">
+                        <button type="button" class="mg-filter-chip px-3 py-1 rounded-xl text-xs font-bold transition-all bg-indigo-600 text-white shadow-xs" data-mg="all">
+                            Todos
+                        </button>
+                        @foreach($muscleGroups as $mg)
+                            <button type="button" class="mg-filter-chip px-3 py-1 rounded-xl text-xs font-bold transition-all bg-white text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200/80 shadow-2xs" data-mg="{{ $mg->id }}">
+                                {{ $mg->name }}
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Lista de Ejercicios Grid (Coach Cards) -->
+                <div class="max-h-[52vh] overflow-y-auto border border-slate-200/80 rounded-2xl p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 bg-slate-50/30"
+                    id="modal-exercises-list">
+                    @foreach($exercises as $ex)
+                        @php
+                            $rawUrl = $ex->video_url;
+                            $isHttp = \Illuminate\Support\Str::startsWith($rawUrl, ['http://', 'https://']);
+                            $mediaSrc = $rawUrl ? ($isHttp ? $rawUrl : (str_starts_with($rawUrl, '/') ? $rawUrl : '/' . $rawUrl)) : null;
+                            $isMp4 = $rawUrl ? \Illuminate\Support\Str::endsWith(strtolower($rawUrl), ['.mp4', '.webm', '.mov']) : false;
+                        @endphp
+                        <div class="flex flex-col p-2.5 rounded-2xl border border-slate-200 bg-white shadow-xs hover:border-indigo-300 hover:shadow-md transition-all exercise-item relative group cursor-pointer select-none has-[:checked]:border-indigo-500 has-[:checked]:ring-2 has-[:checked]:ring-indigo-500/20 has-[:checked]:bg-indigo-50/20"
+                            data-name="{{ strtolower($ex->name) }}" data-mg="{{ $ex->muscle_group_id }}">
+                            
+                            <div class="w-full h-24 mb-2 bg-slate-100 rounded-xl overflow-hidden flex items-center justify-center relative">
+                                @if($mediaSrc)
+                                    @if($isMp4)
+                                        <video src="{{ $mediaSrc }}" class="w-full h-full object-cover" autoplay loop muted playsinline></video>
+                                    @else
+                                        <img src="{{ $mediaSrc }}" alt="{{ $ex->name }}" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+                                        <div class="hidden w-full h-full flex items-center justify-center bg-slate-100 text-slate-300">
+                                            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                            </svg>
+                                        </div>
+                                    @endif
+                                @else
+                                    <div class="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300">
+                                        <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
+                                @endif
+                                <span class="absolute top-1 right-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-900/75 text-white backdrop-blur-xs">
+                                    {{ $ex->muscleGroup->name ?? 'N/A' }}
+                                </span>
+                            </div>
+
+                            <div class="flex items-start w-full text-left gap-2 pt-1">
+                                <input type="checkbox" id="ex-{{ $ex->id }}" value="{{ $ex->id }}" data-name="{{ $ex->name }}" data-mg-name="{{ $ex->muscleGroup->name ?? 'General' }}"
+                                    class="modal-exercise-checkbox mt-0.5 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-slate-300 rounded shrink-0">
+                                <label for="ex-{{ $ex->id }}" class="block text-xs font-bold text-slate-800 cursor-pointer w-full leading-tight line-clamp-2">
+                                    {{ $ex->name }}
+                                </label>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <!-- Acordeón para crear ejercicio rápido -->
+                <div class="border-t border-slate-100 pt-4">
+                    <button type="button" onclick="toggleQuickCreate()"
+                        class="text-xs text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50/60 hover:bg-indigo-100 transition-colors">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        ¿No encuentras el ejercicio? Crear nuevo al instante
+                    </button>
+
+                    <div id="quick-create-form" class="hidden mt-3 p-4 bg-slate-50/80 rounded-2xl border border-slate-200">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre</label>
+                                <input type="text" id="qc-name" placeholder="Ej. Press Inclinado con Mancuernas"
+                                    class="w-full rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-xs py-1.5 px-2.5 bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Grupo Muscular</label>
+                                <select id="qc-muscle-group"
+                                    class="w-full rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-xs py-1.5 px-2.5 bg-white">
+                                    <option value="">Seleccionar...</option>
+                                    @foreach($muscleGroups as $mg)
+                                        <option value="{{ $mg->id }}" data-name="{{ $mg->name }}">{{ $mg->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Descripción / Indicaciones</label>
+                                <textarea id="qc-description" rows="2" placeholder="Técnica, agarre, puntos clave..."
+                                    class="w-full rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-xs py-1.5 px-2.5 bg-white"></textarea>
+                            </div>
+                        </div>
+                        <div class="flex justify-end">
+                            <button type="button" onclick="quickCreateExercise()"
+                                class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-xl text-xs flex items-center shadow-xs transition-colors">
+                                <span id="qc-spinner" class="hidden mr-2">...</span>
+                                Guardar Ejercicio y Seleccionar
+                            </button>
+                        </div>
+                        <p id="qc-error" class="text-xs text-rose-600 mt-2 font-medium hidden"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="bg-slate-50 px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                <button type="button" onclick="closeExerciseModal()"
+                    class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-semibold hover:bg-white transition-colors text-sm">
+                    Cancelar
+                </button>
+                <button type="button" onclick="addSelectedExercises()"
+                    class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md shadow-indigo-500/20 transition-all text-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Añadir Seleccionados a la Rutina
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Template para Ejercicio en la lista (Coach Row Design) -->
+<template id="exercise-template">
+    <div class="exercise-row flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3.5 rounded-2xl bg-white hover:bg-slate-50/80 border border-slate-200/90 shadow-xs hover:shadow-sm cursor-move transition-all group">
+        <div class="flex items-center gap-2.5 w-full sm:w-auto">
+            <div class="text-slate-400 hover:text-indigo-600 cursor-move p-1 rounded-lg shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+                </svg>
+            </div>
+            <span class="exercise-num w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 font-bold text-xs flex items-center justify-center shrink-0 border border-indigo-100">1</span>
+            <div class="flex-1 min-w-0 sm:hidden">
+                <p class="text-xs font-bold text-slate-900 exercise-name-display truncate"></p>
+            </div>
+            <button type="button" class="text-slate-300 hover:text-rose-500 p-1.5 rounded-lg hover:bg-rose-50 remove-exercise transition-colors sm:hidden ml-auto">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
             </button>
         </div>
+        
+        <div class="hidden sm:block flex-1 min-w-0">
+            <input type="hidden" class="exercise-id" value="">
+            <p class="text-sm font-bold text-slate-900 exercise-name-display truncate"></p>
+            <p class="text-2xs text-slate-400 exercise-mg-display"></p>
+        </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
-            <!-- Exercise Select -->
-            <div class="sm:col-span-5">
-                <label class="block text-2xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Ejercicio del Catálogo *</label>
-                <select name="exercises[INDEX][exercise_id]" required class="exercise-select w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-sm text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                    <option value="" disabled selected>Selecciona un ejercicio...</option>
-                    @foreach($exercises as $ex)
-                        <option value="{{ $ex->id }}" data-muscle="{{ $ex->muscleGroup->name ?? 'General' }}">
-                            {{ $ex->name }} ({{ $ex->muscleGroup->name ?? 'General' }})
-                        </option>
-                    @endforeach
-                </select>
+        <input type="hidden" class="exercise-id-mobile sm:hidden" value="">
+
+        <!-- Series, Reps & Instruction -->
+        <div class="grid grid-cols-3 sm:flex items-center gap-2.5 w-full sm:w-auto">
+            <div class="w-full sm:w-20">
+                <label class="block text-2xs font-bold text-slate-500 uppercase tracking-wider text-center">Series</label>
+                <input type="number"
+                    class="exercise-sets mt-1 block w-full text-center font-bold text-slate-900 rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-xs py-1.5 bg-slate-50/50"
+                    value="3" min="1" required>
             </div>
 
-            <!-- Sets -->
-            <div class="sm:col-span-2">
-                <label class="block text-2xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Series *</label>
-                <input type="number" name="exercises[INDEX][sets]" value="3" min="1" max="15" required
-                       class="w-full rounded-md border border-slate-300 px-2.5 py-1.5 text-sm text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            <div class="w-full sm:w-20">
+                <label class="block text-2xs font-bold text-slate-500 uppercase tracking-wider text-center">Min Reps</label>
+                <input type="number"
+                    class="exercise-min mt-1 block w-full text-center font-bold text-slate-900 rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-xs py-1.5 bg-slate-50/50"
+                    value="10" min="1" required>
             </div>
 
-            <!-- Min Reps -->
-            <div class="sm:col-span-2">
-                <label class="block text-2xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Reps Mín *</label>
-                <input type="number" name="exercises[INDEX][min_reps]" value="10" min="1" max="100" required
-                       class="w-full rounded-md border border-slate-300 px-2.5 py-1.5 text-sm text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            <div class="w-full sm:w-20">
+                <label class="block text-2xs font-bold text-slate-500 uppercase tracking-wider text-center">Max Reps</label>
+                <input type="number"
+                    class="exercise-max mt-1 block w-full text-center font-bold text-slate-900 rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-xs py-1.5 bg-slate-50/50"
+                    value="15" min="1" required>
             </div>
+        </div>
 
-            <!-- Max Reps -->
-            <div class="sm:col-span-2">
-                <label class="block text-2xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Reps Máx *</label>
-                <input type="number" name="exercises[INDEX][max_reps]" value="15" min="1" max="100" required
-                       class="w-full rounded-md border border-slate-300 px-2.5 py-1.5 text-sm text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-            </div>
+        <div class="w-full sm:w-48">
+            <label class="block text-2xs font-bold text-slate-500 uppercase tracking-wider mb-1">Indicación / Enfoque</label>
+            <input type="text"
+                class="exercise-instruction block w-full text-xs text-slate-800 rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 py-1.5 px-2.5 bg-slate-50/50"
+                placeholder="ej. Dorsal Ancho & Redondo">
+        </div>
 
-            <!-- Instruction -->
-            <div class="sm:col-span-12">
-                <label class="block text-2xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Indicación Específica / Enfoque</label>
-                <input type="text" name="exercises[INDEX][instruction]" placeholder="ej. Rango completo, pausa de 1s en contracción máxima"
-                       class="w-full rounded-md border border-slate-300 px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-            </div>
+        <div class="hidden sm:block">
+            <button type="button" class="text-slate-300 hover:text-rose-500 p-2 rounded-xl hover:bg-rose-50 remove-exercise transition-colors mt-3">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+            </button>
         </div>
     </div>
 </template>
 
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const container = document.getElementById('exercisesContainer');
-    const template = document.getElementById('exerciseTemplate');
-    const addBtn = document.getElementById('addExerciseBtn');
+    let activeMgFilter = 'all';
+    const exercisesContainer = document.getElementById('exercises-container');
 
-    let exerciseIndex = 0;
-
-    function addExercise(data = null) {
-        const clone = template.content.cloneNode(true);
-        const item = clone.querySelector('.exercise-item');
-
-        item.innerHTML = item.innerHTML.replaceAll('INDEX', exerciseIndex);
-
-        // Update numbers
-        const numBadge = item.querySelector('.exercise-num');
-        numBadge.textContent = container.children.length + 1;
-
-        // Set values if data provided
-        if (data) {
-            const select = item.querySelector('.exercise-select');
-            if (select && data.exercise_id) select.value = data.exercise_id;
-
-            const setsInput = item.querySelector(`[name="exercises[${exerciseIndex}][sets]"]`);
-            if (setsInput && data.sets) setsInput.value = data.sets;
-
-            const minRepsInput = item.querySelector(`[name="exercises[${exerciseIndex}][min_reps]"]`);
-            if (minRepsInput && data.min_reps) minRepsInput.value = data.min_reps;
-
-            const maxRepsInput = item.querySelector(`[name="exercises[${exerciseIndex}][max_reps]"]`);
-            if (maxRepsInput && data.max_reps) maxRepsInput.value = data.max_reps;
-
-            const instInput = item.querySelector(`[name="exercises[${exerciseIndex}][instruction]"]`);
-            if (instInput && data.instruction) instInput.value = data.instruction;
+    // Initialize SortableJS
+    new Sortable(exercisesContainer, {
+        animation: 150,
+        handle: '.cursor-move',
+        onEnd: function () {
+            updateExerciseIndices();
         }
+    });
 
-        // Remove listener
-        item.querySelector('.remove-exercise').addEventListener('click', function () {
-            if (container.children.length > 1) {
-                item.remove();
-                renumberExercises();
+    document.getElementById('exercise-search').addEventListener('input', function () {
+        applyModalFilters();
+    });
+
+    function setMuscleGroupFilter(mgId) {
+        activeMgFilter = String(mgId);
+        document.querySelectorAll('.mg-filter-chip').forEach(chip => {
+            if (chip.getAttribute('data-mg') === activeMgFilter) {
+                chip.className = 'mg-filter-chip px-3 py-1 rounded-xl text-xs font-bold transition-all bg-indigo-600 text-white shadow-xs';
             } else {
-                alert('La rutina debe tener al menos un ejercicio.');
+                chip.className = 'mg-filter-chip px-3 py-1 rounded-xl text-xs font-bold transition-all bg-white text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200/80 shadow-2xs';
+            }
+        });
+        applyModalFilters();
+    }
+
+    function applyModalFilters() {
+        const term = (document.getElementById('exercise-search').value || '').toLowerCase().trim();
+        const items = document.querySelectorAll('.exercise-item');
+        let visibleCount = 0;
+
+        items.forEach(item => {
+            const itemMg = item.getAttribute('data-mg');
+            const name = item.getAttribute('data-name');
+            
+            const matchesMg = (activeMgFilter === 'all') || (itemMg === activeMgFilter);
+            const matchesSearch = !term || name.includes(term);
+
+            if (matchesMg && matchesSearch) {
+                item.style.display = 'flex';
+                visibleCount++;
+            } else {
+                item.style.display = 'none';
             }
         });
 
-        container.appendChild(item);
-        exerciseIndex++;
+        const countBadge = document.getElementById('exercise-count-badge');
+        if (countBadge) {
+            countBadge.textContent = `${visibleCount} ejercicio${visibleCount === 1 ? '' : 's'}`;
+        }
     }
 
-    function renumberExercises() {
-        Array.from(container.children).forEach((el, idx) => {
-            const num = el.querySelector('.exercise-num');
-            if (num) num.textContent = idx + 1;
+    document.querySelectorAll('.mg-filter-chip').forEach(chip => {
+        chip.addEventListener('click', function () {
+            setMuscleGroupFilter(this.getAttribute('data-mg'));
+        });
+    });
+
+    function attachExerciseCardListeners() {
+        document.querySelectorAll('.exercise-item').forEach(item => {
+            if (item.dataset.hasClickListener) return;
+            item.dataset.hasClickListener = 'true';
+            item.addEventListener('click', function (e) {
+                if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'LABEL') {
+                    const cb = this.querySelector('.modal-exercise-checkbox');
+                    if (cb) cb.checked = !cb.checked;
+                }
+            });
+        });
+    }
+    attachExerciseCardListeners();
+
+    function openExerciseModal() {
+        // If muscle groups checkboxes in the form are selected, preselect first matching
+        const checkedBoxes = document.querySelectorAll('input[name="muscle_groups[]"]:checked');
+        setMuscleGroupFilter('all');
+
+        document.querySelectorAll('.modal-exercise-checkbox').forEach(cb => cb.checked = false);
+        document.getElementById('exercise-search').value = '';
+
+        applyModalFilters();
+        attachExerciseCardListeners();
+        document.getElementById('exercise-modal').classList.remove('hidden');
+    }
+
+    function closeExerciseModal() {
+        document.getElementById('exercise-modal').classList.add('hidden');
+    }
+
+    function toggleQuickCreate() {
+        const form = document.getElementById('quick-create-form');
+        form.classList.toggle('hidden');
+    }
+
+    async function quickCreateExercise() {
+        const nameInput = document.getElementById('qc-name');
+        const mgSelect = document.getElementById('qc-muscle-group');
+        const descInput = document.getElementById('qc-description');
+        const errP = document.getElementById('qc-error');
+
+        if (!nameInput.value.trim() || !mgSelect.value) {
+            errP.textContent = 'Nombre y Grupo Muscular son obligatorios.';
+            errP.classList.remove('hidden');
+            return;
+        }
+
+        errP.classList.add('hidden');
+
+        try {
+            const res = await fetch("{{ route('admin.exercises.api-store') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    name: nameInput.value.trim(),
+                    muscle_group_id: mgSelect.value,
+                    description: descInput.value.trim()
+                })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                const list = document.getElementById('modal-exercises-list');
+                const ex = data.exercise;
+                const mgName = mgSelect.options[mgSelect.selectedIndex].getAttribute('data-name');
+
+                const itemHtml = `
+                    <div class="flex flex-col p-2.5 rounded-2xl border border-slate-200 bg-white shadow-xs hover:border-indigo-300 hover:shadow-md transition-all exercise-item relative group cursor-pointer select-none has-[:checked]:border-indigo-500 has-[:checked]:ring-2 has-[:checked]:ring-indigo-500/20 has-[:checked]:bg-indigo-50/20"
+                        data-name="${ex.name.toLowerCase()}" data-mg="${ex.muscle_group_id}">
+                        <div class="w-full h-24 mb-2 bg-slate-100 rounded-xl overflow-hidden flex items-center justify-center relative">
+                            <div class="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300">
+                                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                            </div>
+                            <span class="absolute top-1 right-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-900/75 text-white backdrop-blur-xs">
+                                ${mgName}
+                            </span>
+                        </div>
+                        <div class="flex items-start w-full text-left gap-2 pt-1">
+                            <input type="checkbox" id="ex-${ex.id}" value="${ex.id}" data-name="${ex.name}" data-mg-name="${mgName}"
+                                class="modal-exercise-checkbox mt-0.5 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-slate-300 rounded shrink-0" checked>
+                            <label for="ex-${ex.id}" class="block text-xs font-bold text-slate-800 cursor-pointer w-full leading-tight">
+                                ${ex.name}
+                            </label>
+                        </div>
+                    </div>
+                `;
+                list.insertAdjacentHTML('afterbegin', itemHtml);
+                attachExerciseCardListeners();
+                applyModalFilters();
+
+                nameInput.value = '';
+                mgSelect.value = '';
+                descInput.value = '';
+                toggleQuickCreate();
+
+            } else {
+                errP.textContent = 'Error al crear ejercicio.';
+                errP.classList.remove('hidden');
+            }
+        } catch (e) {
+            errP.textContent = 'Error de conexión.';
+            errP.classList.remove('hidden');
+        }
+    }
+
+    function addSelectedExercises() {
+        const checkboxes = document.querySelectorAll('.modal-exercise-checkbox:checked');
+
+        checkboxes.forEach(cb => {
+            const exId = cb.value;
+            const exName = cb.getAttribute('data-name');
+            const mgName = cb.getAttribute('data-mg-name') || '';
+
+            appendExerciseRow({
+                exercise_id: exId,
+                name: exName,
+                mg_name: mgName,
+                sets: 3,
+                min_reps: 10,
+                max_reps: 15,
+                instruction: ''
+            });
+        });
+
+        updateExerciseIndices();
+        closeExerciseModal();
+    }
+
+    function appendExerciseRow(data) {
+        const template = document.getElementById('exercise-template').content.cloneNode(true);
+        const row = template.querySelector('.exercise-row');
+
+        row.querySelector('.exercise-id').value = data.exercise_id;
+        row.querySelector('.exercise-id-mobile').value = data.exercise_id;
+        row.querySelectorAll('.exercise-name-display').forEach(el => el.textContent = data.name);
+        row.querySelector('.exercise-mg-display').textContent = data.mg_name || '';
+
+        row.querySelector('.exercise-sets').value = data.sets || 3;
+        row.querySelector('.exercise-min').value = data.min_reps || 10;
+        row.querySelector('.exercise-max').value = data.max_reps || 15;
+        row.querySelector('.exercise-instruction').value = data.instruction || '';
+
+        row.querySelectorAll('.remove-exercise').forEach(btn => {
+            btn.addEventListener('click', function () {
+                row.remove();
+                updateExerciseIndices();
+            });
+        });
+
+        exercisesContainer.appendChild(row);
+    }
+
+    function updateExerciseIndices() {
+        const rows = exercisesContainer.querySelectorAll('.exercise-row');
+
+        rows.forEach((row, index) => {
+            const num = row.querySelector('.exercise-num');
+            if (num) num.textContent = index + 1;
+
+            row.querySelector('.exercise-id').name = `exercises[${index}][exercise_id]`;
+            row.querySelector('.exercise-id-mobile').name = `exercises[${index}][exercise_id]`;
+            row.querySelector('.exercise-sets').name = `exercises[${index}][sets]`;
+            row.querySelector('.exercise-min').name = `exercises[${index}][min_reps]`;
+            row.querySelector('.exercise-max').name = `exercises[${index}][max_reps]`;
+            row.querySelector('.exercise-instruction').name = `exercises[${index}][instruction]`;
         });
     }
 
-    addBtn.addEventListener('click', () => addExercise());
-
-    // Initialize with 3 empty exercises or old values
-    const oldExercises = @json(old('exercises', []));
-    if (oldExercises && oldExercises.length > 0) {
-        oldExercises.forEach(ex => addExercise(ex));
-    } else {
-        // default 3 exercises
-        addExercise();
-        addExercise();
-        addExercise();
-    }
-});
+    // Populate with old() values if validation error occurred
+    document.addEventListener('DOMContentLoaded', function () {
+        const oldExercises = @json(old('exercises', []));
+        if (oldExercises && oldExercises.length > 0) {
+            oldExercises.forEach(ex => {
+                const modalEx = document.getElementById(`ex-${ex.exercise_id}`);
+                const exName = modalEx ? modalEx.getAttribute('data-name') : 'Ejercicio';
+                const mgName = modalEx ? modalEx.getAttribute('data-mg-name') : '';
+                appendExerciseRow({
+                    exercise_id: ex.exercise_id,
+                    name: exName,
+                    mg_name: mgName,
+                    sets: ex.sets,
+                    min_reps: ex.min_reps,
+                    max_reps: ex.max_reps,
+                    instruction: ex.instruction
+                });
+            });
+            updateExerciseIndices();
+        }
+    });
 </script>
 @endsection

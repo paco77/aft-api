@@ -117,14 +117,32 @@ class GymRoutineController extends Controller
     public function edit(TrainingDay $gym_routine)
     {
         $this->authorizeRoutine($gym_routine);
-        $gym_routine->load(['plannedExercises.exercise']);
+        $gym_routine->load(['plannedExercises.exercise.muscleGroup']);
 
         $user = auth()->user();
         $gymUsers = $user->role === 'admin' ? User::where('role', 'gimnasio')->get() : collect([$user]);
         $exercises = Exercise::with('muscleGroup')->where('is_active', true)->orderBy('name')->get();
         $muscleGroups = MuscleGroup::all();
 
-        return view('admin.gym_routines.edit', ['routine' => $gym_routine, 'gymUsers' => $gymUsers, 'exercises' => $exercises, 'muscleGroups' => $muscleGroups]);
+        $initialExercises = $gym_routine->plannedExercises->map(function ($p) {
+            return [
+                'exercise_id' => $p->exercise_id,
+                'name' => $p->exercise->name ?? 'Ejercicio',
+                'mg_name' => $p->exercise->muscleGroup->name ?? 'General',
+                'sets' => $p->sets,
+                'min_reps' => $p->min_reps,
+                'max_reps' => $p->max_reps,
+                'instruction' => $p->instruction,
+            ];
+        });
+
+        return view('admin.gym_routines.edit', [
+            'routine' => $gym_routine,
+            'gymUsers' => $gymUsers,
+            'exercises' => $exercises,
+            'muscleGroups' => $muscleGroups,
+            'initialExercises' => $initialExercises,
+        ]);
     }
 
     /**

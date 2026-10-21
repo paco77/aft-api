@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     if (auth()->check()) {
-        if (in_array(auth()->user()->role, ['admin', 'coach', 'gimnasio'])) {
+        if (in_array(auth()->user()->role, ['admin', 'super_admin', 'coach', 'gimnasio', 'independiente'])) {
             // Si el admin no está pidiendo vista previa explícita, redirigir a dashboard
             if (!request()->has('preview')) {
                 return redirect()->route('admin.dashboard');
@@ -19,6 +19,10 @@ Route::get('/', function () {
 Route::get('/login', [App\Http\Controllers\Auth\LoginController::class , 'showLoginForm'])->name('login');
 Route::post('/login', [App\Http\Controllers\Auth\LoginController::class , 'login']);
 Route::post('/logout', [App\Http\Controllers\Auth\LoginController::class , 'logout'])->name('logout');
+
+// Rutas de Registro (Coach, Independiente, Gimnasio)
+Route::get('/register', [App\Http\Controllers\Auth\RegisterController::class , 'showRegistrationForm'])->name('register');
+Route::post('/register', [App\Http\Controllers\Auth\RegisterController::class , 'register']);
 
 // Rutas de Recuperación de Contraseña
 Route::get('/forgot-password', [App\Http\Controllers\Auth\ForgotPasswordController::class , 'showForm'])->name('password.request');

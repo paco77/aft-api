@@ -81,6 +81,82 @@
                     </div>
                 @endif
             </form>
+
+            <!-- Divider -->
+            <div class="relative my-6">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-zinc-800/90"></div>
+                </div>
+                <div class="relative flex justify-center text-xs uppercase">
+                    <span class="bg-[#0d0d0d] px-3 text-zinc-500 font-bold tracking-widest text-[10px]">¿Aún no tienes cuenta?</span>
+                </div>
+            </div>
+
+            <!-- Botones Crear Cuenta por Rol -->
+            <div class="space-y-3">
+                <div class="text-center">
+                    <p class="text-xs font-semibold text-zinc-300">Crear cuenta en AF Training</p>
+                    <p class="text-[11px] text-zinc-500 mt-0.5">Selecciona tu perfil para registrarte:</p>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <!-- Coach -->
+                    <a href="{{ route('register', ['role' => 'coach']) }}" 
+                       class="group flex flex-col items-center justify-center p-3 rounded-xl bg-zinc-900/60 hover:bg-zinc-800/80 border border-zinc-800 hover:border-red-500/50 transition-all duration-200 text-center">
+                        <div class="w-8 h-8 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-1 group-hover:scale-110 group-hover:bg-red-500/20 transition-all">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                        </div>
+                        <span class="text-xs font-bold text-zinc-200 group-hover:text-red-400">Coach</span>
+                        <span class="text-[10px] text-zinc-500 mt-0.5">Entrenador</span>
+                    </a>
+
+                    <!-- Independiente -->
+                    <a href="{{ route('register', ['role' => 'independiente']) }}" 
+                       class="group flex flex-col items-center justify-center p-3 rounded-xl bg-zinc-900/60 hover:bg-zinc-800/80 border border-zinc-800 hover:border-purple-500/50 transition-all duration-200 text-center">
+                        <div class="w-8 h-8 rounded-full bg-purple-500/10 text-purple-400 flex items-center justify-center mb-1 group-hover:scale-110 group-hover:bg-purple-500/20 transition-all">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+                        <span class="text-xs font-bold text-zinc-200 group-hover:text-purple-400">Atleta</span>
+                        <span class="text-[10px] text-zinc-500 mt-0.5">Independiente</span>
+                    </a>
+
+                    <!-- Gimnasio -->
+                    <a href="{{ route('register', ['role' => 'gimnasio']) }}" 
+                       class="group flex flex-col items-center justify-center p-3 rounded-xl bg-zinc-900/60 hover:bg-zinc-800/80 border border-zinc-800 hover:border-amber-500/50 transition-all duration-200 text-center">
+                        <div class="w-8 h-8 rounded-full bg-amber-500/10 text-amber-400 flex items-center justify-center mb-1 group-hover:scale-110 group-hover:bg-amber-500/20 transition-all">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                        </div>
+                        <span class="text-xs font-bold text-zinc-200 group-hover:text-amber-400">Gimnasio</span>
+                        <span class="text-[10px] text-zinc-500 mt-0.5">Centro / Sala</span>
+                    </a>
+                </div>
+
+                <div class="pt-1">
+                    <a href="{{ route('register') }}" 
+                       class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-zinc-900/50 hover:bg-zinc-800 border border-zinc-800/90 text-zinc-300 hover:text-white font-medium text-xs transition-colors">
+                        <svg class="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                        </svg>
+                        <span>Crear Cuenta</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Back to Landing Link -->
+            <div class="text-center pt-5 border-t border-zinc-800/50 mt-5">
+                <a href="{{ route('landing.home') }}" class="text-xs text-zinc-500 hover:text-zinc-300 transition-colors inline-flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <span>Volver a la página principal</span>
+                </a>
+            </div>
         </div>
     </div>
 </body>

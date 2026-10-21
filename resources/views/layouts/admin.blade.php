@@ -125,7 +125,7 @@
                         <span>Ejercicios</span>
                     </a>
 
-                    @if(in_array(auth()->user()->role, ['admin', 'coach']))
+                    @if(in_array(auth()->user()->role, ['admin', 'coach', 'independiente']))
                     <a href="{{ route('admin.plans.index') }}"
                         class="flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.plans.*') ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
                         <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">

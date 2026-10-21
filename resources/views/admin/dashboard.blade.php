@@ -83,6 +83,85 @@
             </div>
         </div>
 
+    @elseif(auth()->user()->role === 'independiente')
+        <!-- Independiente Dashboard Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Plans Stat -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-purple-600 border border-slate-200">
+                <div class="flex items-center">
+                    <div class="p-3 bg-purple-50 text-purple-600 rounded-xl">
+                        <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Mis Planes de Entrenamiento</p>
+                        <p class="text-3xl font-extrabold text-slate-900">{{ $stats['plans'] ?? 0 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exercises Catalog Stat -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-emerald-500 border border-slate-200">
+                <div class="flex items-center">
+                    <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                        <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Ejercicios en Catálogo</p>
+                        <p class="text-3xl font-extrabold text-slate-900">{{ $stats['exercises'] ?? 0 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sessions Stat -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-amber-500 border border-slate-200">
+                <div class="flex items-center">
+                    <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
+                        <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Sesiones Registradas</p>
+                        <p class="text-3xl font-extrabold text-slate-900">{{ $stats['sessions'] ?? 0 }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Access for Independiente -->
+        <div class="bg-gradient-to-r from-slate-900 to-purple-950 rounded-2xl p-6 text-white shadow-lg border border-slate-800">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 text-xs font-bold uppercase tracking-wider border border-purple-500/30 mb-2">
+                        <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+                        <span>Perfil Atleta Independiente</span>
+                    </span>
+                    <h3 class="text-xl font-bold">Bienvenido, {{ auth()->user()->name }}</h3>
+                    <p class="text-sm text-slate-300 mt-1 max-w-xl">
+                        Gestiona tus propios entrenamientos de forma autónoma. Consulta la biblioteca de ejercicios, diseña tus rutinas y registra tu evolución.
+                    </p>
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <a href="{{ route('admin.plans.index') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition shadow-md">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>Ver Mis Planes</span>
+                    </a>
+                    <a href="{{ route('admin.exercises.index') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl text-xs border border-white/20 transition">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        <span>Catálogo de Ejercicios</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
     @else
         <!-- Admin & Coach Dashboard Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">

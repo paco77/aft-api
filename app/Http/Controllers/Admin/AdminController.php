@@ -30,6 +30,14 @@ class AdminController extends Controller
                 'exercises' => Exercise::count(),
                 'sessions' => \App\Models\WorkoutSession::whereIn('training_day_id', $user->gymRoutines()->pluck('id'))->count(),
             ];
+        } elseif ($user && $user->role === 'independiente') {
+            $stats = [
+                'users' => 0,
+                'plans' => MonthlyPlan::where('assigned_client_id', $user->id)->orWhere('user_id', $user->id)->count(),
+                'gym_routines' => 0,
+                'exercises' => Exercise::count(),
+                'sessions' => \App\Models\WorkoutSession::where('user_id', $user->id)->count(),
+            ];
         } else {
             $stats = [
                 'users' => User::count(),

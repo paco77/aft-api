@@ -68,6 +68,7 @@ class GymRoutineController extends Controller
             'exercises.*.min_reps' => 'required|integer|min:1|max:100',
             'exercises.*.max_reps' => 'required|integer|min:1|max:100',
             'exercises.*.instruction' => 'nullable|string|max:500',
+            'exercises.*.video_url' => 'nullable|string|max:500',
         ]);
 
         $gymUserId = ($user->role === 'admin' && !empty($validated['user_id'])) ? $validated['user_id'] : $user->id;
@@ -93,6 +94,7 @@ class GymRoutineController extends Controller
                     'min_reps' => $exerciseData['min_reps'],
                     'max_reps' => $exerciseData['max_reps'],
                     'instruction' => $exerciseData['instruction'] ?? null,
+                    'video_url' => !empty($exerciseData['video_url']) ? trim($exerciseData['video_url']) : null,
                 ]);
             }
         });
@@ -133,6 +135,7 @@ class GymRoutineController extends Controller
                 'min_reps' => $p->min_reps,
                 'max_reps' => $p->max_reps,
                 'instruction' => $p->instruction,
+                'video_url' => $p->video_url ?: ($p->exercise->video_url ?? ''),
             ];
         });
 
@@ -167,6 +170,7 @@ class GymRoutineController extends Controller
             'exercises.*.min_reps' => 'required|integer|min:1|max:100',
             'exercises.*.max_reps' => 'required|integer|min:1|max:100',
             'exercises.*.instruction' => 'nullable|string|max:500',
+            'exercises.*.video_url' => 'nullable|string|max:500',
         ]);
 
         DB::transaction(function () use ($gym_routine, $validated, $user) {
@@ -189,6 +193,7 @@ class GymRoutineController extends Controller
                     'min_reps' => $exerciseData['min_reps'],
                     'max_reps' => $exerciseData['max_reps'],
                     'instruction' => $exerciseData['instruction'] ?? null,
+                    'video_url' => !empty($exerciseData['video_url']) ? trim($exerciseData['video_url']) : null,
                 ]);
             }
         });

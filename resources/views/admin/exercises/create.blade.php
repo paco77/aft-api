@@ -45,13 +45,21 @@
                     </div>
                 </div>
 
-                <!-- Video URL -->
-                <div class="sm:col-span-6">
+                <!-- Video URL or File -->
+                <div class="sm:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="flex w-full flex-col gap-1 text-on-surface dark:text-on-surface-dark">
-                        <label for="video_file" class="w-fit pl-0.5 text-sm">Archivo de Video o GIF (opcional)</label>
+                        <label for="video_file" class="w-fit pl-0.5 text-sm font-semibold">Subir Archivo de Video o GIF <span class="text-xs font-normal text-slate-400 dark:text-slate-500">(opcional)</span></label>
                         <input type="file" name="video_file" id="video_file" accept="video/*,image/gif"
                             class="w-full rounded-radius bg-surface-alt px-2 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-75 dark:bg-surface-dark-alt/50 dark:focus-visible:outline-primary-dark @error('video_file') border border-red-500 @enderror">
                         @error('video_file') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div class="flex w-full flex-col gap-1 text-on-surface dark:text-on-surface-dark">
+                        <label for="video_url" class="w-fit pl-0.5 text-sm font-semibold">O Enlace de Video (YouTube, IG, TikTok) <span class="text-xs font-normal text-slate-400 dark:text-slate-500">(opcional)</span></label>
+                        <input type="text" name="video_url" id="video_url" value="{{ old('video_url') }}"
+                            placeholder="https://youtube.com/... o reels (opcional)"
+                            class="w-full rounded-radius bg-surface-alt px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary dark:bg-surface-dark-alt/50 dark:focus-visible:outline-primary-dark @error('video_url') border border-red-500 @enderror">
+                        @error('video_url') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                     </div>
                 </div>
             </div>

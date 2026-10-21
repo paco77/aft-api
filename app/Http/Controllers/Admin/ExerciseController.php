@@ -28,16 +28,20 @@ class ExerciseController extends Controller
             'muscle_group_id' => 'required|exists:muscle_groups,id',
             'description' => 'nullable|string',
             'video_file' => 'nullable|file|mimes:mp4,mov,ogg,qt,gif|max:50000',
+            'video_url' => 'nullable|string|max:500',
         ]);
 
-        $data = $request->except('video_file');
+        $data = $request->except(['video_file']);
         $data['user_id'] = auth()->id();
         $data['is_custom'] = true;
 
         if ($request->hasFile('video_file')) {
             $path = $request->file('video_file')->store('exercises/videos', 'public');
             $data['video_url'] = Storage::url($path);
+        } elseif ($request->filled('video_url')) {
+            $data['video_url'] = trim($request->video_url);
         }
+
         Exercise::create($data);
 
         return redirect()->route('admin.exercises.index')->with('success', 'Ejercicio creado correctamente.');
@@ -50,6 +54,7 @@ class ExerciseController extends Controller
             'muscle_group_id' => 'required|exists:muscle_groups,id',
             'description' => 'nullable|string',
             'video_file' => 'nullable|file|mimes:mp4,mov,ogg,qt,gif|max:50000',
+            'video_url' => 'nullable|string|max:500',
         ]);
 
         $data = $request->only(['name', 'muscle_group_id', 'description']);
@@ -59,6 +64,8 @@ class ExerciseController extends Controller
         if ($request->hasFile('video_file')) {
             $path = $request->file('video_file')->store('exercises/videos', 'public');
             $data['video_url'] = Storage::url($path);
+        } elseif ($request->filled('video_url')) {
+            $data['video_url'] = trim($request->video_url);
         }
 
         $exercise = Exercise::create($data);
@@ -92,17 +99,26 @@ class ExerciseController extends Controller
             'muscle_group_id' => 'required|exists:muscle_groups,id',
             'description' => 'nullable|string',
             'video_file' => 'nullable|file|mimes:mp4,mov,ogg,qt,gif|max:50000',
+            'video_url' => 'nullable|string|max:500',
         ]);
 
-        $data = $request->except('video_file');
+        $data = $request->except(['video_file']);
 
-        if ($request->hasFile('video_file')) {
-            if ($exercise->video_url) {
+        if ($request->boolean('remove_video')) {
+            if ($exercise->video_url && str_contains($exercise->video_url, '/storage/exercises/videos/')) {
+                $oldPath = str_replace('/storage/', '', $exercise->video_url);
+                Storage::disk('public')->delete($oldPath);
+            }
+            $data['video_url'] = null;
+        } elseif ($request->hasFile('video_file')) {
+            if ($exercise->video_url && str_contains($exercise->video_url, '/storage/exercises/videos/')) {
                 $oldPath = str_replace('/storage/', '', $exercise->video_url);
                 Storage::disk('public')->delete($oldPath);
             }
             $path = $request->file('video_file')->store('exercises/videos', 'public');
             $data['video_url'] = Storage::url($path);
+        } elseif ($request->has('video_url')) {
+            $data['video_url'] = $request->filled('video_url') ? trim($request->video_url) : null;
         }
 
         $exercise->update($data);

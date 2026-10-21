@@ -93,7 +93,7 @@ class GymPublicController extends Controller
                 'muscle_group' => $p->exercise->muscleGroup->name ?? 'General',
                 'primary_muscle' => is_array($p->exercise->primary_muscles) ? implode(', ', $p->exercise->primary_muscles) : ($p->exercise->primary_muscles ?? 'Músculo Principal'),
                 'instruction' => $p->instruction,
-                'video_url' => $p->exercise->video_url,
+                'video_url' => $p->video_url ?: ($p->exercise->video_url ?? null),
                 'target_sets' => $p->sets,
                 'min_reps' => $p->min_reps,
                 'max_reps' => $p->max_reps,

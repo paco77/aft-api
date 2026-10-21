@@ -329,7 +329,107 @@
                 }
             });
         });
+
+        // Global Toast Notification Helper
+        window.showToast = function(message, type = 'success', title = null) {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const isSuccess = (type === 'success');
+            const defaultTitle = isSuccess ? '¡Actualizado con éxito!' : 'Atención';
+            const finalTitle = title || defaultTitle;
+            const borderColor = isSuccess ? 'border-emerald-500/40' : 'border-rose-500/40';
+            const iconBg = isSuccess ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30';
+            const titleColor = isSuccess ? 'text-emerald-400' : 'text-rose-400';
+            const iconSvg = isSuccess 
+                ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />'
+                : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />';
+
+            const toast = document.createElement('div');
+            toast.className = `toast-item pointer-events-auto transform transition-all duration-300 ease-out translate-y-3 opacity-0 flex items-center gap-3 p-4 bg-slate-900/95 backdrop-blur-md text-white rounded-2xl shadow-2xl border ${borderColor}`;
+            toast.innerHTML = `
+                <div class="w-9 h-9 rounded-xl ${iconBg} flex items-center justify-center shrink-0 border">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        ${iconSvg}
+                    </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold ${titleColor} uppercase tracking-wider">${finalTitle}</p>
+                    <p class="text-xs sm:text-sm font-semibold text-slate-100">${message}</p>
+                </div>
+                <button type="button" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition shrink-0">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            `;
+
+            toast.querySelector('button').addEventListener('click', () => {
+                toast.classList.add('opacity-0', 'translate-y-3');
+                setTimeout(() => toast.remove(), 300);
+            });
+
+            container.appendChild(toast);
+
+            // Animate entrance
+            requestAnimationFrame(() => {
+                toast.classList.remove('opacity-0', 'translate-y-3');
+            });
+
+            // Auto dismiss after 4.5 seconds
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.classList.add('opacity-0', 'translate-y-3');
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 4500);
+        };
+
+        // Auto-dismiss initial session toasts
+        document.querySelectorAll('.toast-item').forEach(toast => {
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.classList.add('opacity-0', 'translate-y-3');
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 4500);
+        });
     </script>
+
+    <!-- Global Floating Toast Notification Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 pointer-events-none max-w-sm w-full px-4 sm:px-0">
+        @if (session('success'))
+            <div class="toast-item pointer-events-auto transform transition-all duration-300 ease-out flex items-center gap-3 p-4 bg-slate-900/95 backdrop-blur-md text-white rounded-2xl shadow-2xl border border-emerald-500/40">
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-emerald-400 uppercase tracking-wider">¡Actualizado con éxito!</p>
+                    <p class="text-xs sm:text-sm font-semibold text-slate-100">{{ session('success') }}</p>
+                </div>
+                <button type="button" onclick="this.closest('.toast-item').remove()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition shrink-0">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div class="toast-item pointer-events-auto transform transition-all duration-300 ease-out flex items-center gap-3 p-4 bg-slate-900/95 backdrop-blur-md text-white rounded-2xl shadow-2xl border border-rose-500/40">
+                <div class="w-9 h-9 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 border border-rose-500/30">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-rose-400 uppercase tracking-wider">Atención</p>
+                    <p class="text-xs sm:text-sm font-semibold text-slate-100">{{ session('error') }}</p>
+                </div>
+                <button type="button" onclick="this.closest('.toast-item').remove()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition shrink-0">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+        @endif
+    </div>
     @stack('scripts')
 </body>
 

@@ -366,6 +366,26 @@
         </div>
     </div>
 
+    <!-- MODAL: VIDEO EN PANTALLA COMPLETA -->
+    <div id="videoModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-3 sm:p-5">
+        <div class="relative bg-slate-950 border border-slate-800 rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl flex flex-col">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800">
+                <div class="flex items-center gap-2 min-w-0">
+                    <span class="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse shrink-0"></span>
+                    <h3 id="videoModalTitle" class="text-sm font-bold text-white truncate">Video de Técnica</h3>
+                </div>
+                <button type="button" onclick="closeVideoModal()" class="p-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition shrink-0 ml-2">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="videoModalBody" class="w-full aspect-video bg-black flex items-center justify-center">
+                <!-- dynamic iframe or video inserted here -->
+            </div>
+        </div>
+    </div>
+
     <!-- Pass backend planned exercises data to JS -->
     <script>
         const workoutData = {
@@ -461,6 +481,230 @@
         // Initialize rest display
         updateRestDisplay();
 
+        // Video Parser & Embed Renderer
+        function parseVideoEmbed(url) {
+            if (!url) return null;
+            const str = String(url).trim();
+
+            // YouTube
+            const ytMatch = str.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/i);
+            if (ytMatch && ytMatch[1]) {
+                return {
+                    type: 'youtube',
+                    id: ytMatch[1],
+                    embedUrl: `https://www.youtube-nocookie.com/embed/${ytMatch[1]}?rel=0&playsinline=1`,
+                    directUrl: str
+                };
+            }
+
+            // Instagram Reel / Post
+            const igMatch = str.match(/instagram\.com\/(?:reel|reels|p)\/([a-zA-Z0-9_-]+)/i);
+            if (igMatch && igMatch[1]) {
+                return {
+                    type: 'instagram',
+                    id: igMatch[1],
+                    embedUrl: `https://www.instagram.com/reel/${igMatch[1]}/embed/`,
+                    directUrl: str
+                };
+            }
+
+            // TikTok
+            const ttMatch = str.match(/tiktok\.com\/(?:@[^\/]+\/video\/|v\/|embed\/v2\/)(\d+)/i);
+            if (ttMatch && ttMatch[1]) {
+                return {
+                    type: 'tiktok',
+                    id: ttMatch[1],
+                    embedUrl: `https://www.tiktok.com/embed/v2/${ttMatch[1]}`,
+                    directUrl: str
+                };
+            }
+
+            // Direct Video (mp4, webm, mov, or storage path)
+            if (str.match(/\.(mp4|webm|mov)(\?.*)?$/i) || str.includes('/storage/exercises/') || str.startsWith('/storage/')) {
+                return {
+                    type: 'file',
+                    embedUrl: str,
+                    directUrl: str
+                };
+            }
+
+            // Generic web URL
+            return {
+                type: 'generic',
+                embedUrl: str,
+                directUrl: str
+            };
+        }
+
+        function openVideoModal(url, title, type) {
+            const modal = document.getElementById('videoModal');
+            const body = document.getElementById('videoModalBody');
+            const titleEl = document.getElementById('videoModalTitle');
+            titleEl.textContent = title || 'Video de Técnica';
+
+            if (type === 'file') {
+                body.innerHTML = `<video src="${url}" controls autoplay playsinline class="w-full h-full object-contain"></video>`;
+            } else {
+                body.innerHTML = `<iframe src="${url}" class="w-full h-full border-0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen playsinline></iframe>`;
+            }
+            modal.classList.remove('hidden');
+        }
+
+        function closeVideoModal() {
+            const modal = document.getElementById('videoModal');
+            const body = document.getElementById('videoModalBody');
+            body.innerHTML = '';
+            modal.classList.add('hidden');
+        }
+
+        function renderExerciseVideoHtml(ex) {
+            const parsed = parseVideoEmbed(ex.video_url);
+            const focus = ex.primary_muscle || ex.muscle_group || 'Técnica';
+            const exName = ex.name || 'Ejercicio';
+            const safeExName = exName.replace(/'/g, "\\'");
+
+            if (!parsed) {
+                return `
+                    <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-slate-900 border border-slate-800 flex flex-col items-center justify-center p-4 text-center group shadow-inner">
+                        <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <p class="text-xs font-bold text-slate-300">Demostración técnica de ${exName}</p>
+                        <p class="text-2xs text-slate-500 mt-0.5">Enfoque: <span class="text-slate-400 font-semibold">${focus}</span></p>
+                        <a href="https://www.youtube.com/results?search_query=${encodeURIComponent(exName + ' tecnica ejecucion')}" 
+                           target="_blank" rel="noopener noreferrer"
+                           class="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-2xs font-bold transition">
+                            <svg class="w-3.5 h-3.5 text-red-500 fill-current" viewBox="0 0 24 24">
+                                <path d="M10 15l5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83-.25.9-.83 1.48-1.73 1.73-.47.13-1.33.22-2.65.28-1.3.07-2.49.1-3.59.1L12 22c-4.19 0-6.8-.16-7.83-.44-.9-.25-1.48-.83-1.73-1.73-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83.25-.9.83-1.48 1.73-1.73.47-.13 1.33-.22 2.65-.28 1.3-.07 2.49-.1 3.59-.1L12 22c4.19 0 6.8.16 7.83.44.9.25 1.48.83 1.73 1.73z"/>
+                            </svg>
+                            Buscar técnica en YouTube
+                        </a>
+                    </div>
+                `;
+            }
+
+            if (parsed.type === 'youtube') {
+                return `
+                    <div class="space-y-1.5">
+                        <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-black border border-slate-800 shadow-lg">
+                            <iframe 
+                                src="${parsed.embedUrl}" 
+                                title="${exName}" 
+                                class="w-full h-full border-0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                allowfullscreen playsinline>
+                            </iframe>
+                        </div>
+                        <div class="flex items-center justify-between text-2xs text-slate-400 px-1">
+                            <span class="inline-flex items-center gap-1.5 text-red-400 font-bold">
+                                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M10 15l5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83-.25.9-.83 1.48-1.73 1.73-.47.13-1.33.22-2.65.28-1.3.07-2.49.1-3.59.1L12 22c-4.19 0-6.8-.16-7.83-.44-.9-.25-1.48-.83-1.73-1.73-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83.25-.9.83-1.48 1.73-1.73z"/></svg>
+                                Video de Técnica
+                            </span>
+                            <div class="flex items-center gap-3">
+                                <button type="button" onclick="openVideoModal('${parsed.embedUrl}', '${safeExName}', 'youtube')" class="text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                                    Agrandar
+                                </button>
+                                <a href="${parsed.directUrl}" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-white flex items-center gap-1">
+                                    Abrir link
+                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (parsed.type === 'instagram') {
+                return `
+                    <div class="space-y-1.5">
+                        <div class="relative w-full rounded-xl overflow-hidden bg-slate-950 border border-slate-800 shadow-lg flex flex-col items-center">
+                            <iframe 
+                                src="${parsed.embedUrl}" 
+                                title="${exName}" 
+                                class="w-full h-80 sm:h-96 border-0 bg-black" 
+                                scrolling="no" 
+                                allowtransparency="true" 
+                                allowfullscreen>
+                            </iframe>
+                        </div>
+                        <div class="flex items-center justify-between text-2xs text-slate-400 px-1">
+                            <span class="inline-flex items-center gap-1.5 text-pink-400 font-bold">
+                                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                                Instagram Reel
+                            </span>
+                            <a href="${parsed.directUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 font-bold flex items-center gap-1">
+                                Abrir en Instagram
+                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (parsed.type === 'tiktok') {
+                return `
+                    <div class="space-y-1.5">
+                        <div class="relative w-full rounded-xl overflow-hidden bg-slate-950 border border-slate-800 shadow-lg flex flex-col items-center">
+                            <iframe 
+                                src="${parsed.embedUrl}" 
+                                title="${exName}" 
+                                class="w-full h-80 sm:h-96 border-0 bg-black" 
+                                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen>
+                            </iframe>
+                        </div>
+                        <div class="flex items-center justify-between text-2xs text-slate-400 px-1">
+                            <span class="inline-flex items-center gap-1.5 text-cyan-400 font-bold">
+                                TikTok Video
+                            </span>
+                            <a href="${parsed.directUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 font-bold flex items-center gap-1">
+                                Abrir en TikTok
+                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (parsed.type === 'file') {
+                return `
+                    <div class="space-y-1.5">
+                        <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-black border border-slate-800 shadow-lg flex items-center justify-center">
+                            <video src="${parsed.embedUrl}" controls playsinline preload="metadata" class="w-full h-full object-contain">
+                                Tu navegador no soporta reproducción de video.
+                            </video>
+                        </div>
+                        <div class="flex items-center justify-between text-2xs text-slate-400 px-1">
+                            <span class="inline-flex items-center gap-1.5 text-blue-400 font-bold">
+                                Video Local / HD
+                            </span>
+                            <button type="button" onclick="openVideoModal('${parsed.embedUrl}', '${safeExName}', 'file')" class="text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                                Agrandar
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Generic web link
+            return `
+                <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 border border-slate-800 flex flex-col items-center justify-center p-4 text-center group shadow-inner">
+                    <a href="${parsed.directUrl}" target="_blank" rel="noopener noreferrer" class="flex flex-col items-center gap-2 group-hover:scale-105 transition-all">
+                        <div class="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-600/40">
+                            <svg class="w-6 h-6 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        </div>
+                        <span class="text-xs font-bold text-white">Ver video de técnica</span>
+                        <span class="text-2xs text-blue-300/80 underline max-w-xs truncate">${parsed.directUrl}</span>
+                    </a>
+                </div>
+            `;
+        }
+
         // 3. Render Active Exercise
         function renderActiveExercise() {
             const container = document.getElementById('activeExerciseContainer');
@@ -517,31 +761,18 @@
                     <div>
                         <h3 class="text-xl sm:text-2xl font-black text-white font-display tracking-tight leading-tight">${ex.name}</h3>
                         <p class="text-xs text-slate-400 mt-0.5">${targetSubtitle}</p>
+                        ${ex.instruction ? `
+                            <div class="mt-2.5 p-2.5 rounded-xl bg-blue-950/40 border border-blue-500/20 text-xs text-blue-200 flex items-start gap-2">
+                                <svg class="w-4 h-4 text-blue-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span><strong>Indicación del Coach:</strong> ${ex.instruction}</span>
+                            </div>
+                        ` : ''}
                     </div>
 
-                    <!-- Video Demo / GIF Mock Container (Matching Image 2) -->
-                    <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-slate-900 border border-slate-800 flex items-center justify-center group shadow-inner">
-                        <!-- Anatomical muscle representation background -->
-                        <div class="absolute inset-0 bg-gradient-to-t from-black via-slate-900/60 to-transparent z-10"></div>
-                        <div class="absolute inset-0 flex items-center justify-center opacity-40">
-                            <svg class="w-32 h-32 text-blue-500/30" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/>
-                            </svg>
-                        </div>
-
-                        <!-- Central Play Button -->
-                        <div class="relative z-20 w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white flex items-center justify-center group-hover:scale-110 transition shadow-xl">
-                            <svg class="w-5 h-5 fill-current ml-0.5" viewBox="0 0 24 24">
-                                <path d="M8 5v14l11-7z"/>
-                            </svg>
-                        </div>
-
-                        <!-- Focus Badge -->
-                        <div class="absolute bottom-3 left-3 z-20 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-2xs font-bold text-white">
-                            <span class="w-2 h-2 rounded-full bg-orange-500"></span>
-                            <span>Foco: ${ex.primary_muscle || ex.muscle_group}</span>
-                        </div>
-                    </div>
+                    <!-- Video Demo Player Element -->
+                    ${renderExerciseVideoHtml(ex)}
 
                     <!-- Previous Session / PR Banner (Matching Image 2) -->
                     <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800/80 flex items-center justify-between gap-2">

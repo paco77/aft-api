@@ -143,6 +143,9 @@
 
                     <div class="space-y-2">
                         @forelse($active->plannedExercises as $idx => $item)
+                            @php
+                                $exerciseVideo = $item->video_url ?: ($item->exercise->video_url ?? null);
+                            @endphp
                             <div class="exercise-item-pill rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-3">
                                 <div class="flex items-center gap-3 min-w-0">
                                     <span class="w-6 h-6 rounded-lg bg-blue-600/60 border border-blue-400/40 text-blue-100 font-bold text-xs flex items-center justify-center shrink-0">
@@ -151,6 +154,12 @@
                                     <span class="text-sm font-semibold text-white truncate">
                                         {{ $item->exercise->name ?? 'Ejercicio' }}
                                     </span>
+                                    @if($exerciseVideo)
+                                        <span class="inline-flex items-center gap-1 text-[10px] text-red-400 font-bold bg-red-950/60 border border-red-500/30 px-1.5 py-0.5 rounded shrink-0" title="Video demostrativo disponible">
+                                            <svg class="w-2.5 h-2.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                            Video
+                                        </span>
+                                    @endif
                                 </div>
                                 <div class="px-2.5 py-1 rounded-md bg-blue-900/80 border border-blue-400/30 text-blue-100 text-xs font-mono font-bold whitespace-nowrap">
                                     {{ $item->sets }} x {{ $item->min_reps }}-{{ $item->max_reps }}

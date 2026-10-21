@@ -54,6 +54,7 @@ class PlanController extends Controller
             'days.*.exercises.*.min_reps' => 'required|integer',
             'days.*.exercises.*.max_reps' => 'required|integer',
             'days.*.exercises.*.instruction' => 'string|nullable',
+            'days.*.exercises.*.video_url' => 'string|nullable|max:500',
             'days.*.exercises.*.superset_id' => 'string|nullable',
         ]);
 
@@ -89,6 +90,7 @@ class PlanController extends Controller
                             'min_reps' => $exerciseData['min_reps'],
                             'max_reps' => $exerciseData['max_reps'],
                             'instruction' => $exerciseData['instruction'] ?? null,
+                            'video_url' => !empty($exerciseData['video_url']) ? trim($exerciseData['video_url']) : null,
                             'superset_id' => $exerciseData['superset_id'] ?? null,
                         ]);
                     }
@@ -157,6 +159,7 @@ class PlanController extends Controller
             'days.*.exercises.*.min_reps' => 'required|integer',
             'days.*.exercises.*.max_reps' => 'required|integer',
             'days.*.exercises.*.instruction' => 'string|nullable',
+            'days.*.exercises.*.video_url' => 'string|nullable|max:500',
             'days.*.exercises.*.superset_id' => 'string|nullable',
         ]);
 
@@ -196,6 +199,7 @@ class PlanController extends Controller
                             'min_reps' => $exerciseData['min_reps'],
                             'max_reps' => $exerciseData['max_reps'],
                             'instruction' => $exerciseData['instruction'] ?? null,
+                            'video_url' => !empty($exerciseData['video_url']) ? trim($exerciseData['video_url']) : null,
                             'superset_id' => $exerciseData['superset_id'] ?? null,
                         ]);
                     }

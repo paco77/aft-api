@@ -15,6 +15,7 @@ class PlannedExercise extends Model
         'min_reps',
         'max_reps',
         'instruction',
+        'video_url',
         'superset_id',
     ];
 

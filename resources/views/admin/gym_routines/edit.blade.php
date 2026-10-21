@@ -290,7 +290,7 @@
                             </div>
 
                             <div class="flex items-start w-full text-left gap-2 pt-1">
-                                <input type="checkbox" id="ex-{{ $ex->id }}" value="{{ $ex->id }}" data-name="{{ $ex->name }}" data-mg-name="{{ $ex->muscleGroup->name ?? 'General' }}"
+                                <input type="checkbox" id="ex-{{ $ex->id }}" value="{{ $ex->id }}" data-name="{{ $ex->name }}" data-mg-name="{{ $ex->muscleGroup->name ?? 'General' }}" data-video="{{ $ex->video_url }}"
                                     class="modal-exercise-checkbox mt-0.5 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-slate-300 rounded shrink-0">
                                 <label for="ex-{{ $ex->id }}" class="block text-xs font-bold text-slate-800 cursor-pointer w-full leading-tight line-clamp-2">
                                     {{ $ex->name }}
@@ -326,6 +326,11 @@
                                         <option value="{{ $mg->id }}" data-name="{{ $mg->name }}">{{ $mg->name }}</option>
                                     @endforeach
                                 </select>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Enlace de Video (YouTube, IG, TikTok) <span class="text-slate-400 font-normal">(opcional)</span></label>
+                                <input type="text" id="qc-video-url" placeholder="https://youtube.com/... o reels (opcional)"
+                                    class="w-full rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-xs py-1.5 px-2.5 bg-white">
                             </div>
                             <div class="sm:col-span-2">
                                 <label class="block text-xs font-semibold text-slate-700 mb-1">Descripción / Indicaciones</label>
@@ -415,11 +420,23 @@
             </div>
         </div>
 
-        <div class="w-full sm:w-48">
+        <div class="w-full sm:w-44">
             <label class="block text-2xs font-bold text-slate-500 uppercase tracking-wider mb-1">Indicación / Enfoque</label>
             <input type="text"
                 class="exercise-instruction block w-full text-xs text-slate-800 rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 py-1.5 px-2.5 bg-slate-50/50"
-                placeholder="ej. Dorsal Ancho & Redondo">
+                placeholder="ej. Dorsal Ancho">
+        </div>
+
+        <div class="w-full sm:w-56">
+            <label class="block text-2xs font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1">
+                <svg class="w-3.5 h-3.5 text-red-500 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10 15l5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83-.25.9-.83 1.48-1.73 1.73-.47.13-1.33.22-2.65.28-1.3.07-2.49.1-3.59.1L12 22c-4.19 0-6.8-.16-7.83-.44-.9-.25-1.48-.83-1.73-1.73-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83.25-.9.83-1.48 1.73-1.73.47-.13 1.33-.22 2.65-.28 1.3-.07 2.49-.1 3.59-.1L12 22c4.19 0 6.8.16 7.83.44.9.25 1.48.83 1.73 1.73z"/>
+                </svg>
+                <span>Video <span class="font-normal text-slate-400 lowercase">(opcional)</span></span>
+            </label>
+            <input type="text"
+                class="exercise-video block w-full text-xs text-slate-800 rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 py-1.5 px-2.5 bg-slate-50/50"
+                placeholder="https://youtu.be/... (opcional)">
         </div>
 
         <div class="hidden sm:block">
@@ -531,6 +548,7 @@
     async function quickCreateExercise() {
         const nameInput = document.getElementById('qc-name');
         const mgSelect = document.getElementById('qc-muscle-group');
+        const videoInput = document.getElementById('qc-video-url');
         const descInput = document.getElementById('qc-description');
         const errP = document.getElementById('qc-error');
 
@@ -552,6 +570,7 @@
                 body: JSON.stringify({
                     name: nameInput.value.trim(),
                     muscle_group_id: mgSelect.value,
+                    video_url: videoInput ? videoInput.value.trim() : null,
                     description: descInput.value.trim()
                 })
             });
@@ -576,7 +595,7 @@
                             </span>
                         </div>
                         <div class="flex items-start w-full text-left gap-2 pt-1">
-                            <input type="checkbox" id="ex-${ex.id}" value="${ex.id}" data-name="${ex.name}" data-mg-name="${mgName}"
+                            <input type="checkbox" id="ex-${ex.id}" value="${ex.id}" data-name="${ex.name}" data-mg-name="${mgName}" data-video="${ex.video_url || ''}"
                                 class="modal-exercise-checkbox mt-0.5 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-slate-300 rounded shrink-0" checked>
                             <label for="ex-${ex.id}" class="block text-xs font-bold text-slate-800 cursor-pointer w-full leading-tight">
                                 ${ex.name}
@@ -590,6 +609,7 @@
 
                 nameInput.value = '';
                 mgSelect.value = '';
+                if (videoInput) videoInput.value = '';
                 descInput.value = '';
                 toggleQuickCreate();
 
@@ -610,6 +630,7 @@
             const exId = cb.value;
             const exName = cb.getAttribute('data-name');
             const mgName = cb.getAttribute('data-mg-name') || '';
+            const videoUrl = cb.getAttribute('data-video') || '';
 
             appendExerciseRow({
                 exercise_id: exId,
@@ -618,7 +639,8 @@
                 sets: 3,
                 min_reps: 10,
                 max_reps: 15,
-                instruction: ''
+                instruction: '',
+                video_url: videoUrl
             });
         });
 
@@ -639,6 +661,7 @@
         row.querySelector('.exercise-min').value = data.min_reps || 10;
         row.querySelector('.exercise-max').value = data.max_reps || 15;
         row.querySelector('.exercise-instruction').value = data.instruction || '';
+        row.querySelector('.exercise-video').value = data.video_url || '';
 
         row.querySelectorAll('.remove-exercise').forEach(btn => {
             btn.addEventListener('click', function () {
@@ -663,6 +686,7 @@
             row.querySelector('.exercise-min').name = `exercises[${index}][min_reps]`;
             row.querySelector('.exercise-max').name = `exercises[${index}][max_reps]`;
             row.querySelector('.exercise-instruction').name = `exercises[${index}][instruction]`;
+            row.querySelector('.exercise-video').name = `exercises[${index}][video_url]`;
         });
     }
 

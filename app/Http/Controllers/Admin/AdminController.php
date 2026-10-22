@@ -38,6 +38,8 @@ class AdminController extends Controller
                 'exercises' => Exercise::count(),
                 'sessions' => \App\Models\WorkoutSession::where('user_id', $user->id)->count(),
             ];
+        } elseif ($user && $user->role === 'client') {
+            return redirect()->route('admin.plans.index');
         } else {
             $stats = [
                 'users' => User::count(),

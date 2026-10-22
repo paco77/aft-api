@@ -10,10 +10,12 @@
             <p class="mt-1 max-w-2xl text-sm text-gray-500">Detalles y estructura del entrenamiento.</p>
         </div>
         <div class="flex flex-wrap gap-3 items-center">
+            @if(auth()->user()->role !== 'client')
             <a href="{{ route('admin.plans.edit', $plan) }}" class="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-md text-sm px-4 py-2 flex items-center shadow-xs">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                 Editar
             </a>
+            @endif
             <a href="{{ route('admin.plans.pdf', $plan) }}" class="text-white bg-indigo-600 hover:bg-indigo-700 font-medium rounded-md text-sm px-4 py-2 flex items-center shadow-xs">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                 Exportar PDF
@@ -54,15 +56,28 @@
         <div class="bg-white shadow sm:rounded-lg overflow-hidden">
             <div class="px-4 py-3 bg-slate-800 text-white flex justify-between items-center">
                 <h4 class="font-medium text-sm sm:text-base">Día {{ $day->day_number }}: {{ $day->label }}</h4>
-                @php
-                    $muscleNames = [];
-                    if (is_array($day->muscle_groups) && count($day->muscle_groups) > 0) {
-                        $muscleNames = \App\Models\MuscleGroup::whereIn('id', $day->muscle_groups)->pluck('name')->toArray();
-                    }
-                @endphp
-                <span class="text-xs uppercase px-2 py-1 bg-slate-700 rounded">
-                    {{ !empty($muscleNames) ? implode(', ', $muscleNames) : 'N/A' }}
-                </span>
+                <div class="flex items-center gap-2">
+                    @php
+                        $gymUser = \App\Models\User::where('role', 'gimnasio')->first() ?? $plan->user;
+                        $gymIdent = $gymUser ? ($gymUser->username ?: $gymUser->id) : 1;
+                    @endphp
+                    @if($day->plannedExercises->count() > 0)
+                        <a href="{{ route('gym.workout', ['identifier' => $gymIdent, 'trainingDay' => $day->id]) }}" 
+                           class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition shadow-xs">
+                            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                            <span>Entrenar Sesión</span>
+                        </a>
+                    @endif
+                    @php
+                        $muscleNames = [];
+                        if (is_array($day->muscle_groups) && count($day->muscle_groups) > 0) {
+                            $muscleNames = \App\Models\MuscleGroup::whereIn('id', $day->muscle_groups)->pluck('name')->toArray();
+                        }
+                    @endphp
+                    <span class="text-xs uppercase px-2 py-1 bg-slate-700 rounded">
+                        {{ !empty($muscleNames) ? implode(', ', $muscleNames) : 'N/A' }}
+                    </span>
+                </div>
             </div>
             @if($day->comment)
             <div class="px-4 py-2 bg-slate-100 text-slate-700 text-sm border-b border-gray-200">

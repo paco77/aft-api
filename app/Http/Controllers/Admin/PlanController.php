@@ -14,7 +14,7 @@ class PlanController extends Controller
     public function index()
     {
         $query = MonthlyPlan::with(['user', 'assignedClient'])->latest();
-        if (auth()->user()->role === 'coach') {
+        if (in_array(auth()->user()->role, ['coach', 'client', 'independiente'])) {
             $query->where(function($q) {
                 $q->where('user_id', auth()->id())
                   ->orWhere('assigned_client_id', auth()->id());
@@ -26,6 +26,10 @@ class PlanController extends Controller
 
     public function create()
     {
+        if (auth()->user()->role === 'client') {
+            abort(403, 'Los clientes no tienen permisos para crear planes.');
+        }
+
         $query = User::where('role', 'client');
         if (auth()->user()->role === 'coach') {
             $query->where('coach_id', auth()->id());
@@ -114,7 +118,7 @@ class PlanController extends Controller
 
     public function show(MonthlyPlan $plan)
     {
-        if (auth()->user()->role === 'coach' && $plan->user_id !== auth()->id() && $plan->assigned_client_id !== auth()->id()) {
+        if (in_array(auth()->user()->role, ['coach', 'client', 'independiente']) && $plan->user_id !== auth()->id() && $plan->assigned_client_id !== auth()->id()) {
             abort(403, 'No tienes permiso para ver este plan.');
         }
 
@@ -124,6 +128,10 @@ class PlanController extends Controller
 
     public function edit(MonthlyPlan $plan)
     {
+        if (auth()->user()->role === 'client') {
+            abort(403, 'Los clientes no tienen permisos para editar planes.');
+        }
+
         if (auth()->user()->role === 'coach' && $plan->user_id !== auth()->id() && $plan->assigned_client_id !== auth()->id()) {
             abort(403, 'No tienes permiso para editar este plan.');
         }
@@ -223,6 +231,10 @@ class PlanController extends Controller
 
     public function destroy(MonthlyPlan $plan)
     {
+        if (auth()->user()->role === 'client') {
+            abort(403, 'Los clientes no tienen permisos para eliminar planes.');
+        }
+
         if (auth()->user()->role === 'coach' && $plan->user_id !== auth()->id()) {
             abort(403, 'No tienes permiso para eliminar este plan.');
         }
@@ -232,7 +244,7 @@ class PlanController extends Controller
 
     public function exportPdf(MonthlyPlan $plan)
     {
-        if (auth()->user()->role === 'coach' && $plan->user_id !== auth()->id() && $plan->assigned_client_id !== auth()->id()) {
+        if (in_array(auth()->user()->role, ['coach', 'client', 'independiente']) && $plan->user_id !== auth()->id() && $plan->assigned_client_id !== auth()->id()) {
             abort(403, 'No tienes permiso para exportar este plan.');
         }
 

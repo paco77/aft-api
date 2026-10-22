@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\TrainingDay;
+use App\Models\MonthlyPlan;
 use App\Models\User;
 use App\Models\WorkoutSession;
 use App\Models\ExerciseLog;
@@ -35,17 +36,63 @@ class GymPublicController extends Controller
     {
         $gym = $this->resolveGym($identifier);
 
+        // Open Gym Routines
         $routines = TrainingDay::with(['plannedExercises.exercise.muscleGroup'])
             ->where('user_id', $gym->id)
             ->whereNull('monthly_plan_id')
             ->orderBy('day_number')
             ->get();
 
-        // Selected routine ID from query or first routine
-        $selectedId = $request->query('selected');
-        $selectedRoutine = $routines->firstWhere('id', $selectedId) ?? $routines->first();
+        // Personal training plans for logged in client/athlete
+        $clientPlans = collect();
+        if (auth()->check()) {
+            $user = auth()->user();
+            $clientPlans = MonthlyPlan::with([
+                'user',
+                'trainingDays.plannedExercises.exercise.muscleGroup'
+            ])
+            ->where(function ($query) use ($user) {
+                $query->where('assigned_client_id', $user->id)
+                      ->orWhere('user_id', $user->id);
+            })
+            ->orderByDesc('year')
+            ->orderByDesc('id')
+            ->get();
+        }
 
-        return view('gym.routines', compact('gym', 'routines', 'selectedRoutine'));
+        // Active tab: 'client' or 'gym'
+        $activeTab = $request->query('tab');
+        if (!$activeTab) {
+            if (auth()->check() && (auth()->user()->role === 'client' || $clientPlans->isNotEmpty())) {
+                $activeTab = 'client';
+            } else {
+                $activeTab = 'gym';
+            }
+        }
+
+        $activePlan = null;
+        $selectedRoutine = null;
+
+        if ($activeTab === 'client' && $clientPlans->isNotEmpty()) {
+            $planId = $request->query('plan_id');
+            $activePlan = $clientPlans->firstWhere('id', $planId) ?? $clientPlans->first();
+
+            $selectedId = $request->query('selected');
+            $selectedRoutine = $activePlan->trainingDays->firstWhere('id', $selectedId) ?? $activePlan->trainingDays->first();
+        } else {
+            $activeTab = 'gym';
+            $selectedId = $request->query('selected');
+            $selectedRoutine = $routines->firstWhere('id', $selectedId) ?? $routines->first();
+        }
+
+        return view('gym.routines', compact(
+            'gym',
+            'routines',
+            'clientPlans',
+            'activeTab',
+            'activePlan',
+            'selectedRoutine'
+        ));
     }
 
     /**
@@ -55,18 +102,36 @@ class GymPublicController extends Controller
     {
         $gym = $this->resolveGym($identifier);
 
-        // Verify routine belongs to this gym
-        if ($trainingDay->user_id !== $gym->id) {
-            abort(404, 'La rutina no pertenece a este gimnasio.');
+        // Verify routine belongs to this gym OR belongs to authenticated client's plan
+        $isGymRoutine = ($trainingDay->user_id === $gym->id && is_null($trainingDay->monthly_plan_id));
+        $isClientRoutine = false;
+
+        if (!$isGymRoutine) {
+            if ($trainingDay->monthly_plan_id && auth()->check()) {
+                $plan = $trainingDay->monthlyPlan;
+                if ($plan && ($plan->assigned_client_id === auth()->id() || $plan->user_id === auth()->id())) {
+                    $isClientRoutine = true;
+                }
+            }
+        }
+
+        if (!$isGymRoutine && !$isClientRoutine) {
+            abort(403, 'No tienes permiso para acceder a esta sesión de entrenamiento o no pertenece a este gimnasio.');
         }
 
         $trainingDay->load(['plannedExercises.exercise.muscleGroup', 'plannedExercises.exerciseLogs.setLogs']);
 
         // Sibling routines for day sequence indicator
-        $allRoutines = TrainingDay::where('user_id', $gym->id)
-            ->whereNull('monthly_plan_id')
-            ->orderBy('day_number')
-            ->get();
+        if ($isClientRoutine) {
+            $allRoutines = TrainingDay::where('monthly_plan_id', $trainingDay->monthly_plan_id)
+                ->orderBy('day_number')
+                ->get();
+        } else {
+            $allRoutines = TrainingDay::where('user_id', $gym->id)
+                ->whereNull('monthly_plan_id')
+                ->orderBy('day_number')
+                ->get();
+        }
 
         $currentRoutineIndex = $allRoutines->search(function ($item) use ($trainingDay) {
             return $item->id === $trainingDay->id;
@@ -106,7 +171,7 @@ class GymPublicController extends Controller
             ];
         });
 
-        return view('gym.workout', compact('gym', 'trainingDay', 'allRoutines', 'currentDayNumber', 'totalDays', 'exercisesPayload'));
+        return view('gym.workout', compact('gym', 'trainingDay', 'allRoutines', 'currentDayNumber', 'totalDays', 'exercisesPayload', 'isClientRoutine'));
     }
 
     /**

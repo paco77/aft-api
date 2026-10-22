@@ -15,7 +15,7 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (auth()->check() && in_array(auth()->user()->role, ['admin', 'super_admin', 'coach', 'gimnasio', 'independiente'])) {
+        if (auth()->check() && in_array(auth()->user()->role, ['admin', 'super_admin', 'coach', 'gimnasio', 'independiente', 'client'])) {
             return $next($request);
         }
 

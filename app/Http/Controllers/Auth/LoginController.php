@@ -11,9 +11,15 @@ use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
-    public function showLoginForm()
+    public function showLoginForm(Request $request)
     {
         if (Auth::check()) {
+            if ($request->filled('redirect')) {
+                return redirect($request->input('redirect'));
+            }
+            if (Auth::user()->role === 'client') {
+                return redirect()->route('admin.plans.index');
+            }
             return redirect()->route('admin.dashboard');
         }
         return view('auth.login');
@@ -32,6 +38,11 @@ class LoginController extends Controller
 
         if ($user && Hash::check($request->password, $user->password)) {
             if (!$user->is_active) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'message' => 'Usuario Inactivo, favor de contactar al Administrador'
+                    ], 422);
+                }
                 throw ValidationException::withMessages([
                     'login' => ['Usuario Inactivo, favor de contactar al Administrador'],
                 ]);
@@ -40,7 +51,33 @@ class LoginController extends Controller
             Auth::login($user, $request->has('remember'));
             $request->session()->regenerate();
 
-            return redirect()->intended(route('admin.dashboard'));
+            $target = $request->input('redirect');
+            if (!$target) {
+                if ($user->role === 'client') {
+                    $target = route('admin.plans.index');
+                } else {
+                    $target = route('admin.dashboard');
+                }
+            }
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'redirect' => $target,
+                ]);
+            }
+
+            if ($request->filled('redirect')) {
+                return redirect($request->input('redirect'));
+            }
+
+            return redirect()->intended($target);
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'message' => 'Las credenciales proporcionadas son incorrectas.'
+            ], 422);
         }
 
         throw ValidationException::withMessages([
@@ -53,6 +90,10 @@ class LoginController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        if ($request->filled('redirect')) {
+            return redirect($request->input('redirect'));
+        }
 
         return redirect('/');
     }

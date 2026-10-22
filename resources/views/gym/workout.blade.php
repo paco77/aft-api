@@ -82,6 +82,18 @@
     </style>
 </head>
 
+@php
+    $backParams = ['identifier' => $gym->username ?: $gym->id];
+    if ($trainingDay->monthly_plan_id) {
+        $backParams['tab'] = 'client';
+        $backParams['plan_id'] = $trainingDay->monthly_plan_id;
+        $backParams['selected'] = $trainingDay->id;
+    } else {
+        $backParams['selected'] = $trainingDay->id;
+    }
+    $backUrl = route('gym.routines', $backParams);
+@endphp
+
 <body class="min-h-screen antialiased flex flex-col justify-between pb-28">
 
     <div class="max-w-md md:max-w-xl mx-auto w-full px-4 pt-4 space-y-4">
@@ -89,7 +101,7 @@
         <!-- 1. TOP BAR HEADER (Matching Image 2) -->
         <header class="flex items-center justify-between pb-1">
             <div class="flex items-center gap-3">
-                <a href="{{ route('gym.routines', ['identifier' => $gym->username ?: $gym->id, 'selected' => $trainingDay->id]) }}"
+                <a href="{{ $backUrl }}"
                     class="p-2 -ml-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
@@ -1123,7 +1135,7 @@
                 .then(data => {
                     if (data.success) {
                         alert('¡Excelente sesión! Entrenamiento guardado con éxito.');
-                        window.location.href = "{{ route('gym.routines', ['identifier' => $gym->username ?: $gym->id]) }}";
+                        window.location.href = "{!! $backUrl !!}";
                     } else {
                         alert('Error al guardar la sesión: ' + (data.message || 'Intente nuevamente.'));
                         btn.disabled = false;
@@ -1133,7 +1145,7 @@
                 .catch(err => {
                     console.error(err);
                     alert('Sesión registrada localmente. ¡Buen entrenamiento!');
-                    window.location.href = "{{ route('gym.routines', ['identifier' => $gym->username ?: $gym->id]) }}";
+                    window.location.href = "{!! $backUrl !!}";
                 });
         }
 

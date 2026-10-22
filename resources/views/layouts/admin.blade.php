@@ -73,6 +73,7 @@
 
                 <!-- Navigation Links with Icons -->
                 <nav class="mt-4 px-3 space-y-1.5 flex-1">
+                    @if(auth()->user()->role !== 'client')
                     <a href="{{ route('admin.dashboard') }}"
                         class="flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.dashboard') ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
                         <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -80,6 +81,7 @@
                         </svg>
                         <span>Dashboard</span>
                     </a>
+                    @endif
 
                     @if(in_array(auth()->user()->role, ['admin', 'coach']))
                     <a href="{{ route('admin.users.index') }}"
@@ -125,15 +127,17 @@
                         <span>Ejercicios</span>
                     </a>
 
-                    @if(in_array(auth()->user()->role, ['admin', 'coach', 'independiente']))
+                    @if(in_array(auth()->user()->role, ['admin', 'coach', 'independiente', 'client']))
                     <a href="{{ route('admin.plans.index') }}"
                         class="flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.plans.*') ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
                         <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                         </svg>
-                        <span>Planes de Entrenamiento</span>
+                        <span>{{ auth()->user()->role === 'client' ? 'Mis Planes de Entrenamiento' : 'Planes de Entrenamiento' }}</span>
                     </a>
+                    @endif
 
+                    @if(in_array(auth()->user()->role, ['admin', 'coach', 'independiente']))
                     <a href="{{ route('admin.nutrition-plans.index') }}"
                         class="flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.nutrition-plans.*') ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
                         <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">

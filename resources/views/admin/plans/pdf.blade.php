@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Plan de Entrenamiento</title>
@@ -11,29 +12,35 @@
             margin: 0;
             padding: 0;
         }
+
         .header {
             text-align: center;
             border-bottom: 2px solid #000;
             margin-bottom: 20px;
             padding-bottom: 10px;
         }
+
         .header h1 {
             margin: 0;
             font-size: 24px;
         }
+
         .info {
             display: table;
             width: 100%;
             margin-bottom: 20px;
         }
+
         .info-col {
             display: table-cell;
             width: 50%;
         }
+
         .day-block {
             margin-bottom: 30px;
             page-break-inside: avoid;
         }
+
         .day-title {
             background-color: #f0f0f0;
             padding: 8px;
@@ -41,36 +48,45 @@
             font-weight: bold;
             border: 1px solid #ddd;
         }
+
         .exercise-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
             page-break-inside: auto;
         }
+
         .exercise-table tr {
             page-break-inside: avoid;
             page-break-after: auto;
         }
-        .exercise-table th, .exercise-table td {
+
+        .exercise-table th,
+        .exercise-table td {
             border: 1px solid #ddd;
             padding: 6px;
             text-align: center;
         }
+
         .exercise-name {
             text-align: left !important;
             font-weight: bold;
             background-color: #fafafa;
         }
+
         .set-row {
-            height: 30px; /* Espacio cómodo para escribir */
+            height: 30px;
+            /* Espacio cómodo para escribir */
         }
     </style>
 </head>
+
 <body>
 
     <div class="header">
         @if($plan->user && $plan->user->logo_path)
-            <img src="{{ storage_path('app/public/' . $plan->user->logo_path) }}" alt="Logo Coach" style="max-height: 80px; margin-bottom: 10px;">
+            <img src="{{ storage_path('app/public/' . $plan->user->logo_path) }}" alt="Logo Coach"
+                style="max-height: 80px; margin-bottom: 10px;">
         @endif
         <h1>Plan de Entrenamiento</h1>
         @if($plan->user)
@@ -90,28 +106,29 @@
     </div>
 
     @if($plan->comment)
-    <div style="margin-bottom: 20px; font-size: 13px;">
-        <strong>Comentarios del Plan:</strong><br>
-        <span style="white-space: pre-wrap; color: #555;">{{ $plan->comment }}</span>
-    </div>
+        <div style="margin-bottom: 20px; font-size: 13px;">
+            <strong>Comentarios del Plan:</strong><br>
+            <span style="white-space: pre-wrap; color: #555;">{{ $plan->comment }}</span>
+        </div>
     @endif
 
     @foreach($plan->trainingDays as $day)
         <div class="day-block">
             <div class="day-title">Día {{ $day->day_number }}: {{ $day->label }}</div>
             @if($day->comment)
-            <div style="padding: 6px 8px; background-color: #f9f9f9; border: 1px solid #ddd; border-top: none; font-size: 12px; color: #555; white-space: pre-wrap;">
-                <strong>Comentarios del Día:</strong> {{ $day->comment }}
-            </div>
+                <div
+                    style="padding: 6px 8px; background-color: #f9f9f9; border: 1px solid #ddd; border-top: none; font-size: 12px; color: #555; white-space: pre-wrap;">
+                    <strong>Comentarios del Día:</strong> {{ $day->comment }}
+                </div>
             @endif
-            
+
             <table class="exercise-table">
                 <thead>
                     <tr>
                         <th style="width: 40%; text-align: left;">Ejercicio</th>
                         <th style="width: 15%;">Series x Reps (Obj.)</th>
                         <th style="width: 15%;">N° Serie</th>
-                        <th style="width: 15%;">Reps Hechas</th>
+                        <th style="width: 15%;">Reps Realizadas</th>
                         <th style="width: 15%;">Peso (kg/lbs)</th>
                     </tr>
                 </thead>
@@ -128,7 +145,9 @@
                                             ({{ $planned->exercise->muscleGroup->name ?? 'N/A' }})
                                         </span>
                                         @if($planned->instruction)
-                                        <div style="margin-top: 4px; font-size: 10px; color: #555; font-style: italic; white-space: pre-wrap;">{{ $planned->instruction }}</div>
+                                            <div
+                                                style="margin-top: 4px; font-size: 10px; color: #555; font-style: italic; white-space: pre-wrap;">
+                                                {{ $planned->instruction }}</div>
                                         @endif
                                     </td>
                                     <td rowspan="{{ $sets }}">
@@ -147,4 +166,5 @@
     @endforeach
 
 </body>
+
 </html>

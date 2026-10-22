@@ -34,6 +34,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/', [\App\Http\Controllers\Admin\AdminController::class , 'index'])->name('dashboard');
 
     // Rutas para Usuarios
+    Route::patch('users/{user}/toggle-status', [\App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])->name('users.toggle-status');
     Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
 
     // Rutas para Ejercicios

@@ -48,7 +48,7 @@ class UserController extends Controller
             'back_photo' => 'nullable|image|max:20480',
         ];
 
-        if (auth()->user()->role === 'admin') {
+        if (auth()->user()->isSuperAdmin()) {
             $rules['role'] = 'required|string|in:coach,client,usuario,admin,independiente,gimnasio';
             $rules['coach_id'] = 'nullable|exists:users,id';
             $rules['is_active'] = 'nullable|boolean';
@@ -56,7 +56,7 @@ class UserController extends Controller
 
         $request->validate($rules);
 
-        if (auth()->user()->role === 'admin') {
+        if (auth()->user()->isSuperAdmin()) {
             $role = $request->role;
             // Solo si el rol es client y se seleccionó un coach se asigna, de lo contrario null (desligado)
             $coach_id = ($role === 'client' && $request->filled('coach_id')) ? $request->coach_id : null;
@@ -206,7 +206,7 @@ class UserController extends Controller
             'back_photo' => 'nullable|image|max:20480',
         ];
 
-        if (auth()->user()->role === 'admin') {
+        if (auth()->user()->isSuperAdmin()) {
             $rules['role'] = 'required|string|in:coach,client,usuario,admin,independiente,gimnasio';
             $rules['coach_id'] = 'nullable|exists:users,id';
             $rules['is_active'] = 'nullable|boolean';
@@ -214,7 +214,7 @@ class UserController extends Controller
 
         $request->validate($rules);
 
-        if (auth()->user()->role === 'admin') {
+        if (auth()->user()->isSuperAdmin()) {
             $role = $request->role;
             // Si el rol es coach u otro diferente de client, coach_id debe ser null.
             // Si el rol es client y se envió coach_id con valor, se asigna; si está vacío/desligado, es null.
@@ -239,7 +239,10 @@ class UserController extends Controller
             'objectives' => $request->objectives,
         ];
 
-        if (auth()->user()->role === 'admin') {
+        if (auth()->user()->isSuperAdmin()) {
+            if ($user->id === auth()->id() && !$request->boolean('is_active', true)) {
+                return back()->with('error', 'No puedes desactivar tu propia cuenta de superadministrador.')->withInput();
+            }
             $userData['is_active'] = $request->boolean('is_active', false);
         }
 
@@ -402,11 +405,33 @@ class UserController extends Controller
 
         return redirect()->route('admin.users.progress', $user)->with('success', 'Registro de progreso eliminado correctamente.');
     }
+    public function toggleStatus(User $user)
+    {
+        if (!auth()->user()->isSuperAdmin()) {
+            abort(403, 'Solo el superadministrador puede activar o desactivar usuarios.');
+        }
+
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'No puedes desactivar tu propia cuenta de superadministrador.');
+        }
+
+        $user->is_active = !$user->is_active;
+        $user->save();
+
+        $action = $user->is_active ? 'activado' : 'desactivado';
+        return back()->with('success', "El usuario \"{$user->name}\" ha sido {$action} correctamente.");
+    }
+
     public function destroy(User $user)
     {
         if (auth()->user()->role === 'coach' && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
             abort(403, 'No tienes permiso para eliminar este usuario.');
         }
+
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'No puedes eliminar tu propia cuenta.');
+        }
+
         $user->delete();
         return redirect()->route('admin.users.index')->with('success', 'Usuario eliminado correctamente.');
     }

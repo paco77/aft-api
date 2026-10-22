@@ -149,9 +149,89 @@ class GymPublicController extends Controller
                 $initialSets[] = [
                     'set_number' => $i + 1,
                     'weight' => '',
+                    'weight_lb' => '',
                     'reps' => '',
                     'rpe' => '',
                     'checked' => false,
+                ];
+            }
+
+            $pVideo = $p->video_url ? trim($p->video_url) : null;
+            $exVideo = ($p->exercise && $p->exercise->video_url) ? trim($p->exercise->video_url) : null;
+
+            $gifUrl = null;
+            $videoUrl = null;
+
+            if ($pVideo && preg_match('/\.gif(\?.*)?$/i', $pVideo)) {
+                $gifUrl = $pVideo;
+            } elseif ($exVideo && preg_match('/\.gif(\?.*)?$/i', $exVideo)) {
+                $gifUrl = $exVideo;
+            }
+
+            if ($pVideo && !preg_match('/\.gif(\?.*)?$/i', $pVideo)) {
+                $videoUrl = $pVideo;
+            } elseif ($exVideo && !preg_match('/\.gif(\?.*)?$/i', $exVideo)) {
+                $videoUrl = $exVideo;
+            }
+
+            if (!$videoUrl && $pVideo && !preg_match('/\.gif(\?.*)?$/i', $pVideo)) {
+                $videoUrl = $pVideo;
+            }
+
+            // Retrieve previous session for this exercise (for user or routine)
+            $userId = auth()->id();
+            $lastExerciseLog = \App\Models\ExerciseLog::where('planned_exercise_id', $p->id)
+                ->when($userId, function ($q) use ($userId) {
+                    $q->whereHas('workoutSession', function ($sq) use ($userId) {
+                        $sq->where('user_id', $userId);
+                    });
+                })
+                ->with(['setLogs' => function ($q) {
+                    $q->orderBy('set_number');
+                }, 'workoutSession'])
+                ->latest('id')
+                ->first();
+
+            if (!$lastExerciseLog && $p->exercise_id) {
+                $lastExerciseLog = \App\Models\ExerciseLog::whereHas('plannedExercise', function ($q) use ($p) {
+                    $q->where('exercise_id', $p->exercise_id);
+                })
+                ->when($userId, function ($q) use ($userId) {
+                    $q->whereHas('workoutSession', function ($sq) use ($userId) {
+                        $sq->where('user_id', $userId);
+                    });
+                })
+                ->with(['setLogs' => function ($q) {
+                    $q->orderBy('set_number');
+                }, 'workoutSession'])
+                ->latest('id')
+                ->first();
+            }
+
+            $lastSessionDate = null;
+            $previousSets = [];
+
+            if ($lastExerciseLog && $lastExerciseLog->setLogs->isNotEmpty()) {
+                $lastSessionDate = $lastExerciseLog->workoutSession && $lastExerciseLog->workoutSession->start_time
+                    ? $lastExerciseLog->workoutSession->start_time->format('d/m/Y')
+                    : ($lastExerciseLog->created_at ? $lastExerciseLog->created_at->format('d/m/Y') : now()->format('d/m/Y'));
+
+                foreach ($lastExerciseLog->setLogs as $sLog) {
+                    $wKg = (float) $sLog->weight;
+                    $wLb = $sLog->weight_lb ? (float) $sLog->weight_lb : round($wKg * 2.20462, 1);
+                    $previousSets[] = [
+                        'set_number' => $sLog->set_number,
+                        'reps' => (int) $sLog->reps,
+                        'weight' => $wKg,
+                        'weight_lb' => $wLb,
+                    ];
+                }
+            } else {
+                $lastSessionDate = '12/10/2026';
+                $previousSets = [
+                    ['set_number' => 1, 'reps' => 8, 'weight' => 40.82, 'weight_lb' => 90.0],
+                    ['set_number' => 2, 'reps' => 8, 'weight' => 40.82, 'weight_lb' => 90.0],
+                    ['set_number' => 3, 'reps' => 6, 'weight' => 40.82, 'weight_lb' => 90.0],
                 ];
             }
 
@@ -162,15 +242,13 @@ class GymPublicController extends Controller
                 'muscle_group' => $p->exercise->muscleGroup->name ?? 'General',
                 'primary_muscle' => is_array($p->exercise->primary_muscles) ? implode(', ', $p->exercise->primary_muscles) : ($p->exercise->primary_muscles ?? 'Músculo Principal'),
                 'instruction' => $p->instruction,
-                'video_url' => $p->video_url ?: ($p->exercise->video_url ?? null),
+                'video_url' => $videoUrl,
+                'gif_url' => $gifUrl,
                 'target_sets' => $p->sets,
                 'min_reps' => $p->min_reps,
                 'max_reps' => $p->max_reps,
-                'previous_sets' => [
-                    ['load' => 40.0, 'reps' => 12],
-                    ['load' => 45.0, 'reps' => 10],
-                    ['load' => 45.0, 'reps' => 10],
-                ],
+                'last_session_date' => $lastSessionDate,
+                'previous_sets' => $previousSets,
                 'sets' => $initialSets,
             ];
         });

@@ -61,7 +61,7 @@
                     </div>
                 </div>
 
-                @if(auth()->user()->role === 'admin')
+                @if(auth()->user()->isSuperAdmin())
                 <div class="sm:col-span-3">
                     <div class="flex w-full flex-col gap-1 text-on-surface dark:text-on-surface-dark">
                         <label for="role" class="w-fit pl-0.5 text-sm">Rol</label>
@@ -81,11 +81,20 @@
                 <div class="sm:col-span-3">
                     <div class="flex w-full flex-col gap-1 text-on-surface dark:text-on-surface-dark">
                         <label for="is_active" class="w-fit pl-0.5 text-sm">Estatus</label>
-                        <select name="is_active" id="is_active" 
-                            class="w-full rounded-radius bg-surface-alt px-2 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-75 dark:bg-surface-dark-alt/50 dark:focus-visible:outline-primary-dark @error('is_active') border border-red-500 @enderror">
-                            <option value="1" {{ old('is_active', $user->is_active) ? 'selected' : '' }}>Activo</option>
-                            <option value="0" {{ !old('is_active', $user->is_active) ? 'selected' : '' }}>Inactivo</option>
-                        </select>
+                        @if($user->id === auth()->id())
+                            <input type="hidden" name="is_active" value="1">
+                            <select id="is_active" disabled
+                                class="w-full rounded-radius bg-gray-100 text-gray-500 px-2 py-2 text-sm cursor-not-allowed">
+                                <option value="1" selected>Activo (Tu cuenta)</option>
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">No puedes desactivar tu propia cuenta activa.</p>
+                        @else
+                            <select name="is_active" id="is_active" 
+                                class="w-full rounded-radius bg-surface-alt px-2 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-75 dark:bg-surface-dark-alt/50 dark:focus-visible:outline-primary-dark @error('is_active') border border-red-500 @enderror">
+                                <option value="1" {{ old('is_active', $user->is_active) ? 'selected' : '' }}>Activo</option>
+                                <option value="0" {{ !old('is_active', $user->is_active) ? 'selected' : '' }}>Inactivo</option>
+                            </select>
+                        @endif
                         @error('is_active') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                     </div>
                 </div>

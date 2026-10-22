@@ -68,7 +68,7 @@
                         </div>
                     </div>
 
-                    @if(auth()->user()->role === 'admin')
+                    @if(auth()->user()->isSuperAdmin())
                         <div class="sm:col-span-3">
                             <div class="flex w-full flex-col gap-1 text-on-surface dark:text-on-surface-dark">
                                 <label for="role" class="w-fit pl-0.5 text-sm">Rol</label>

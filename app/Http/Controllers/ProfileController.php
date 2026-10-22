@@ -14,6 +14,10 @@ class ProfileController extends Controller
      */
     public function edit()
     {
+        if (auth()->user()->role === 'client') {
+            abort(403, 'Los clientes no tienen permisos para editar el perfil desde el panel de administración.');
+        }
+
         return view('profile.edit', [
             'user' => auth()->user(),
         ]);
@@ -24,6 +28,10 @@ class ProfileController extends Controller
      */
     public function update(Request $request)
     {
+        if (auth()->user()->role === 'client') {
+            abort(403, 'Los clientes no tienen permisos para editar el perfil desde el panel de administración.');
+        }
+
         $user = auth()->user();
 
         $validated = $request->validate([

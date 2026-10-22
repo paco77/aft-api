@@ -115,6 +115,7 @@
                     </a>
                     @endif
 
+                    @if(auth()->user()->role !== 'client')
                     <div class="pt-2 pb-1">
                         <p class="px-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Catálogo & Planes</p>
                     </div>
@@ -126,6 +127,7 @@
                         </svg>
                         <span>Ejercicios</span>
                     </a>
+                    @endif
 
                     @if(in_array(auth()->user()->role, ['admin', 'coach', 'independiente', 'client']))
                     <a href="{{ route('admin.plans.index') }}"
@@ -156,6 +158,7 @@
                     </a>
                     @endif
 
+                    @if(auth()->user()->role !== 'client')
                     <a href="{{ route('admin.profile.edit') }}"
                         class="flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.profile.*') ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
                         <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -163,6 +166,7 @@
                         </svg>
                         <span>Mi Perfil</span>
                     </a>
+                    @endif
 
                     @if(in_array(auth()->user()->role, ['admin', 'super_admin']))
                     <div class="pt-3 pb-1 border-t border-slate-800/80 mt-2">

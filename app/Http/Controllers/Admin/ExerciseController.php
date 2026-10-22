@@ -11,12 +11,20 @@ class ExerciseController extends Controller
 {
     public function index()
     {
+        if (auth()->user()->role === 'client') {
+            abort(403, 'No tienes permisos para acceder a la biblioteca de ejercicios.');
+        }
+
         $exercises = Exercise::with('muscleGroup')->where('is_active', true)->latest()->get();
         return view('admin.exercises.index', compact('exercises'));
     }
 
     public function create()
     {
+        if (auth()->user()->role === 'client') {
+            abort(403, 'No tienes permisos para crear ejercicios.');
+        }
+
         $muscleGroups = \App\Models\MuscleGroup::all();
         return view('admin.exercises.create', compact('muscleGroups'));
     }

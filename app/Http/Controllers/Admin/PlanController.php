@@ -13,7 +13,12 @@ class PlanController extends Controller
 {
     public function index()
     {
-        $query = MonthlyPlan::with(['user', 'assignedClient'])->latest();
+        $query = MonthlyPlan::with([
+            'user', 
+            'assignedClient', 
+            'trainingDays.plannedExercises.exercise.muscleGroup'
+        ])->latest();
+
         if (in_array(auth()->user()->role, ['coach', 'client', 'independiente'])) {
             $query->where(function($q) {
                 $q->where('user_id', auth()->id())

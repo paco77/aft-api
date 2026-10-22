@@ -23,8 +23,12 @@ class GymPublicController extends Controller
             $query->where('id', $identifier)
                   ->orWhere('username', $identifier);
         })
-        ->whereIn('role', ['gimnasio', 'admin'])
-        ->firstOrFail();
+        ->whereIn('role', ['gimnasio', 'admin', 'coach', 'independiente'])
+        ->first();
+
+        if (!$gym) {
+            $gym = User::whereIn('role', ['gimnasio', 'admin'])->first() ?? User::firstOrFail();
+        }
 
         return $gym;
     }

@@ -50,8 +50,9 @@
                     @endphp
 
                     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition hover:shadow-md">
-                        <!-- Plan Header -->
-                        <div class="p-5 sm:p-6 bg-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <!-- Plan Header (Clickable to toggle days) -->
+                        <div onclick="togglePlanDays({{ $plan->id }})"
+                             class="p-5 sm:p-6 bg-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer select-none hover:bg-slate-800/90 transition group">
                             <div class="space-y-1">
                                 <div class="flex items-center gap-2">
                                     <span class="px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
@@ -63,9 +64,14 @@
                                         </span>
                                     @endif
                                 </div>
-                                <h3 class="text-lg sm:text-xl font-black tracking-tight text-white">
-                                    {{ $plan->split_type ?: $plan->name }}
-                                </h3>
+                                <div class="flex items-center gap-2.5">
+                                    <h3 class="text-lg sm:text-xl font-black tracking-tight text-white group-hover:text-blue-400 transition">
+                                        {{ $plan->split_type ?: $plan->name }}
+                                    </h3>
+                                    <span class="text-xs text-slate-400 font-semibold hidden sm:inline-flex items-center gap-1 group-hover:text-slate-200">
+                                        &bull; Toca para desplegar
+                                    </span>
+                                </div>
                                 <p class="text-xs text-slate-300">
                                     Coach: <strong class="text-white">{{ $plan->user->name ?? 'Coach' }}</strong>
                                     &bull; {{ $plan->trainingDays->count() }} sesiones configuradas
@@ -73,12 +79,22 @@
                             </div>
 
                             <!-- Plan Quick Action Buttons -->
-                            <div class="flex flex-wrap items-center gap-2">
+                            <div class="flex flex-wrap items-center gap-2" onclick="event.stopPropagation()">
+                                <!-- Botón Desplegable Ver Días / Sesiones -->
+                                <button type="button" onclick="togglePlanDays({{ $plan->id }})" id="btn-toggle-plan-{{ $plan->id }}"
+                                        class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider shadow-md shadow-blue-600/30 transition active:scale-95"
+                                        title="Mostrar u ocultar los días de entrenamiento">
+                                    <span id="text-toggle-plan-{{ $plan->id }}">Ver Sesiones ({{ $plan->trainingDays->count() }})</span>
+                                    <svg id="icon-toggle-plan-{{ $plan->id }}" class="w-4 h-4 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+
                                 @if($firstDay)
                                     <a href="{{ route('gym.workout', ['identifier' => $gymIdent, 'trainingDay' => $firstDay->id]) }}"
-                                       class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider shadow-md shadow-blue-600/30 transition active:scale-95">
-                                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-                                        <span>Comenzar Día 1</span>
+                                       class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs uppercase tracking-wider border border-slate-700 transition active:scale-95">
+                                        <svg class="w-3.5 h-3.5 fill-current text-blue-400" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                                        <span>Día 1</span>
                                     </a>
                                 @endif
 
@@ -102,68 +118,75 @@
                             </div>
                         </div>
 
-                        @if($plan->comment)
-                            <div class="px-5 py-2.5 bg-slate-50 border-b border-slate-100 text-xs text-slate-600 italic">
-                                <strong class="text-slate-700 not-italic">Nota del Coach:</strong> {{ $plan->comment }}
-                            </div>
-                        @endif
+                        <!-- Collapsible Body: Note and Training Days / Sessions List -->
+                        <div id="plan-days-{{ $plan->id }}" class="hidden border-t border-slate-200 bg-white">
+                            @if($plan->comment)
+                                <div class="px-5 py-2.5 bg-slate-50 border-b border-slate-100 text-xs text-slate-600 italic">
+                                    <strong class="text-slate-700 not-italic">Nota del Coach:</strong> {{ $plan->comment }}
+                                </div>
+                            @endif
 
-                        <!-- Training Days / Sessions List -->
-                        <div class="p-5 sm:p-6 space-y-3">
-                            <p class="text-2xs font-extrabold uppercase tracking-wider text-slate-400">
-                                SESIONES DISPONIBLES EN ESTE PLAN:
-                            </p>
+                            <div class="p-5 sm:p-6 space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <p class="text-2xs font-extrabold uppercase tracking-wider text-slate-400">
+                                        SESIONES DISPONIBLES EN ESTE PLAN:
+                                    </p>
+                                    <span class="text-2xs font-semibold text-slate-400">
+                                        {{ $plan->trainingDays->count() }} {{ $plan->trainingDays->count() == 1 ? 'sesión' : 'sesiones' }}
+                                    </span>
+                                </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                                @forelse($plan->trainingDays as $day)
-                                    <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 hover:border-blue-400 transition flex flex-col justify-between gap-3 group">
-                                        <div class="space-y-1.5">
-                                            <div class="flex items-center justify-between gap-2">
-                                                <span class="inline-flex items-center gap-1.5 text-2xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200/60">
-                                                    Día {{ $day->day_number }}
-                                                </span>
-                                                <span class="text-2xs text-slate-500 font-medium">
-                                                    {{ $day->estimated_minutes ?? 60 }} min &bull; {{ $day->plannedExercises->count() }} ejercicios
-                                                </span>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                                    @forelse($plan->trainingDays as $day)
+                                        <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 hover:border-blue-400 transition flex flex-col justify-between gap-3 group">
+                                            <div class="space-y-1.5">
+                                                <div class="flex items-center justify-between gap-2">
+                                                    <span class="inline-flex items-center gap-1.5 text-2xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200/60">
+                                                        Día {{ $day->day_number }}
+                                                    </span>
+                                                    <span class="text-2xs text-slate-500 font-medium">
+                                                        {{ $day->estimated_minutes ?? 60 }} min &bull; {{ $day->plannedExercises->count() }} ejercicios
+                                                    </span>
+                                                </div>
+
+                                                <h4 class="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition">
+                                                    {{ $day->label }}
+                                                </h4>
+
+                                                @if($day->description)
+                                                    <p class="text-2xs text-slate-500 line-clamp-1">
+                                                        {{ $day->description }}
+                                                    </p>
+                                                @endif
+
+                                                @php
+                                                    $sampleExercises = $day->plannedExercises->take(3)->map(fn($p) => $p->exercise->name ?? '')->filter()->implode(', ');
+                                                @endphp
+                                                @if($sampleExercises)
+                                                    <p class="text-2xs text-slate-400 truncate">
+                                                        <span class="font-semibold text-slate-500">Ejercicios:</span> {{ $sampleExercises }}...
+                                                    </p>
+                                                @endif
                                             </div>
 
-                                            <h4 class="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition">
-                                                {{ $day->label }}
-                                            </h4>
+                                            <div class="pt-2 border-t border-slate-200/70 flex items-center justify-between gap-2">
+                                                <span class="text-2xs text-slate-400">
+                                                    {{ $day->plannedExercises->sum('sets') }} series totales
+                                                </span>
 
-                                            @if($day->description)
-                                                <p class="text-2xs text-slate-500 line-clamp-1">
-                                                    {{ $day->description }}
-                                                </p>
-                                            @endif
-
-                                            @php
-                                                $sampleExercises = $day->plannedExercises->take(3)->map(fn($p) => $p->exercise->name ?? '')->filter()->implode(', ');
-                                            @endphp
-                                            @if($sampleExercises)
-                                                <p class="text-2xs text-slate-400 truncate">
-                                                    <span class="font-semibold text-slate-500">Ejercicios:</span> {{ $sampleExercises }}...
-                                                </p>
-                                            @endif
+                                                <a href="{{ route('gym.workout', ['identifier' => $gymIdent, 'trainingDay' => $day->id]) }}"
+                                                   class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm transition active:scale-95">
+                                                    <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                                                    <span>Realizar Sesión</span>
+                                                </a>
+                                            </div>
                                         </div>
-
-                                        <div class="pt-2 border-t border-slate-200/70 flex items-center justify-between gap-2">
-                                            <span class="text-2xs text-slate-400">
-                                                {{ $day->plannedExercises->sum('sets') }} series totales
-                                            </span>
-
-                                            <a href="{{ route('gym.workout', ['identifier' => $gymIdent, 'trainingDay' => $day->id]) }}"
-                                               class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm transition active:scale-95">
-                                                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-                                                <span>Realizar Sesión</span>
-                                            </a>
+                                    @empty
+                                        <div class="col-span-2 text-xs text-slate-400 italic p-4 text-center">
+                                            No hay días configurados en este plan aún.
                                         </div>
-                                    </div>
-                                @empty
-                                    <div class="col-span-2 text-xs text-slate-400 italic p-4 text-center">
-                                        No hay días configurados en este plan aún.
-                                    </div>
-                                @endforelse
+                                    @endforelse
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -239,7 +262,28 @@
 @endsection
 
 @push('scripts')
-@if(auth()->user()->role !== 'client')
+@if(auth()->user()->role === 'client')
+<script>
+    function togglePlanDays(planId) {
+        const container = document.getElementById(`plan-days-${planId}`);
+        const icon = document.getElementById(`icon-toggle-plan-${planId}`);
+        const text = document.getElementById(`text-toggle-plan-${planId}`);
+        if (!container) return;
+
+        const isHidden = container.classList.contains('hidden');
+        if (isHidden) {
+            container.classList.remove('hidden');
+            if (icon) icon.classList.add('rotate-180');
+            if (text) text.textContent = 'Ocultar Sesiones';
+        } else {
+            container.classList.add('hidden');
+            if (icon) icon.classList.remove('rotate-180');
+            const total = container.querySelectorAll('.grid > div').length;
+            if (text) text.textContent = `Ver Sesiones (${total})`;
+        }
+    }
+</script>
+@else
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         new DataTable('#plans-table', {

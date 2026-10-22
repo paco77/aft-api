@@ -55,9 +55,24 @@
 
                 <div>
                     <label for="password" class="block text-xs font-semibold text-zinc-400 mb-1.5">Contraseña</label>
-                    <input type="password" name="password" id="password" required
-                        placeholder="••••••••"
-                        class="block w-full px-4 py-3 rounded-lg bg-zinc-900/40 border border-zinc-800/80 text-white placeholder-zinc-600 focus:ring-1 focus:ring-red-600 focus:border-red-600 outline-none transition-all text-sm">
+                    <div class="relative">
+                        <input type="password" name="password" id="password" required
+                            placeholder="••••••••"
+                            class="block w-full pl-4 pr-11 py-3 rounded-lg bg-zinc-900/40 border border-zinc-800/80 text-white placeholder-zinc-600 focus:ring-1 focus:ring-red-600 focus:border-red-600 outline-none transition-all text-sm">
+                        <button type="button" onclick="togglePasswordVisibility()" id="togglePasswordBtn"
+                            class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-zinc-500 hover:text-zinc-200 focus:outline-none transition-colors"
+                            title="Mostrar u ocultar contraseña" aria-label="Mostrar u ocultar contraseña">
+                            <!-- Icono ojo (abierto) -->
+                            <svg id="eyeIcon" class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            <!-- Icono ojo tachado (cerrado) -->
+                            <svg id="eyeSlashIcon" class="w-4.5 h-4.5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="flex items-center">
@@ -159,5 +174,23 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+            const eyeSlashIcon = document.getElementById('eyeSlashIcon');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.classList.add('hidden');
+                eyeSlashIcon.classList.remove('hidden');
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.classList.remove('hidden');
+                eyeSlashIcon.classList.add('hidden');
+            }
+        }
+    </script>
 </body>
 </html>

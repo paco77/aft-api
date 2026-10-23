@@ -225,8 +225,8 @@
                                 {{ count($exercises) }} ejercicios
                             </span>
                         </div>
-                        <div id="modal-mg-filters" class="flex flex-wrap gap-1.5 p-2 rounded-2xl bg-slate-100/70 border border-slate-200">
-                            <button type="button" class="mg-filter-chip px-3 py-1 rounded-xl text-xs font-bold transition-all bg-indigo-600 text-white shadow-xs" data-mg="all">
+                        <div id="modal-mg-filters" class="flex flex-wrap items-center gap-1.5 p-2 rounded-2xl bg-slate-100/70 border border-slate-200">
+                            <button type="button" id="modal-mg-all-chip" class="mg-filter-chip px-3 py-1 rounded-xl text-xs font-bold transition-all bg-indigo-600 text-white shadow-xs" data-mg="all">
                                 Todos
                             </button>
                             @foreach($muscleGroups as $mg)
@@ -234,6 +234,10 @@
                                     {{ $mg->name }}
                                 </button>
                             @endforeach
+                            <button type="button" id="btn-toggle-all-mg" onclick="toggleShowAllMgInModal()" 
+                                class="hidden ml-auto px-2.5 py-1 rounded-xl text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 border border-dashed border-indigo-300 transition-all">
+                                + Ver todos los grupos
+                            </button>
                         </div>
                     </div>
 
@@ -419,10 +423,63 @@
         let dayIndex = 0;
         let currentDayBlockForModal = null;
         let activeMgFilter = 'all';
+        let currentDaySelectedMgIds = [];
+        let showAllMgInModal = false;
 
         document.getElementById('exercise-search').addEventListener('input', function (e) {
             applyModalFilters();
         });
+
+        function updateModalMgChipsVisibility() {
+            const allChip = document.getElementById('modal-mg-all-chip');
+            const toggleBtn = document.getElementById('btn-toggle-all-mg');
+            const chips = document.querySelectorAll('.mg-filter-chip');
+
+            if (currentDaySelectedMgIds.length > 0 && !showAllMgInModal) {
+                if (allChip) {
+                    allChip.textContent = 'Grupos de la sesión';
+                    allChip.setAttribute('data-mg', 'all-selected');
+                }
+                chips.forEach(chip => {
+                    const mg = chip.getAttribute('data-mg');
+                    if (mg === 'all-selected' || currentDaySelectedMgIds.includes(mg)) {
+                        chip.style.display = '';
+                    } else {
+                        chip.style.display = 'none';
+                    }
+                });
+                if (toggleBtn) {
+                    toggleBtn.classList.remove('hidden');
+                    toggleBtn.textContent = '+ Ver todos los grupos';
+                }
+            } else {
+                if (allChip) {
+                    allChip.textContent = 'Todos';
+                    allChip.setAttribute('data-mg', 'all');
+                }
+                chips.forEach(chip => {
+                    chip.style.display = '';
+                });
+                if (toggleBtn) {
+                    if (currentDaySelectedMgIds.length > 0) {
+                        toggleBtn.classList.remove('hidden');
+                        toggleBtn.textContent = 'Filtrar solo de la sesión';
+                    } else {
+                        toggleBtn.classList.add('hidden');
+                    }
+                }
+            }
+        }
+
+        function toggleShowAllMgInModal() {
+            showAllMgInModal = !showAllMgInModal;
+            updateModalMgChipsVisibility();
+            if (!showAllMgInModal && currentDaySelectedMgIds.length > 0) {
+                setMuscleGroupFilter('all-selected');
+            } else {
+                setMuscleGroupFilter('all');
+            }
+        }
 
         function setMuscleGroupFilter(mgId) {
             activeMgFilter = String(mgId);
@@ -442,10 +499,18 @@
             let visibleCount = 0;
 
             items.forEach(item => {
-                const itemMg = item.getAttribute('data-mg');
-                const name = item.getAttribute('data-name');
+                const itemMg = String(item.getAttribute('data-mg') || '');
+                const name = (item.getAttribute('data-name') || '').toLowerCase();
                 
-                const matchesMg = (activeMgFilter === 'all') || (itemMg === activeMgFilter);
+                let matchesMg = false;
+                if (activeMgFilter === 'all') {
+                    matchesMg = true;
+                } else if (activeMgFilter === 'all-selected') {
+                    matchesMg = currentDaySelectedMgIds.includes(itemMg);
+                } else {
+                    matchesMg = (itemMg === activeMgFilter);
+                }
+
                 const matchesSearch = !term || name.includes(term);
 
                 if (matchesMg && matchesSearch) {
@@ -577,13 +642,16 @@
 
         function openExerciseModal(dayBlock) {
             currentDayBlockForModal = dayBlock;
+            showAllMgInModal = false;
             
-            // Si el bloque de sesión tiene grupos musculares marcados, pre-seleccionamos el primero para conveniencia
+            // Si el bloque de sesión tiene grupos musculares marcados, filtramos automáticamente por ellos
             const checkedBoxes = dayBlock.querySelectorAll('input[type="checkbox"]:checked');
-            const selectedMgIds = Array.from(checkedBoxes).map(cb => cb.value);
+            currentDaySelectedMgIds = Array.from(checkedBoxes).map(cb => String(cb.value));
 
-            if (selectedMgIds.length > 0) {
-                setMuscleGroupFilter(selectedMgIds[0]);
+            updateModalMgChipsVisibility();
+
+            if (currentDaySelectedMgIds.length > 0) {
+                setMuscleGroupFilter('all-selected');
             } else {
                 setMuscleGroupFilter('all');
             }

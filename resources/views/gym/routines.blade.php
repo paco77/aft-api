@@ -123,7 +123,7 @@
                     @endif
                     <form action="{{ route('logout') }}" method="POST" class="inline">
                         @csrf
-                        <input type="hidden" name="redirect" value="{{ url()->full() }}">
+                        <input type="hidden" name="redirect" value="{{ request()->fullUrl() }}">
                         <button type="submit" class="text-[11px] text-slate-400 hover:text-red-400 font-semibold transition flex items-center gap-1">
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -320,6 +320,11 @@
                                             <span class="w-6 h-6 rounded-lg bg-emerald-600/60 border border-emerald-400/40 text-emerald-100 font-bold text-xs flex items-center justify-center shrink-0">
                                                 {{ $idx + 1 }}
                                             </span>
+                                            @if($item->superset_id)
+                                                <span class="px-1.5 py-0.5 rounded text-3xs font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/40 shrink-0">
+                                                    ⚡ Combo {{ $item->superset_id }}
+                                                </span>
+                                            @endif
                                             <span class="text-sm font-semibold text-white truncate">
                                                 {{ $item->exercise->name ?? 'Ejercicio' }}
                                             </span>
@@ -461,6 +466,11 @@
                                         <span class="w-6 h-6 rounded-lg bg-blue-600/60 border border-blue-400/40 text-blue-100 font-bold text-xs flex items-center justify-center shrink-0">
                                             {{ $idx + 1 }}
                                         </span>
+                                        @if($item->superset_id)
+                                            <span class="px-1.5 py-0.5 rounded text-3xs font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/40 shrink-0">
+                                                ⚡ Combo {{ $item->superset_id }}
+                                            </span>
+                                        @endif
                                         <span class="text-sm font-semibold text-white truncate">
                                             {{ $item->exercise->name ?? 'Ejercicio' }}
                                         </span>

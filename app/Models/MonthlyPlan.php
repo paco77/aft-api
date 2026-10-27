@@ -31,6 +31,11 @@ class MonthlyPlan extends Model
         return $this->hasMany(TrainingDay::class);
     }
 
+    public function getNameAttribute()
+    {
+        return $this->split_type ?: ($this->month . ' ' . $this->year);
+    }
+
     protected static function booted()
     {
         static::deleting(function ($plan) {

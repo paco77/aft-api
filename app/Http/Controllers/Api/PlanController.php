@@ -366,4 +366,79 @@ class PlanController extends Controller
         $plan->delete();
         return response()->json(['message' => 'Plan eliminado correctamente.']);
     }
+
+    public function duplicate(Request $request, MonthlyPlan $plan)
+    {
+        $user = $request->user();
+        if ($user->role === 'client') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        if ($user->role === 'coach' && $plan->user_id !== $user->id && $plan->assigned_client_id !== $user->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $data = $request->validate([
+            'assigned_client_id' => 'nullable|integer|exists:users,id',
+            'month' => 'nullable|string',
+            'year' => 'nullable|integer',
+        ]);
+
+        $targetClientId = $data['assigned_client_id'] ?? $plan->assigned_client_id ?? $user->id;
+
+        if ($user->isIndependent()) {
+            $targetClientId = $user->id;
+        } elseif ($targetClientId != $user->id) {
+            $client = \App\Models\User::find($targetClientId);
+            if (!$client || $client->coach_id !== $user->id) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+        }
+
+        $newPlan = \Illuminate\Support\Facades\DB::transaction(function () use ($plan, $data, $user, $targetClientId) {
+            $clonedPlan = MonthlyPlan::create([
+                'user_id' => $user->id,
+                'assigned_client_id' => $targetClientId,
+                'month' => $data['month'] ?? $plan->month,
+                'year' => $data['year'] ?? $plan->year,
+                'days_per_week' => $plan->days_per_week,
+                'split_type' => $plan->split_type,
+                'comment' => $plan->comment,
+            ]);
+
+            $plan->load('trainingDays.plannedExercises');
+
+            foreach ($plan->trainingDays as $day) {
+                $newDay = $clonedPlan->trainingDays()->create([
+                    'user_id' => $user->id,
+                    'label' => $day->label,
+                    'description' => $day->description,
+                    'day_number' => $day->day_number,
+                    'estimated_minutes' => $day->estimated_minutes,
+                    'muscle_groups' => $day->muscle_groups ?? [],
+                    'target_volumes' => $day->target_volumes ?? [],
+                    'comment' => $day->comment,
+                ]);
+
+                foreach ($day->plannedExercises as $exercise) {
+                    $newDay->plannedExercises()->create([
+                        'exercise_id' => $exercise->exercise_id,
+                        'client_id' => $targetClientId,
+                        'coach_id' => $user->id,
+                        'sets' => $exercise->sets,
+                        'min_reps' => $exercise->min_reps,
+                        'max_reps' => $exercise->max_reps,
+                        'instruction' => $exercise->instruction,
+                        'video_url' => $exercise->video_url,
+                        'superset_id' => $exercise->superset_id,
+                    ]);
+                }
+            }
+
+            return $clonedPlan;
+        });
+
+        return new MonthlyPlanResource($newPlan->load('trainingDays.plannedExercises.exercise'));
+    }
+
 }

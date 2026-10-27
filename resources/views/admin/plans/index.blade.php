@@ -242,6 +242,13 @@
                                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                 Editar
                             </a>
+                            <button type="button" 
+                                onclick="openDuplicateModal({{ $plan->id }}, '{{ addslashes($plan->split_type ?: ($plan->month . ' ' . $plan->year)) }}', {{ $plan->assigned_client_id ?? 'null' }}, '{{ $plan->month }}', {{ $plan->year }})" 
+                                class="inline-flex items-center text-emerald-600 hover:text-emerald-900 font-bold mr-3" 
+                                title="Duplicar Plan">
+                                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                Duplicar
+                            </button>
                             <form action="{{ route('admin.plans.destroy', $plan) }}" method="POST" class="inline">
                                 @csrf
                                 @method('DELETE')
@@ -257,6 +264,10 @@
             </table>
         </div>
     </div>
+@endif
+
+@if(auth()->user()->role !== 'client')
+    @include('admin.plans._duplicate_modal')
 @endif
 
 @endsection

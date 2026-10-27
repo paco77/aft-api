@@ -195,7 +195,7 @@
                         </span>
                         <div>
                             <h3 class="text-base font-bold text-slate-900" id="modal-title">Banco de Ejercicios</h3>
-                            <p class="text-xs text-slate-500">Selecciona los ejercicios que formarán parte de la sesión</p>
+                            <p class="text-xs text-slate-500" id="modal-subtitle">Selecciona los ejercicios que formarán parte de la sesión</p>
                         </div>
                     </div>
                     <button type="button" onclick="closeExerciseModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
@@ -206,6 +206,7 @@
                 </div>
 
                 <div class="p-6 space-y-4">
+                    <div id="modal-mode-banner" class="hidden"></div>
                     <!-- Buscador con icono -->
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -359,7 +360,7 @@
 
     <!-- Template para Ejercicio en la lista -->
     <template id="exercise-template">
-        <div class="exercise-row flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-50/80 hover:bg-white border border-slate-200/90 shadow-xs hover:shadow-sm cursor-move transition-all group">
+        <div class="exercise-row flex flex-wrap sm:flex-nowrap items-center gap-3.5 p-3.5 rounded-2xl bg-slate-50/80 hover:bg-white border border-slate-200/90 shadow-xs hover:shadow-sm cursor-move transition-all group">
             <div class="flex-none text-slate-400 hover:text-indigo-600 cursor-move p-1 rounded-lg">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
@@ -369,30 +370,49 @@
             <div class="flex-1 min-w-0">
                 <input type="hidden" class="exercise-id" value="">
                 <p class="text-sm font-bold text-slate-900 exercise-name-display truncate"></p>
+                <div class="mt-1 flex items-center gap-1.5">
+                    <span class="exercise-combo-badge hidden px-2 py-0.5 rounded-md text-3xs font-extrabold uppercase tracking-wider shadow-2xs"></span>
+                </div>
+            </div>
+
+            <div class="w-28 sm:w-32 shrink-0">
+                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center mb-1">
+                    Combinación
+                </label>
+                <select class="exercise-superset block w-full text-xs font-bold rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 py-1.5 px-2 bg-white text-slate-700 transition-colors">
+                    <option value="">Individual</option>
+                    <option value="A">⚡ Grupo A</option>
+                    <option value="B">⚡ Grupo B</option>
+                    <option value="C">⚡ Grupo C</option>
+                    <option value="D">⚡ Grupo D</option>
+                    <option value="E">⚡ Grupo E</option>
+                    <option value="F">⚡ Grupo F</option>
+                    <option value="G">⚡ Grupo G</option>
+                </select>
             </div>
 
             <div class="w-20">
-                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center">Series</label>
+                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center mb-1">Series</label>
                 <input type="number"
-                    class="exercise-sets mt-1 block w-full text-center font-bold text-slate-900 rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm py-1.5 bg-white"
+                    class="exercise-sets block w-full text-center font-bold text-slate-900 rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm py-1.5 bg-white"
                     value="3" min="1" required>
             </div>
 
             <div class="w-20">
-                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center">Min Reps</label>
+                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center mb-1">Min Reps</label>
                 <input type="number"
-                    class="exercise-min mt-1 block w-full text-center font-bold text-slate-900 rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm py-1.5 bg-white"
+                    class="exercise-min block w-full text-center font-bold text-slate-900 rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm py-1.5 bg-white"
                     value="8" min="1" required>
             </div>
 
             <div class="w-20">
-                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center">Max Reps</label>
+                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center mb-1">Max Reps</label>
                 <input type="number"
-                    class="exercise-max mt-1 block w-full text-center font-bold text-slate-900 rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm py-1.5 bg-white"
+                    class="exercise-max block w-full text-center font-bold text-slate-900 rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm py-1.5 bg-white"
                     value="12" min="1" required>
             </div>
 
-            <div class="w-full sm:w-56">
+            <div class="w-full sm:w-48">
                 <label class="block text-2xs font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1">
                     <svg class="w-3.5 h-3.5 text-red-500 shrink-0" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M10 15l5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83-.25.9-.83 1.48-1.73 1.73-.47.13-1.33.22-2.65.28-1.3.07-2.49.1-3.59.1L12 22c-4.19 0-6.8-.16-7.83-.44-.9-.25-1.48-.83-1.73-1.73-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83.25-.9.83-1.48 1.73-1.73.47-.13 1.33-.22 2.65-.28 1.3-.07 2.49-.1 3.59-.1L12 22c4.19 0 6.8.16 7.83.44.9.25 1.48.83 1.73 1.73z"/>
@@ -423,6 +443,7 @@
         let dayIndex = 0;
         let currentDayBlockForModal = null;
         let activeMgFilter = 'all';
+        let modalMode = 'normal';
         let currentDaySelectedMgIds = [];
         let showAllMgInModal = false;
 
@@ -609,10 +630,20 @@
                         <!-- Ejercicios aquí -->
                     </div>
 
-                    <button type="button" class="mt-4 w-full border-2 border-dashed border-indigo-200 hover:border-indigo-400 bg-indigo-50/40 hover:bg-indigo-50 text-indigo-700 font-bold py-3 px-4 rounded-2xl text-xs text-center transition flex items-center justify-center gap-2 open-modal-btn">
-                        <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-                        Añadir Ejercicios a este Día
-                    </button>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mt-4">
+                        <button type="button" class="border-2 border-dashed border-indigo-200 hover:border-indigo-400 bg-indigo-50/40 hover:bg-indigo-50 text-indigo-700 font-bold py-2.5 px-3 rounded-2xl text-xs text-center transition flex items-center justify-center gap-1.5 open-modal-btn">
+                            <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                            <span>+ Ejercicios</span>
+                        </button>
+                        <button type="button" class="border-2 border-dashed border-purple-200 hover:border-purple-400 bg-purple-50/40 hover:bg-purple-50 text-purple-700 font-bold py-2.5 px-3 rounded-2xl text-xs text-center transition flex items-center justify-center gap-1.5 open-biserie-btn">
+                            <span class="text-purple-600 font-black">⚡</span>
+                            <span>+ Crear Biserie (2)</span>
+                        </button>
+                        <button type="button" class="border-2 border-dashed border-teal-200 hover:border-teal-400 bg-teal-50/40 hover:bg-teal-50 text-teal-700 font-bold py-2.5 px-3 rounded-2xl text-xs text-center transition flex items-center justify-center gap-1.5 open-triserie-btn">
+                            <span class="text-teal-600 font-black">⚡</span>
+                            <span>+ Crear Triserie (3)</span>
+                        </button>
+                    </div>
                 </div>
             `;
 
@@ -626,6 +657,7 @@
                 handle: '.cursor-move',
                 onEnd: function () {
                     updateExerciseIndices(newBlock);
+                    refreshSupersetBadges(newBlock);
                 }
             });
 
@@ -634,15 +666,66 @@
             });
 
             newBlock.querySelector('.open-modal-btn').addEventListener('click', function () {
-                openExerciseModal(newBlock);
+                openExerciseModal(newBlock, 'normal');
+            });
+            newBlock.querySelector('.open-biserie-btn').addEventListener('click', function () {
+                openExerciseModal(newBlock, 'biserie');
+            });
+            newBlock.querySelector('.open-triserie-btn').addEventListener('click', function () {
+                openExerciseModal(newBlock, 'triserie');
             });
 
             dayIndex++;
         }
 
-        function openExerciseModal(dayBlock) {
+        function openExerciseModal(dayBlock, mode = 'normal') {
             currentDayBlockForModal = dayBlock;
+            modalMode = mode;
             showAllMgInModal = false;
+
+            const banner = document.getElementById('modal-mode-banner');
+            const modalTitle = document.getElementById('modal-title');
+            const modalSubtitle = document.getElementById('modal-subtitle');
+
+            if (mode === 'biserie') {
+                if (banner) {
+                    banner.className = 'mb-3.5 p-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-sm flex items-center justify-between text-xs';
+                    banner.innerHTML = `
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-lg">⚡</span>
+                            <div>
+                                <strong class="font-extrabold text-sm block">Modo Biserie Activado</strong>
+                                <span class="text-purple-100 text-2xs">Selecciona 2 ejercicios que se realizarán consecutivamente sin descanso.</span>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-xl bg-white/20 border border-white/20 text-3xs font-extrabold uppercase tracking-wider">2 ejercicios</span>
+                    `;
+                    banner.classList.remove('hidden');
+                }
+                if (modalTitle) modalTitle.textContent = 'Crear Biserie';
+                if (modalSubtitle) modalSubtitle.textContent = 'Selecciona 2 ejercicios que se combinarán en el plan';
+            } else if (mode === 'triserie') {
+                if (banner) {
+                    banner.className = 'mb-3.5 p-3.5 rounded-2xl bg-gradient-to-r from-teal-600 to-emerald-600 text-white shadow-sm flex items-center justify-between text-xs';
+                    banner.innerHTML = `
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-lg">⚡</span>
+                            <div>
+                                <strong class="font-extrabold text-sm block">Modo Triserie Activado</strong>
+                                <span class="text-teal-100 text-2xs">Selecciona 3 ejercicios que se realizarán consecutivamente sin descanso.</span>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-xl bg-white/20 border border-white/20 text-3xs font-extrabold uppercase tracking-wider">3 ejercicios</span>
+                    `;
+                    banner.classList.remove('hidden');
+                }
+                if (modalTitle) modalTitle.textContent = 'Crear Triserie';
+                if (modalSubtitle) modalSubtitle.textContent = 'Selecciona 3 ejercicios que se combinarán en el plan';
+            } else {
+                if (banner) banner.classList.add('hidden');
+                if (modalTitle) modalTitle.textContent = 'Banco de Ejercicios';
+                if (modalSubtitle) modalSubtitle.textContent = 'Selecciona los ejercicios que formarán parte de la sesión';
+            }
             
             // Si el bloque de sesión tiene grupos musculares marcados, filtramos automáticamente por ellos
             const checkedBoxes = dayBlock.querySelectorAll('input[type="checkbox"]:checked');
@@ -752,11 +835,92 @@
             }
         }
 
+        function getNextComboLetter(dayBlock) {
+            const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
+            const usedLetters = new Set();
+            dayBlock.querySelectorAll('.exercise-superset').forEach(s => {
+                if (s.value) usedLetters.add(s.value);
+            });
+            for (let l of letters) {
+                if (!usedLetters.has(l)) return l;
+            }
+            return 'Z';
+        }
+
+        function refreshSupersetBadges(dayBlock) {
+            if (!dayBlock) return;
+            const rows = dayBlock.querySelectorAll('.exercise-row');
+            const groupCounts = {};
+            const groupRows = {};
+
+            rows.forEach(row => {
+                const superset = row.querySelector('.exercise-superset').value;
+                if (superset) {
+                    groupCounts[superset] = (groupCounts[superset] || 0) + 1;
+                    if (!groupRows[superset]) groupRows[superset] = [];
+                    groupRows[superset].push(row);
+                }
+            });
+
+            const colorStyles = {
+                'A': { border: ['border-l-4', 'border-l-purple-500', 'bg-purple-50/20'], badge: 'bg-purple-100 text-purple-800 border-purple-200' },
+                'B': { border: ['border-l-4', 'border-l-teal-500', 'bg-teal-50/20'], badge: 'bg-teal-100 text-teal-800 border-teal-200' },
+                'C': { border: ['border-l-4', 'border-l-amber-500', 'bg-amber-50/20'], badge: 'bg-amber-100 text-amber-800 border-amber-200' },
+                'D': { border: ['border-l-4', 'border-l-rose-500', 'bg-rose-50/20'], badge: 'bg-rose-100 text-rose-800 border-rose-200' },
+                'E': { border: ['border-l-4', 'border-l-sky-500', 'bg-sky-50/20'], badge: 'bg-sky-100 text-sky-800 border-sky-200' },
+                'F': { border: ['border-l-4', 'border-l-indigo-500', 'bg-indigo-50/20'], badge: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
+                'G': { border: ['border-l-4', 'border-l-emerald-500', 'bg-emerald-50/20'], badge: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+            };
+
+            const allBorderClasses = [
+                'border-l-4', 
+                'border-l-purple-500', 'bg-purple-50/20',
+                'border-l-teal-500', 'bg-teal-50/20',
+                'border-l-amber-500', 'bg-amber-50/20',
+                'border-l-rose-500', 'bg-rose-50/20',
+                'border-l-sky-500', 'bg-sky-50/20',
+                'border-l-indigo-500', 'bg-indigo-50/20',
+                'border-l-emerald-500', 'bg-emerald-50/20'
+            ];
+
+            rows.forEach(row => {
+                const select = row.querySelector('.exercise-superset');
+                const badge = row.querySelector('.exercise-combo-badge');
+                const val = select.value;
+
+                allBorderClasses.forEach(cls => row.classList.remove(cls));
+
+                if (!val) {
+                    badge.classList.add('hidden');
+                    badge.textContent = '';
+                } else {
+                    const count = groupCounts[val] || 1;
+                    const indexInGroup = (groupRows[val] ? groupRows[val].indexOf(row) : 0) + 1;
+                    let typeName = 'Combinación';
+                    if (count === 2) typeName = 'Biserie';
+                    else if (count === 3) typeName = 'Triserie';
+                    else if (count >= 4) typeName = 'Serie Gigante';
+
+                    const style = colorStyles[val] || colorStyles['A'];
+                    style.border.forEach(cls => row.classList.add(cls));
+
+                    badge.className = `exercise-combo-badge px-2 py-0.5 rounded-md text-3xs font-extrabold uppercase tracking-wider border shadow-2xs ${style.badge}`;
+                    badge.textContent = `⚡ ${typeName} ${val} (${indexInGroup}/${count})`;
+                    badge.classList.remove('hidden');
+                }
+            });
+        }
+
         function addSelectedExercises() {
             if (!currentDayBlockForModal) return;
 
             const checkboxes = document.querySelectorAll('.modal-exercise-checkbox:checked');
             const container = currentDayBlockForModal.querySelector('.exercises-container');
+
+            let assignedComboLetter = '';
+            if (modalMode === 'biserie' || modalMode === 'triserie') {
+                assignedComboLetter = getNextComboLetter(currentDayBlockForModal);
+            }
 
             checkboxes.forEach(cb => {
                 const exId = cb.value;
@@ -770,15 +934,26 @@
                 newRow.querySelector('.exercise-name-display').textContent = exName;
                 newRow.querySelector('.exercise-video').value = videoUrl;
 
+                if (assignedComboLetter) {
+                    newRow.querySelector('.exercise-superset').value = assignedComboLetter;
+                }
+
+                newRow.querySelector('.exercise-superset').addEventListener('change', function () {
+                    refreshSupersetBadges(currentDayBlockForModal || newRow.closest('.day-block'));
+                });
+
                 newRow.querySelector('.remove-exercise').addEventListener('click', function () {
+                    const dayParent = newRow.closest('.day-block');
                     newRow.remove();
-                    updateExerciseIndices(currentDayBlockForModal);
+                    updateExerciseIndices(dayParent);
+                    refreshSupersetBadges(dayParent);
                 });
 
                 container.appendChild(newRow);
             });
 
             updateExerciseIndices(currentDayBlockForModal);
+            refreshSupersetBadges(currentDayBlockForModal);
             closeExerciseModal();
         }
 
@@ -792,6 +967,7 @@
                 row.querySelector('.exercise-min').name = `days[${dIndex}][exercises][${index}][min_reps]`;
                 row.querySelector('.exercise-max').name = `days[${dIndex}][exercises][${index}][max_reps]`;
                 row.querySelector('.exercise-video').name = `days[${dIndex}][exercises][${index}][video_url]`;
+                row.querySelector('.exercise-superset').name = `days[${dIndex}][exercises][${index}][superset_id]`;
             });
         }
 

@@ -139,6 +139,15 @@
                             <tr class="set-row">
                                 @if($i === 1)
                                     <td rowspan="{{ $sets }}" class="exercise-name">
+                                        @if($planned->superset_id)
+                                            @php
+                                                $count = $day->plannedExercises->where('superset_id', $planned->superset_id)->count();
+                                                $type = $count == 2 ? 'Biserie' : ($count == 3 ? 'Triserie' : ($count >= 4 ? 'Serie Gigante' : 'Combinación'));
+                                            @endphp
+                                            <span style="display: inline-block; background-color: #f3e8ff; color: #6b21a8; border: 1px solid #d8b4fe; padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: bold; margin-bottom: 3px;">
+                                                ⚡ {{ $type }} {{ $planned->superset_id }}
+                                            </span><br>
+                                        @endif
                                         {{ $planned->exercise->name ?? 'Ejercicio Eliminado' }}
                                         <br>
                                         <span style="font-weight: normal; font-size: 10px; color: #666;">

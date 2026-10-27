@@ -11,6 +11,12 @@
         </div>
         <div class="flex flex-wrap gap-3 items-center">
             @if(auth()->user()->role !== 'client')
+            <button type="button" 
+                onclick="openDuplicateModal({{ $plan->id }}, '{{ addslashes($plan->split_type ?: ($plan->month . ' ' . $plan->year)) }}', {{ $plan->assigned_client_id ?? 'null' }}, '{{ $plan->month }}', {{ $plan->year }})" 
+                class="text-white bg-emerald-600 hover:bg-emerald-700 font-medium rounded-md text-sm px-4 py-2 flex items-center shadow-xs cursor-pointer transition">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                Duplicar Plan
+            </button>
             <a href="{{ route('admin.plans.edit', $plan) }}" class="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-md text-sm px-4 py-2 flex items-center shadow-xs">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                 Editar
@@ -96,15 +102,28 @@
                     </thead>
                     <tbody class="divide-y divide-gray-200 text-sm">
                         @forelse($day->plannedExercises as $planned)
-                        <tr>
+                        @php
+                            $comboText = null;
+                            if ($planned->superset_id) {
+                                $count = $day->plannedExercises->where('superset_id', $planned->superset_id)->count();
+                                $type = $count == 2 ? 'Biserie' : ($count == 3 ? 'Triserie' : ($count >= 4 ? 'Serie Gigante' : 'Combinación'));
+                                $comboText = "⚡ {$type} {$planned->superset_id}";
+                            }
+                        @endphp
+                        <tr class="{{ $planned->superset_id ? 'bg-purple-50/20' : '' }}">
                             <td class="px-6 py-3 text-gray-900 font-medium">
+                                @if($comboText)
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-3xs font-extrabold uppercase tracking-wider bg-purple-100 text-purple-800 border border-purple-200 mr-2 shadow-2xs">
+                                        {{ $comboText }}
+                                    </span>
+                                @endif
                                 {{ $planned->exercise->name ?? 'Ejercicio Eliminado' }}
                                 @if($planned->instruction)
                                     <p class="text-xs font-normal text-gray-500 italic mt-1">{{ $planned->instruction }}</p>
                                 @endif
                             </td>
                             <td class="px-6 py-3 text-gray-500 text-center">{{ $planned->sets }}</td>
-                            <td class="px-6 py-3 text-gray-500 text-center">{{ $planned->reps }}</td>
+                            <td class="px-6 py-3 text-gray-500 text-center">{{ $planned->min_reps == $planned->max_reps ? $planned->min_reps : ($planned->min_reps . ' - ' . $planned->max_reps) }}</td>
                             <td class="px-6 py-3 text-gray-500 text-center">{{ $planned->rpe ?? '-' }}</td>
                         </tr>
                         @empty
@@ -121,4 +140,7 @@
         @endforelse
     </div>
 </div>
+@if(auth()->user()->role !== 'client')
+    @include('admin.plans._duplicate_modal')
+@endif
 @endsection

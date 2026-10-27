@@ -42,6 +42,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('exercises/api-store', [\App\Http\Controllers\Admin\ExerciseController::class, 'apiStore'])->name('exercises.api-store');
 
     // Rutas para Planes
+    Route::post('plans/{plan}/duplicate', [\App\Http\Controllers\Admin\PlanController::class, 'duplicate'])->name('plans.duplicate');
     Route::resource('plans', \App\Http\Controllers\Admin\PlanController::class);
     Route::get('plans/{plan}/pdf', [\App\Http\Controllers\Admin\PlanController::class, 'exportPdf'])->name('plans.pdf');
 

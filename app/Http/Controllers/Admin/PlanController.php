@@ -26,7 +26,21 @@ class PlanController extends Controller
             });
         }
         $plans = $query->get();
-        return view('admin.plans.index', compact('plans'));
+        $clients = $this->getClientsForUser();
+        return view('admin.plans.index', compact('plans', 'clients'));
+    }
+
+    private function getClientsForUser()
+    {
+        $query = User::where('role', 'client');
+        if (auth()->user()->role === 'coach') {
+            $query->where('coach_id', auth()->id());
+        }
+        $clients = $query->orderBy('name')->get();
+        if (auth()->user()->role === 'independiente' && !$clients->contains('id', auth()->id())) {
+            $clients->prepend(auth()->user());
+        }
+        return $clients;
     }
 
     public function create()
@@ -128,7 +142,8 @@ class PlanController extends Controller
         }
 
         $plan->load(['user', 'assignedClient', 'trainingDays.plannedExercises.exercise']);
-        return view('admin.plans.show', compact('plan'));
+        $clients = $this->getClientsForUser();
+        return view('admin.plans.show', compact('plan', 'clients'));
     }
 
     public function edit(MonthlyPlan $plan)
@@ -257,5 +272,98 @@ class PlanController extends Controller
         
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.plans.pdf', compact('plan'));
         return $pdf->download('Plan_Entrenamiento_' . str_replace(' ', '_', $plan->assignedClient->name ?? 'Cliente') . '_' . $plan->month . '.pdf');
+    }
+
+    public function duplicate(Request $request, MonthlyPlan $plan)
+    {
+        if (auth()->user()->role === 'client') {
+            abort(403, 'Los clientes no tienen permisos para duplicar planes.');
+        }
+
+        if (auth()->user()->role === 'coach' && $plan->user_id !== auth()->id() && $plan->assigned_client_id !== auth()->id()) {
+            abort(403, 'No tienes permiso para duplicar este plan.');
+        }
+
+        $data = $request->validate([
+            'assigned_client_id' => 'required|integer|exists:users,id',
+            'month' => 'required|string',
+            'year' => 'required|integer',
+            'action_type' => 'required|in:save,edit',
+            'notify_whatsapp' => 'nullable|boolean',
+        ]);
+
+        if (auth()->user()->role === 'coach') {
+            $client = User::find($data['assigned_client_id']);
+            if (!$client || $client->coach_id !== auth()->id()) {
+                abort(403, 'No tienes permiso para asignar un plan a este usuario.');
+            }
+        }
+
+        $newPlan = DB::transaction(function () use ($plan, $data) {
+            $clonedPlan = MonthlyPlan::create([
+                'user_id' => auth()->id(),
+                'assigned_client_id' => $data['assigned_client_id'],
+                'month' => $data['month'],
+                'year' => $data['year'],
+                'days_per_week' => $plan->days_per_week,
+                'split_type' => $plan->split_type,
+                'comment' => $plan->comment,
+            ]);
+
+            $plan->load('trainingDays.plannedExercises');
+
+            foreach ($plan->trainingDays as $day) {
+                $newDay = $clonedPlan->trainingDays()->create([
+                    'user_id' => auth()->id(),
+                    'label' => $day->label,
+                    'description' => $day->description,
+                    'day_number' => $day->day_number,
+                    'estimated_minutes' => $day->estimated_minutes,
+                    'muscle_groups' => $day->muscle_groups ?? [],
+                    'target_volumes' => $day->target_volumes ?? [],
+                    'comment' => $day->comment,
+                ]);
+
+                foreach ($day->plannedExercises as $exercise) {
+                    $newDay->plannedExercises()->create([
+                        'exercise_id' => $exercise->exercise_id,
+                        'client_id' => $data['assigned_client_id'],
+                        'coach_id' => auth()->id(),
+                        'sets' => $exercise->sets,
+                        'min_reps' => $exercise->min_reps,
+                        'max_reps' => $exercise->max_reps,
+                        'instruction' => $exercise->instruction,
+                        'video_url' => $exercise->video_url,
+                        'superset_id' => $exercise->superset_id,
+                    ]);
+                }
+            }
+
+            return $clonedPlan;
+        });
+
+        $whatsappUrl = null;
+        if ($request->boolean('notify_whatsapp')) {
+            $client = User::find($data['assigned_client_id']);
+            if ($client && !empty($client->phone)) {
+                $message = urlencode("Hola {$client->name}, te he preparado un nuevo plan de entrenamiento para {$data['month']} {$data['year']}. Puedes revisarlo en tu app.");
+                $phone = preg_replace('/[^0-9]/', '', $client->phone);
+                $whatsappUrl = "https://wa.me/{$phone}?text={$message}";
+            }
+        }
+
+        if ($data['action_type'] === 'edit') {
+            $redirect = redirect()->route('admin.plans.edit', $newPlan)
+                ->with('success', 'Plan duplicado exitosamente. Ahora puedes modificar las especificaciones que desees para este plan.');
+        } else {
+            $redirect = redirect()->route('admin.plans.index')
+                ->with('success', 'Plan duplicado exitosamente para ' . ($newPlan->assignedClient->name ?? 'el cliente') . '.');
+        }
+
+        if ($whatsappUrl) {
+            $redirect->with('whatsapp_url', $whatsappUrl);
+        }
+
+        return $redirect;
     }
 }

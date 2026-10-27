@@ -251,6 +251,11 @@
                                 class="w-5 h-5 rounded-full {{ $idx === 0 ? 'bg-white text-blue-700' : 'bg-slate-800 text-slate-300' }} text-2xs font-bold flex items-center justify-center">
                                 {{ $idx + 1 }}
                             </span>
+                            @if($pExercise->superset_id)
+                                <span class="px-1.5 py-0.5 rounded text-3xs font-extrabold bg-purple-500/30 text-purple-200 border border-purple-500/40">
+                                    ⚡ {{ $pExercise->superset_id }}
+                                </span>
+                            @endif
                             <svg class="w-3.5 h-3.5 {{ $idx === 0 ? 'text-white' : 'text-slate-500' }}" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

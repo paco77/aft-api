@@ -9,6 +9,7 @@ use App\Models\ClientProgressLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Intervention\Image\Laravel\Facades\Image;
 use App\Traits\ImageUploadTrait;
 
@@ -207,12 +208,14 @@ class ClientController extends Controller
      */
     public function destroy(Request $request, User $client)
     {
-        // Ensure the client belongs to this coach
-        if ($client->coach_id !== $request->user()->id) {
+        // Ensure the client belongs to this coach (or user is super_admin)
+        if ($client->coach_id !== $request->user()->id && !$request->user()->isSuperAdmin()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $client->delete();
+        DB::transaction(function () use ($client) {
+            $client->delete();
+        });
 
         return response()->json(['message' => 'Cliente y toda su información eliminados correctamente.']);
     }

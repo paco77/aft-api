@@ -14,16 +14,66 @@ class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
-
     protected static function booted()
     {
         static::deleting(function ($user) {
-            // Eliminar todos los archivos e imágenes del cliente en S3 / Storage
-            Storage::deleteDirectory("clients/{$user->id}");
+            // 1. Eliminar archivos e imágenes del cliente en S3 y almacenamiento local
+            try {
+                \Illuminate\Support\Facades\Storage::disk('s3')->deleteDirectory("clients/{$user->id}");
+            } catch (\Throwable $e) {}
+            try {
+                \Illuminate\Support\Facades\Storage::disk('public')->deleteDirectory("clients/{$user->id}");
+            } catch (\Throwable $e) {}
+            try {
+                \Illuminate\Support\Facades\Storage::deleteDirectory("clients/{$user->id}");
+            } catch (\Throwable $e) {}
 
-            // Eliminar planes asignados al cliente
-            \App\Models\NutritionPlan::where('client_id', $user->id)->delete();
-            \App\Models\MonthlyPlan::where('assigned_client_id', $user->id)->delete();
+            // 2. Eliminar planes de entrenamiento asignados al cliente o creados por él
+            \App\Models\MonthlyPlan::where('assigned_client_id', $user->id)->each(function ($plan) {
+                $plan->delete();
+            });
+            \App\Models\MonthlyPlan::where('user_id', $user->id)->each(function ($plan) {
+                $plan->delete();
+            });
+
+            // 3. Eliminar planes de nutrición asignados al cliente (con comidas y alimentos)
+            \App\Models\NutritionPlan::where('client_id', $user->id)->each(function ($plan) {
+                $plan->meals()->each(function ($meal) {
+                    $meal->foods()->delete();
+                    $meal->delete();
+                });
+                $plan->delete();
+            });
+            \App\Models\NutritionPlan::where('coach_id', $user->id)->each(function ($plan) {
+                $plan->meals()->each(function ($meal) {
+                    $meal->foods()->delete();
+                    $meal->delete();
+                });
+                $plan->delete();
+            });
+
+            // 4. Eliminar registros de progreso físico
+            \App\Models\ClientProgressLog::where('client_id', $user->id)->each(function ($log) {
+                $log->delete();
+            });
+
+            // 5. Eliminar sesiones de entrenamiento restantes del cliente
+            \App\Models\WorkoutSession::where('user_id', $user->id)->each(function ($session) {
+                $session->delete();
+            });
+
+            // 6. Eliminar ejercicios planificados ligados al cliente
+            \App\Models\PlannedExercise::where('client_id', $user->id)->delete();
+
+            // 7. Eliminar actividades al aire libre y registros de pasos
+            \App\Models\OutdoorActivity::where('user_id', $user->id)->delete();
+            \App\Models\UserStepLog::where('user_id', $user->id)->delete();
+
+            // 8. Eliminar ejercicios personalizados si los creó el usuario
+            \App\Models\Exercise::where('user_id', $user->id)->delete();
+
+            // 9. Revocar todos los tokens de autenticación
+            $user->tokens()->delete();
         });
     }
 

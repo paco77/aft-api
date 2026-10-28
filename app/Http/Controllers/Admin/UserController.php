@@ -163,7 +163,7 @@ class UserController extends Controller
         return $redirect;
     }
 
-    public function show(User $user)
+    public function show(Request $request, User $user)
     {
         // Si el usuario logueado es coach, solo puede ver a sus propios clientes
         if (auth()->user()->role === 'coach' && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
@@ -174,13 +174,13 @@ class UserController extends Controller
 
         // 1. Logs de Progreso ordenados del más reciente al más antiguo
         $progressLogs = $user->progressLogs()->orderBy('recorded_at', 'desc')->orderBy('id', 'desc')->get();
-        $latestProgress = $progressLogs->first();
-        $previousProgress = $progressLogs->skip(1)->first();
+        $initialProgress = $progressLogs->last();
 
-        // 2. Plan de Nutrición activo / más reciente
-        $latestNutritionPlan = \App\Models\NutritionPlan::where('client_id', $user->id)->latest()->first();
+        // 2. Planes de Nutrición y Planes de Entrenamiento
+        $nutritionPlans = \App\Models\NutritionPlan::where('client_id', $user->id)->latest()->get();
+        $latestNutritionPlan = $nutritionPlans->first();
+        $initialNutritionPlan = $nutritionPlans->last();
 
-        // 3. Plan de Entrenamiento asignado activo / más reciente
         $assignedPlans = \App\Models\MonthlyPlan::where('assigned_client_id', $user->id)
             ->orWhere(function ($q) use ($user) {
                 if ($user->role === 'independiente') {
@@ -192,26 +192,90 @@ class UserController extends Controller
             ->get();
         $latestPlan = $assignedPlans->first();
 
-        // 4. Historial de Sesiones de Entrenamiento con detalle de ejercicios y series
-        $workoutSessions = \App\Models\WorkoutSession::where('user_id', $user->id)
+        // 3. Historial completo de Sesiones de Entrenamiento del usuario
+        $allWorkoutSessions = \App\Models\WorkoutSession::where('user_id', $user->id)
             ->with(['trainingDay.monthlyPlan', 'exerciseLogs.plannedExercise.exercise.muscleGroup', 'exerciseLogs.setLogs'])
             ->orderBy('start_time', 'desc')
             ->get();
 
-        // 5. Cálculos de KPIs Antropométricos y Metabólicos
-        $currentWeight = $latestProgress && $latestProgress->weight ? (float) $latestProgress->weight : ($user->weight ? (float) $user->weight : 77.0);
-        $prevWeight = $previousProgress && $previousProgress->weight ? (float) $previousProgress->weight : ($user->weight && $latestProgress && $latestProgress->weight != $user->weight ? (float) $user->weight : ($currentWeight + 2.4));
-        $weightDiff = round($currentWeight - $prevWeight, 1);
+        // 4. Construir lista de meses disponibles para analizar (basado en registros reales + mes actual)
+        $availableMonths = collect();
+        $spanishMonths = [
+            1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
+            5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
+            9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+        ];
+        $spanishMonthsReverse = [
+            'enero' => 1, 'febrero' => 2, 'marzo' => 3, 'abril' => 4,
+            'mayo' => 5, 'junio' => 6, 'julio' => 7, 'agosto' => 8,
+            'septiembre' => 9, 'setiembre' => 9, 'octubre' => 10, 'noviembre' => 11, 'diciembre' => 12
+        ];
 
-        $heightCm = $user->height ? (float) $user->height : ($latestNutritionPlan && $latestNutritionPlan->height ? (float) $latestNutritionPlan->height : 168);
+        $addMonthKey = function ($carbonDate) use (&$availableMonths, $spanishMonths) {
+            if (!$carbonDate) return;
+            $key = $carbonDate->format('Y-m');
+            if (!$availableMonths->has($key)) {
+                $mNum = (int) $carbonDate->format('n');
+                $availableMonths->put($key, [
+                    'key' => $key,
+                    'year' => (int) $carbonDate->format('Y'),
+                    'month' => $mNum,
+                    'label' => ($spanishMonths[$mNum] ?? $carbonDate->format('F')) . ' ' . $carbonDate->format('Y'),
+                ]);
+            }
+        };
+
+        // Mes de registro inicial del usuario
+        if ($user->created_at) {
+            $addMonthKey(\Carbon\Carbon::parse($user->created_at));
+        }
+        // Meses de logs de progreso
+        foreach ($progressLogs as $pLog) {
+            if ($pLog->recorded_at) {
+                $addMonthKey(\Carbon\Carbon::parse($pLog->recorded_at));
+            }
+        }
+        // Meses de sesiones de entrenamiento
+        foreach ($allWorkoutSessions as $wSess) {
+            if ($wSess->start_time) {
+                $addMonthKey(\Carbon\Carbon::parse($wSess->start_time));
+            }
+        }
+        // Meses de planes mensuales asignados
+        foreach ($assignedPlans as $mPlan) {
+            $mLower = mb_strtolower(trim((string) $mPlan->month), 'UTF-8');
+            $mNum = $spanishMonthsReverse[$mLower] ?? (is_numeric($mPlan->month) ? (int) $mPlan->month : null);
+            $yNum = is_numeric($mPlan->year) ? (int) $mPlan->year : (int) now()->format('Y');
+            if ($mNum && $mNum >= 1 && $mNum <= 12) {
+                $addMonthKey(\Carbon\Carbon::createFromDate($yNum, $mNum, 1));
+            } elseif ($mPlan->created_at) {
+                $addMonthKey(\Carbon\Carbon::parse($mPlan->created_at));
+            }
+        }
+        // Asegurar siempre el mes actual
+        $addMonthKey(now());
+
+        // Ordenar meses cronológicamente (de más antiguo a más reciente)
+        $availableMonths = $availableMonths->sortKeys()->values();
+
+        // Mes seleccionado por el usuario (por defecto el más reciente disponible)
+        $selectedMonthKey = $request->query('month', $availableMonths->last()['key'] ?? now()->format('Y-m'));
+        if (!$availableMonths->contains('key', $selectedMonthKey)) {
+            $selectedMonthKey = $availableMonths->last()['key'] ?? now()->format('Y-m');
+        }
+        $selectedMonthObj = $availableMonths->firstWhere('key', $selectedMonthKey);
+        $selectedDateStart = \Carbon\Carbon::createFromFormat('Y-m', $selectedMonthKey)->startOfMonth();
+        $selectedDateEnd = \Carbon\Carbon::createFromFormat('Y-m', $selectedMonthKey)->endOfMonth();
+
+        // 5. SECCIÓN 1: DATOS INICIALES DE REGISTRO DEL USUARIO
+        $initialWeight = $user->weight ? (float) $user->weight : ($initialProgress && $initialProgress->weight ? (float) $initialProgress->weight : 0);
+        $heightCm = $user->height ? (float) $user->height : ($initialNutritionPlan && $initialNutritionPlan->height ? (float) $initialNutritionPlan->height : 0);
         if ($heightCm > 0 && $heightCm < 3.0) {
-            // Si fue guardado en metros (ej. 1.68), convertir a cm
             $heightCm = round($heightCm * 100);
         }
-        $heightM = $heightCm > 0 ? ($heightCm / 100) : 1.68;
-        $bmi = $heightM > 0 ? round($currentWeight / ($heightM * $heightM), 1) : 27.3;
+        $heightM = $heightCm > 0 ? ($heightCm / 100) : 0;
+        $initialBmi = ($heightM > 0 && $initialWeight > 0) ? round($initialWeight / ($heightM * $heightM), 1) : 0;
 
-        // Extraer % Grasa y Masa Magra de measurements si existen
         $extractMetric = function ($log, array $keywords) {
             if (!$log || !is_array($log->measurements)) return null;
             foreach ($log->measurements as $k => $v) {
@@ -226,31 +290,63 @@ class UserController extends Controller
             return null;
         };
 
-        $bodyFat = $extractMetric($latestProgress, ['grasa', 'fat', '%']) ?? 18.2;
-        $prevBodyFat = $extractMetric($previousProgress, ['grasa', 'fat', '%']) ?? ($bodyFat + 1.8);
-        $bodyFatDiff = round($bodyFat - $prevBodyFat, 1);
-
-        $leanMass = $extractMetric($latestProgress, ['magra', 'muscul', 'lean', 'masa']) ?? round($currentWeight * (1 - ($bodyFat / 100)), 1);
-        $prevLeanMass = $extractMetric($previousProgress, ['magra', 'muscul', 'lean', 'masa']) ?? ($leanMass - 0.6);
-        $leanMassDiff = round($leanMass - $prevLeanMass, 1);
-
-        // TDEE y Target Calórico
-        $tdee = $latestNutritionPlan && $latestNutritionPlan->tdee
-            ? (int) round($latestNutritionPlan->tdee)
-            : (int) round((10 * $currentWeight) + (6.25 * $heightCm) - (5 * ($user->age ?: 30)) + 5) * 1.35;
-        if ($latestNutritionPlan && !$latestNutritionPlan->tdee && $latestNutritionPlan->total_calories) {
-            $tdee = (int) $latestNutritionPlan->total_calories + 300;
-        }
-        if (!$latestNutritionPlan && !$user->weight) {
-            $tdee = 1938;
+        $initialBodyFat = $extractMetric($initialProgress, ['grasa', 'fat', '%']);
+        $initialLeanMass = $extractMetric($initialProgress, ['magra', 'muscul', 'lean', 'masa']);
+        if (!$initialLeanMass && $initialWeight > 0 && $initialBodyFat) {
+            $initialLeanMass = round($initialWeight * (1 - ($initialBodyFat / 100)), 1);
         }
 
-        $targetCalories = $latestNutritionPlan
-            ? (int) round($latestNutritionPlan->target_calories ?: ($latestNutritionPlan->total_calories ?: ($tdee - 300)))
-            : ($user->weight ? ($tdee - 300) : 1638);
-        $caloricDiff = $targetCalories - $tdee;
+        $initialTdee = $initialNutritionPlan && $initialNutritionPlan->tdee
+            ? (int) round($initialNutritionPlan->tdee)
+            : (($initialWeight > 0 && $heightCm > 0)
+                ? (int) round(((10 * $initialWeight) + (6.25 * $heightCm) - (5 * ($user->age ?: 30)) + 5) * 1.35)
+                : 0);
+        $initialTargetCalories = $initialNutritionPlan
+            ? (int) round($initialNutritionPlan->target_calories ?: ($initialNutritionPlan->total_calories ?: 0))
+            : ($initialTdee > 0 ? ($initialTdee - 300) : 0);
 
-        // 6. Métricas de Carga de Fuerza (Tonelaje mensual, RPE promedio, Cumplimiento)
+        // 6. SECCIÓN 2, 3 y 4: DATOS DEL MES SELECCIONADO ($selectedMonthKey)
+        // Logs de progreso registrados en ese mes
+        $monthProgressLogs = $progressLogs->filter(function ($log) use ($selectedMonthKey) {
+            return $log->recorded_at && \Carbon\Carbon::parse($log->recorded_at)->format('Y-m') === $selectedMonthKey;
+        })->values();
+
+        // El registro representativo del mes seleccionado (o el último hasta ese mes si no hubo en ese mes exacto)
+        $selectedProgress = $monthProgressLogs->first() ?: $progressLogs->filter(function ($log) use ($selectedDateEnd) {
+            return $log->recorded_at && \Carbon\Carbon::parse($log->recorded_at)->lte($selectedDateEnd);
+        })->first();
+
+        // Registro inmediato anterior al mes seleccionado para comparar deltas y fotos
+        $previousProgress = $progressLogs->filter(function ($log) use ($selectedDateStart, $selectedProgress) {
+            if (!$log->recorded_at) return false;
+            if ($selectedProgress && $log->id === $selectedProgress->id) return false;
+            return \Carbon\Carbon::parse($log->recorded_at)->lt($selectedDateStart);
+        })->first();
+
+        $monthWeight = $selectedProgress && $selectedProgress->weight
+            ? (float) $selectedProgress->weight
+            : $initialWeight;
+        $prevMonthWeight = $previousProgress && $previousProgress->weight
+            ? (float) $previousProgress->weight
+            : $initialWeight;
+        $weightDiff = ($monthWeight > 0 && $prevMonthWeight > 0) ? round($monthWeight - $prevMonthWeight, 1) : 0;
+
+        $monthBodyFat = $extractMetric($selectedProgress, ['grasa', 'fat', '%']) ?? $initialBodyFat;
+        $prevMonthBodyFat = $extractMetric($previousProgress, ['grasa', 'fat', '%']) ?? $initialBodyFat;
+        $bodyFatDiff = ($monthBodyFat && $prevMonthBodyFat) ? round($monthBodyFat - $prevMonthBodyFat, 1) : 0;
+
+        $monthLeanMass = $extractMetric($selectedProgress, ['magra', 'muscul', 'lean', 'masa']);
+        if (!$monthLeanMass && $monthWeight > 0 && $monthBodyFat) {
+            $monthLeanMass = round($monthWeight * (1 - ($monthBodyFat / 100)), 1);
+        }
+
+        // Sesiones de entrenamiento realizadas en el mes seleccionado
+        $workoutSessions = $allWorkoutSessions->filter(function ($sess) use ($selectedMonthKey) {
+            return $sess->start_time && \Carbon\Carbon::parse($sess->start_time)->format('Y-m') === $selectedMonthKey;
+        })->values();
+
+        // Si en el mes seleccionado no hay sesiones pero el usuario tiene sesiones en otros meses,
+        // guardamos también el total para informar o permitir ver todas
         $totalTonnage = 0;
         $rpeValues = [];
         $sessionMetrics = [];
@@ -276,7 +372,7 @@ class UserController extends Controller
             }
 
             $totalTonnage += $sessTonnage;
-            $avgSessRpe = count($sessRpes) > 0 ? round(array_sum($sessRpes) / count($sessRpes), 1) : 8.5;
+            $avgSessRpe = count($sessRpes) > 0 ? round(array_sum($sessRpes) / count($sessRpes), 1) : null;
 
             $durationMin = $sess->duration;
             if (!$durationMin && $sess->start_time && $sess->end_time) {
@@ -294,34 +390,52 @@ class UserController extends Controller
             ];
         }
 
-        $monthlyTonnage = $totalTonnage > 0 ? $totalTonnage : 142500;
-        $globalRpe = count($rpeValues) > 0 ? round(array_sum($rpeValues) / count($rpeValues), 1) : 8.4;
+        $monthlyTonnage = $totalTonnage;
+        $globalRpe = count($rpeValues) > 0 ? round(array_sum($rpeValues) / count($rpeValues), 1) : null;
 
-        $prescribedSessionsCount = $latestPlan && $latestPlan->days_per_week ? ($latestPlan->days_per_week * 4) : 20;
-        $completedSessionsCount = $workoutSessions->count() > 0 ? min($workoutSessions->count(), $prescribedSessionsCount) : 19;
-        $adherenceRate = $prescribedSessionsCount > 0 ? min(100, (int) round(($completedSessionsCount / $prescribedSessionsCount) * 100)) : 95;
+        // Plan asignado de ese mes (o el más reciente)
+        $monthPlan = $assignedPlans->first(function ($p) use ($selectedMonthObj, $spanishMonthsReverse) {
+            if (!$selectedMonthObj) return false;
+            $mLower = mb_strtolower(trim((string) $p->month), 'UTF-8');
+            $mNum = $spanishMonthsReverse[$mLower] ?? (is_numeric($p->month) ? (int) $p->month : null);
+            return $mNum === $selectedMonthObj['month'] && (int) $p->year === $selectedMonthObj['year'];
+        }) ?: $latestPlan;
+
+        $prescribedSessionsCount = $monthPlan && $monthPlan->days_per_week ? ($monthPlan->days_per_week * 4) : 20;
+        $completedSessionsCount = $workoutSessions->count();
+        $adherenceRate = $prescribedSessionsCount > 0 ? min(100, (int) round(($completedSessionsCount / $prescribedSessionsCount) * 100)) : 0;
 
         return view('admin.users.show', compact(
             'user',
             'progressLogs',
-            'latestProgress',
+            'initialProgress',
+            'monthProgressLogs',
+            'selectedProgress',
             'previousProgress',
             'latestNutritionPlan',
+            'initialNutritionPlan',
             'assignedPlans',
             'latestPlan',
+            'monthPlan',
+            'allWorkoutSessions',
             'workoutSessions',
             'sessionMetrics',
-            'currentWeight',
-            'weightDiff',
+            'availableMonths',
+            'selectedMonthKey',
+            'selectedMonthObj',
+            'initialWeight',
             'heightCm',
-            'bmi',
-            'bodyFat',
+            'initialBmi',
+            'initialBodyFat',
+            'initialLeanMass',
+            'initialTdee',
+            'initialTargetCalories',
+            'monthWeight',
+            'prevMonthWeight',
+            'weightDiff',
+            'monthBodyFat',
             'bodyFatDiff',
-            'leanMass',
-            'leanMassDiff',
-            'tdee',
-            'targetCalories',
-            'caloricDiff',
+            'monthLeanMass',
             'monthlyTonnage',
             'globalRpe',
             'completedSessionsCount',

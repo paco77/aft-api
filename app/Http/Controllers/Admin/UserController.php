@@ -322,7 +322,16 @@ class UserController extends Controller
         // Utilizar la relación de NutritionPlan donde el usuario es el cliente
         $nutritionPlans = \App\Models\NutritionPlan::where('client_id', $user->id)->latest()->get();
 
-        return view('admin.users.nutrition-plans', compact('user', 'nutritionPlans'));
+        $clientQuery = User::where('role', 'client');
+        if (auth()->user()->role === 'coach') {
+            $clientQuery->where(function($q) {
+                $q->where('coach_id', auth()->id())
+                  ->orWhereNull('coach_id');
+            });
+        }
+        $clients = $clientQuery->orderBy('name')->get();
+
+        return view('admin.users.nutrition-plans', compact('user', 'nutritionPlans', 'clients'));
     }
 
     public function editProgress(User $user, ClientProgressLog $progress)

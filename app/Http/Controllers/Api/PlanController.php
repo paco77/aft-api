@@ -21,7 +21,7 @@ class PlanController extends Controller
         if ($request->has('client_id')) {
             $clientId = $request->input('client_id');
             $client = User::find($clientId);
-            if (!$client || $client->coach_id !== $user->id) {
+            if (!$client || ($client->coach_id !== $user->id && !is_null($client->coach_id))) {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
             $query->where('assigned_client_id', $clientId);
@@ -98,9 +98,13 @@ class PlanController extends Controller
             } elseif ($assignedClientId != $request->user()->id) {
                 // Si se asigna a otro usuario, verificar que sea un cliente de este coach
                 $client = User::find($assignedClientId);
-                if (!$client || $client->coach_id !== $request->user()->id) {
+                if (!$client || ($client->coach_id !== $request->user()->id && !is_null($client->coach_id))) {
                     abort(403, 'No tienes permiso para asignar planes a este usuario.');
                 }
+                    if (is_null($client->coach_id)) {
+                        $client->coach_id = $request->user()->id;
+                        $client->save();
+                    }
             }
 
             $plan = MonthlyPlan::create([
@@ -390,7 +394,7 @@ class PlanController extends Controller
             $targetClientId = $user->id;
         } elseif ($targetClientId != $user->id) {
             $client = \App\Models\User::find($targetClientId);
-            if (!$client || $client->coach_id !== $user->id) {
+            if (!$client || ($client->coach_id !== $user->id && !is_null($client->coach_id))) {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
         }

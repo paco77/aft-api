@@ -398,22 +398,34 @@
                 </div>
 
                 <input type="hidden" name="meals_data" id="input_meals_data">
+                <input type="hidden" name="save_as_new" id="input_save_as_new" value="0">
             </div>
 
             <!-- Form Actions Bar -->
-            <div class="flex items-center justify-between pt-4 border-t border-slate-200 flex-wrap gap-4">
+            <div class="flex items-center justify-between pt-5 border-t border-slate-200 flex-wrap gap-4">
                 <a href="{{ route('admin.nutrition-plans.index') }}"
-                    class="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm">
+                    class="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors text-sm">
                     Cancelar
                 </a>
 
-                <button type="submit" id="btn_submit"
-                    class="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/25 transition-all text-sm flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    Actualizar Plan de Alimentación
-                </button>
+                <div class="flex items-center gap-3 flex-wrap">
+                    <button type="button" id="btn_save_as_new"
+                        class="px-5 py-2.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 border border-emerald-300 rounded-xl font-bold shadow-xs transition-all text-sm flex items-center gap-2"
+                        title="Guarda una nueva copia de este plan asignada al cliente seleccionado sin modificar el original">
+                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        Guardar como Nuevo Plan
+                    </button>
+
+                    <button type="submit" id="btn_submit"
+                        class="px-7 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold shadow-md shadow-blue-500/20 transition-all text-sm flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Guardar Cambios en este Plan
+                    </button>
+                </div>
             </div>
         </form>
     </div>
@@ -1195,50 +1207,122 @@
             @endphp
             meals = @json($mealsData);
 
-            if (calcWeight.value && calcHeight.value && calcAge.value) {
-                calculateRequirements();
+            const originalClientId = "{{ $nutritionPlan->client_id }}";
+
+            clientSelect.addEventListener('change', function () {
+                const selected = this.options[this.selectedIndex];
+                if (!selected.value) return;
+
+                const newWeight = selected.getAttribute('data-weight');
+                const newHeight = selected.getAttribute('data-height');
+                const newAge = selected.getAttribute('data-age');
+                const newGender = selected.getAttribute('data-gender');
+                const clientName = selected.getAttribute('data-name');
+
+                if (selected.value !== originalClientId && (newWeight || newHeight || newAge)) {
+                    Swal.fire({
+                        title: '¿Cargar datos del nuevo cliente?',
+                        html: `Has cambiado el cliente asignado a <strong>${clientName}</strong>.<br><br>` +
+                              `<div class="text-xs text-left bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">` +
+                              `<div>• Peso: <strong>${newWeight ? newWeight + ' kg' : 'No registrado'}</strong></div>` +
+                              `<div>• Altura: <strong>${newHeight ? newHeight + ' cm' : 'No registrado'}</strong></div>` +
+                              `<div>• Edad: <strong>${newAge ? newAge + ' años' : 'No registrado'}</strong></div>` +
+                              `<div>• Género: <strong>${newGender === 'female' ? 'Mujer' : 'Hombre'}</strong></div>` +
+                              `</div><br>` +
+                              `<span class="text-xs text-slate-500">¿Deseas actualizar los datos biométricos de la calculadora con los de este cliente?</span>`,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Sí, cargar datos',
+                        cancelButtonText: 'Conservar actuales',
+                        confirmButtonColor: '#4f46e5',
+                        cancelButtonColor: '#64748b',
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            if (newWeight) calcWeight.value = newWeight;
+                            if (newHeight) calcHeight.value = newHeight;
+                            if (newAge) calcAge.value = newAge;
+                            if (newGender) calcGender.value = (newGender === 'female' || newGender === 'Mujer') ? 'female' : 'male';
+                            calculateRequirements();
+                        }
+                    });
+                }
+            });
+
+            const btnSaveAsNew = document.getElementById('btn_save_as_new');
+            if (btnSaveAsNew) {
+                btnSaveAsNew.addEventListener('click', function () {
+                    const select = document.getElementById('client_id');
+                    if (!select.value) {
+                        Swal.fire('Atención', 'Por favor selecciona un cliente para el nuevo plan.', 'warning');
+                        return;
+                    }
+                    const option = select.options[select.selectedIndex];
+                    const clientName = option.getAttribute('data-name');
+
+                    Swal.fire({
+                        title: '¿Guardar como nuevo plan?',
+                        text: `Se creará un nuevo plan de alimentación independiente asignado a ${clientName}. El plan original no será sobreescrito.`,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Sí, crear nuevo plan',
+                        cancelButtonText: 'Cancelar',
+                        confirmButtonColor: '#10b981',
+                    }).then((res) => {
+                        if (res.isConfirmed) {
+                            document.getElementById('input_save_as_new').value = '1';
+                            if (formElement.requestSubmit) {
+                                formElement.requestSubmit();
+                            } else {
+                                formElement.dispatchEvent(new Event('submit', { cancelable: true }));
+                            }
+                        }
+                    });
+                });
             }
-            renderMeals();
 
             const formElement = document.getElementById('nutrition-form');
             if (formElement) {
                 formElement.addEventListener('submit', function (e) {
                     if (!this.dataset.confirmed) {
                         e.preventDefault();
+
+                        const isSaveAsNew = document.getElementById('input_save_as_new').value === '1';
+                        const select = document.getElementById('client_id');
+                        const option = select.selectedIndex > 0 ? select.options[select.selectedIndex] : null;
+                        const clientName = option ? option.getAttribute('data-name') : 'el cliente';
                         
                         Swal.fire({
                             title: '¿Avisar por WhatsApp?',
-                            text: '¿Deseas avisar a este cliente por WhatsApp sobre la actualización de su plan de alimentación?',
+                            text: isSaveAsNew 
+                                ? `¿Deseas avisar a ${clientName} por WhatsApp sobre este nuevo plan de alimentación?` 
+                                : `¿Deseas avisar a ${clientName} por WhatsApp sobre la actualización de su plan de alimentación?`,
                             icon: 'question',
                             showCancelButton: true,
                             confirmButtonText: 'Sí, avisar y guardar',
                             cancelButtonText: 'No, solo guardar',
                             confirmButtonColor: '#25D366'
                         }).then((result) => {
-                            if (result.isConfirmed) {
-                                const select = document.getElementById('client_id');
-                                if (select.selectedIndex > 0) {
-                                    const option = select.options[select.selectedIndex];
-                                    const phone = option.getAttribute('data-phone');
-                                    const name = option.getAttribute('data-name');
-                                    
-                                    if (phone) {
-                                        const cleanPhone = phone.replace(/[^0-9]/g, '');
-                                        const planName = document.getElementById('name').value;
-                                        const planText = planName ? `: ${planName}` : '';
-                                        const message = encodeURIComponent(`Hola ${name}, he actualizado tu plan de alimentación${planText}. Puedes revisarlo en tu app.`);
-                                        window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
-                                    }
+                            if (result.isConfirmed && option) {
+                                const phone = option.getAttribute('data-phone');
+                                const name = option.getAttribute('data-name');
+                                
+                                if (phone) {
+                                    const cleanPhone = phone.replace(/[^0-9]/g, '');
+                                    const planName = document.getElementById('name').value;
+                                    const planText = planName ? `: ${planName}` : '';
+                                    const actionText = isSaveAsNew ? "un nuevo plan de alimentación" : "tu plan de alimentación";
+                                    const message = encodeURIComponent(`Hola ${name}, he preparado ${actionText}${planText}. Puedes revisarlo en tu app.`);
+                                    window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
                                 }
                             }
                             
                             this.dataset.confirmed = true;
                             
-                            const btn = document.getElementById('btn_submit');
+                            const btn = isSaveAsNew ? document.getElementById('btn_save_as_new') : document.getElementById('btn_submit');
                             if (btn) {
                                 btn.disabled = true;
                                 btn.classList.add('opacity-50', 'cursor-not-allowed');
-                                btn.innerHTML = '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Guardando...';
+                                btn.innerHTML = '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-current inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Guardando...';
                             }
 
                             const mealsDataInput = document.getElementById('input_meals_data');

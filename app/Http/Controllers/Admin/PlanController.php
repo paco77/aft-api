@@ -34,7 +34,7 @@ class PlanController extends Controller
     {
         $query = User::where('role', 'client');
         if (auth()->user()->role === 'coach') {
-            $query->where('coach_id', auth()->id());
+            $query->where(function($q) { $q->where('coach_id', auth()->id())->orWhereNull('coach_id'); });
         }
         $clients = $query->orderBy('name')->get();
         if (auth()->user()->role === 'independiente' && !$clients->contains('id', auth()->id())) {
@@ -51,7 +51,7 @@ class PlanController extends Controller
 
         $query = User::where('role', 'client');
         if (auth()->user()->role === 'coach') {
-            $query->where('coach_id', auth()->id());
+            $query->where(function($q) { $q->where('coach_id', auth()->id())->orWhereNull('coach_id'); });
         }
         $clients = $query->get();
         $exercises = Exercise::with('muscleGroup')->where('is_active', true)->get();
@@ -83,9 +83,13 @@ class PlanController extends Controller
 
         if (auth()->user()->role === 'coach') {
             $client = User::find($data['assigned_client_id']);
-            if (!$client || $client->coach_id !== auth()->id()) {
+            if (!$client || ($client->coach_id !== auth()->id() && !is_null($client->coach_id))) {
                 abort(403, 'No tienes permiso para asignar un plan a este usuario.');
             }
+                if (is_null($client->coach_id)) {
+                    $client->coach_id = auth()->id();
+                    $client->save();
+                }
         }
 
         DB::transaction(function () use ($data) {
@@ -160,7 +164,7 @@ class PlanController extends Controller
 
         $query = User::where('role', 'client');
         if (auth()->user()->role === 'coach') {
-            $query->where('coach_id', auth()->id());
+            $query->where(function($q) { $q->where('coach_id', auth()->id())->orWhereNull('coach_id'); });
         }
         $clients = $query->get();
         $exercises = Exercise::with('muscleGroup')->where('is_active', true)->get();
@@ -193,9 +197,13 @@ class PlanController extends Controller
 
         if (auth()->user()->role === 'coach') {
             $client = User::find($data['assigned_client_id']);
-            if (!$client || $client->coach_id !== auth()->id()) {
+            if (!$client || ($client->coach_id !== auth()->id() && !is_null($client->coach_id))) {
                 abort(403, 'No tienes permiso para asignar un plan a este usuario.');
             }
+                if (is_null($client->coach_id)) {
+                    $client->coach_id = auth()->id();
+                    $client->save();
+                }
         }
 
         DB::transaction(function () use ($data, $plan) {
@@ -294,9 +302,13 @@ class PlanController extends Controller
 
         if (auth()->user()->role === 'coach') {
             $client = User::find($data['assigned_client_id']);
-            if (!$client || $client->coach_id !== auth()->id()) {
+            if (!$client || ($client->coach_id !== auth()->id() && !is_null($client->coach_id))) {
                 abort(403, 'No tienes permiso para asignar un plan a este usuario.');
             }
+                if (is_null($client->coach_id)) {
+                    $client->coach_id = auth()->id();
+                    $client->save();
+                }
         }
 
         $newPlan = DB::transaction(function () use ($plan, $data) {

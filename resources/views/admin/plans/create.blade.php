@@ -358,37 +358,127 @@
         </div>
     </div>
 
-    <!-- Template para Ejercicio en la lista -->
-    <template id="exercise-template">
-        <div class="exercise-row flex flex-wrap sm:flex-nowrap items-center gap-3.5 p-3.5 rounded-2xl bg-slate-50/80 hover:bg-white border border-slate-200/90 shadow-xs hover:shadow-sm cursor-move transition-all group">
-            <div class="flex-none text-slate-400 hover:text-indigo-600 cursor-move p-1 rounded-lg">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
-                </svg>
+    <!-- Template para Ejercicio Individual -->
+    <template id="individual-exercise-template">
+        <div class="exercise-item-wrapper top-level-item">
+            <div class="exercise-row flex flex-wrap sm:flex-nowrap items-center gap-3 p-3.5 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-indigo-300 hover:shadow-sm transition-all group">
+                <!-- Checkbox para Selección y Handle de Arrastre -->
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" class="exercise-select-check h-4 w-4 text-purple-600 focus:ring-purple-500 border-slate-300 rounded cursor-pointer" title="Seleccionar para Biserie o Triserie">
+                    <div class="main-drag-handle text-slate-300 hover:text-indigo-600 cursor-move p-1 rounded-lg" title="Arrastrar para ordenar">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="flex-1 min-w-0">
+                    <input type="hidden" class="exercise-id" value="">
+                    <input type="hidden" class="exercise-superset" value="">
+                    <p class="text-sm font-bold text-slate-900 exercise-name-display truncate"></p>
+                    <div class="mt-0.5 flex items-center gap-1.5">
+                        <span class="text-3xs font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 uppercase tracking-wider">Individual</span>
+                    </div>
+                </div>
+
+                <div class="w-20">
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center mb-1">Series</label>
+                    <input type="number"
+                        class="exercise-sets block w-full text-center font-bold text-slate-900 rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm py-1.5 bg-white"
+                        value="3" min="1" required>
+                </div>
+
+                <div class="w-20">
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center mb-1">Min Reps</label>
+                    <input type="number"
+                        class="exercise-min block w-full text-center font-bold text-slate-900 rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm py-1.5 bg-white"
+                        value="8" min="1" required>
+                </div>
+
+                <div class="w-20">
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center mb-1">Max Reps</label>
+                    <input type="number"
+                        class="exercise-max block w-full text-center font-bold text-slate-900 rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm py-1.5 bg-white"
+                        value="12" min="1" required>
+                </div>
+
+                <div class="w-full sm:w-44">
+                    <label class="block text-2xs font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5 text-red-500 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M10 15l5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83-.25.9-.83 1.48-1.73 1.73-.47.13-1.33.22-2.65.28-1.3.07-2.49.1-3.59.1L12 22c-4.19 0-6.8-.16-7.83-.44-.9-.25-1.48-.83-1.73-1.73-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83.25-.9.83-1.48 1.73-1.73.47-.13 1.33-.22 2.65-.28 1.3-.07 2.49-.1 3.59-.1L12 22c4.19 0 6.8.16 7.83.44.9.25 1.48.83 1.73 1.73z"/>
+                        </svg>
+                        <span>Video <span class="font-normal text-slate-400 lowercase">(opc)</span></span>
+                    </label>
+                    <input type="text"
+                        class="exercise-video block w-full text-xs text-slate-800 rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 py-1.5 px-2 bg-slate-50/50"
+                        placeholder="https://... (opcional)">
+                </div>
+
+                <div>
+                    <button type="button" class="text-slate-300 hover:text-rose-500 p-2 rounded-xl hover:bg-rose-50 remove-exercise transition-colors mt-4" title="Eliminar ejercicio">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                </div>
             </div>
-            
-            <div class="flex-1 min-w-0">
-                <input type="hidden" class="exercise-id" value="">
-                <p class="text-sm font-bold text-slate-900 exercise-name-display truncate"></p>
-                <div class="mt-1 flex items-center gap-1.5">
-                    <span class="exercise-combo-badge hidden px-2 py-0.5 rounded-md text-3xs font-extrabold uppercase tracking-wider shadow-2xs"></span>
+        </div>
+    </template>
+
+    <!-- Template para Tarjeta de Agrupación (Biserie / Triserie / Combo) -->
+    <template id="superset-card-template">
+        <div class="superset-card-wrapper top-level-item rounded-3xl border-2 p-3 sm:p-4 shadow-xs transition-all" data-superset-letter="">
+            <!-- Header de la Agrupación -->
+            <div class="flex items-center justify-between pb-3 mb-3 border-b flex-wrap gap-2 superset-header">
+                <div class="flex items-center gap-2.5">
+                    <div class="main-drag-handle p-1.5 rounded-xl cursor-move text-slate-400 hover:text-slate-700 transition" title="Arrastrar todo este combo para moverlo arriba o abajo en la sesión">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 8h16M4 16h16" />
+                        </svg>
+                    </div>
+                    <span class="superset-title-badge px-3 py-1 rounded-xl text-xs font-black tracking-wide uppercase shadow-xs flex items-center gap-1.5">
+                        <span>⚡</span>
+                        <span class="superset-title-text">Biserie A</span>
+                    </span>
+                    <span class="text-2xs text-slate-500 font-semibold superset-info-text">2 ejercicios consecutivos sin descanso</span>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button type="button" class="btn-dissolve-superset text-xs font-bold px-3 py-1.5 rounded-xl text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition flex items-center gap-1" title="Deshacer grupo y separar en ejercicios individuales">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        <span>Desagrupar</span>
+                    </button>
                 </div>
             </div>
 
-            <div class="w-28 sm:w-32 shrink-0">
-                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center mb-1">
-                    Combinación
-                </label>
-                <select class="exercise-superset block w-full text-xs font-bold rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 py-1.5 px-2 bg-white text-slate-700 transition-colors">
-                    <option value="">Individual</option>
-                    <option value="A">⚡ Grupo A</option>
-                    <option value="B">⚡ Grupo B</option>
-                    <option value="C">⚡ Grupo C</option>
-                    <option value="D">⚡ Grupo D</option>
-                    <option value="E">⚡ Grupo E</option>
-                    <option value="F">⚡ Grupo F</option>
-                    <option value="G">⚡ Grupo G</option>
-                </select>
+            <!-- Contenedor interno donde van los ejercicios del combo -->
+            <div class="group-exercises-container space-y-2"></div>
+        </div>
+    </template>
+
+    <!-- Template para Ejercicio dentro de una Agrupación -->
+    <template id="group-exercise-template">
+        <div class="exercise-row flex flex-wrap sm:flex-nowrap items-center gap-3 p-3 rounded-2xl bg-white/95 border border-slate-200/80 shadow-2xs hover:shadow-xs transition-all group">
+            <div class="flex items-center gap-2">
+                <!-- Handle interno para ordenar 1º, 2º dentro de la biserie -->
+                <div class="inner-drag-handle text-slate-300 hover:text-indigo-600 cursor-move p-1 rounded-lg" title="Arrastrar para cambiar el orden dentro de este combo">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+                    </svg>
+                </div>
+                <!-- Número de orden dentro del combo: 1, 2, 3... -->
+                <span class="group-order-badge w-6 h-6 rounded-lg text-2xs font-black flex items-center justify-center shrink-0 shadow-2xs">
+                    1
+                </span>
+            </div>
+
+            <div class="flex-1 min-w-0">
+                <input type="hidden" class="exercise-id" value="">
+                <input type="hidden" class="exercise-superset" value="">
+                <p class="text-sm font-bold text-slate-900 exercise-name-display truncate"></p>
+                <span class="text-3xs font-extrabold text-slate-400 uppercase tracking-wider group-pos-label">1º del combo</span>
             </div>
 
             <div class="w-20">
@@ -412,23 +502,27 @@
                     value="12" min="1" required>
             </div>
 
-            <div class="w-full sm:w-48">
+            <div class="w-full sm:w-44">
                 <label class="block text-2xs font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1">
                     <svg class="w-3.5 h-3.5 text-red-500 shrink-0" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M10 15l5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83-.25.9-.83 1.48-1.73 1.73-.47.13-1.33.22-2.65.28-1.3.07-2.49.1-3.59.1L12 22c-4.19 0-6.8-.16-7.83-.44-.9-.25-1.48-.83-1.73-1.73-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83.25-.9.83-1.48 1.73-1.73.47-.13 1.33-.22 2.65-.28 1.3-.07 2.49-.1 3.59-.1L12 22c4.19 0 6.8.16 7.83.44.9.25 1.48.83 1.73 1.73z"/>
                     </svg>
-                    <span>Video <span class="font-normal text-slate-400 lowercase">(opcional)</span></span>
+                    <span>Video <span class="font-normal text-slate-400 lowercase">(opc)</span></span>
                 </label>
                 <input type="text"
-                    class="exercise-video block w-full text-xs text-slate-800 rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 py-1.5 px-2.5 bg-slate-50/50"
-                    placeholder="https://youtu.be/... (opcional)">
+                    class="exercise-video block w-full text-xs text-slate-800 rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 py-1.5 px-2 bg-slate-50/50"
+                    placeholder="https://... (opcional)">
             </div>
 
-            <div>
-                <button type="button" class="text-slate-300 hover:text-rose-500 p-2 rounded-xl hover:bg-rose-50 remove-exercise transition-colors mt-4">
+            <div class="flex items-center gap-1">
+                <button type="button" class="btn-ungroup-single text-slate-400 hover:text-amber-600 p-2 rounded-xl hover:bg-amber-50 transition-colors mt-4" title="Sacar este ejercicio del combo y volverlo individual">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                </button>
+                <button type="button" class="text-slate-300 hover:text-rose-500 p-2 rounded-xl hover:bg-rose-50 remove-exercise transition-colors mt-4" title="Eliminar ejercicio">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
                 </button>
             </div>
@@ -570,6 +664,351 @@
         }
         attachExerciseCardListeners();
 
+        const SUPERSET_THEMES = {
+            'A': {
+                cardBorder: 'border-purple-300 bg-purple-50/30',
+                headerBorder: 'border-purple-200/80',
+                badge: 'bg-purple-600 text-white shadow-purple-500/20',
+                orderBadge: 'bg-purple-100 text-purple-800 border border-purple-200',
+            },
+            'B': {
+                cardBorder: 'border-teal-300 bg-teal-50/30',
+                headerBorder: 'border-teal-200/80',
+                badge: 'bg-teal-600 text-white shadow-teal-500/20',
+                orderBadge: 'bg-teal-100 text-teal-800 border border-teal-200',
+            },
+            'C': {
+                cardBorder: 'border-amber-300 bg-amber-50/30',
+                headerBorder: 'border-amber-200/80',
+                badge: 'bg-amber-600 text-white shadow-amber-500/20',
+                orderBadge: 'bg-amber-100 text-amber-800 border border-amber-200',
+            },
+            'D': {
+                cardBorder: 'border-rose-300 bg-rose-50/30',
+                headerBorder: 'border-rose-200/80',
+                badge: 'bg-rose-600 text-white shadow-rose-500/20',
+                orderBadge: 'bg-rose-100 text-rose-800 border border-rose-200',
+            },
+            'E': {
+                cardBorder: 'border-sky-300 bg-sky-50/30',
+                headerBorder: 'border-sky-200/80',
+                badge: 'bg-sky-600 text-white shadow-sky-500/20',
+                orderBadge: 'bg-sky-100 text-sky-800 border border-sky-200',
+            },
+            'F': {
+                cardBorder: 'border-emerald-300 bg-emerald-50/30',
+                headerBorder: 'border-emerald-200/80',
+                badge: 'bg-emerald-600 text-white shadow-emerald-500/20',
+                orderBadge: 'bg-emerald-100 text-emerald-800 border border-emerald-200',
+            },
+        };
+
+        function getSupersetTheme(letter) {
+            return SUPERSET_THEMES[letter] || SUPERSET_THEMES['A'];
+        }
+
+        function getNextComboLetter(dayBlock) {
+            const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
+            const usedLetters = new Set();
+            dayBlock.querySelectorAll('.superset-card-wrapper').forEach(card => {
+                const l = card.dataset.supersetLetter;
+                if (l) usedLetters.add(l);
+            });
+            for (let l of letters) {
+                if (!usedLetters.has(l)) return l;
+            }
+            return 'Z';
+        }
+
+        function updateGroupingToolbar(dayBlock) {
+            if (!dayBlock) return;
+            const toolbar = dayBlock.querySelector('.grouping-toolbar');
+            if (!toolbar) return;
+
+            const checkedBoxes = dayBlock.querySelectorAll('.exercise-item-wrapper .exercise-select-check:checked');
+            const count = checkedBoxes.length;
+
+            const countLabel = toolbar.querySelector('.selected-count-label');
+            const btnBiserie = toolbar.querySelector('.btn-create-biserie');
+            const btnTriserie = toolbar.querySelector('.btn-create-triserie');
+            const btnCombo = toolbar.querySelector('.btn-create-custom-combo');
+
+            if (count === 0) {
+                toolbar.classList.add('hidden');
+                return;
+            }
+
+            toolbar.classList.remove('hidden');
+
+            const nextLetter = getNextComboLetter(dayBlock);
+
+            btnBiserie.classList.add('hidden');
+            btnTriserie.classList.add('hidden');
+            btnCombo.classList.add('hidden');
+
+            if (count === 1) {
+                countLabel.textContent = '1 ejercicio seleccionado (marca al menos 2 para agrupar)';
+            } else if (count === 2) {
+                countLabel.textContent = `2 ejercicios seleccionados`;
+                btnBiserie.querySelector('span').textContent = `⚡ Crear Biserie ${nextLetter}`;
+                btnBiserie.classList.remove('hidden');
+            } else if (count === 3) {
+                countLabel.textContent = `3 ejercicios seleccionados`;
+                btnTriserie.querySelector('span').textContent = `⚡ Crear Triserie ${nextLetter}`;
+                btnTriserie.classList.remove('hidden');
+            } else {
+                countLabel.textContent = `${count} ejercicios seleccionados`;
+                btnCombo.querySelector('span').textContent = `⚡ Crear Agrupación ${nextLetter} (${count})`;
+                btnCombo.classList.remove('hidden');
+            }
+        }
+
+        function createSupersetFromSelection(dayBlock) {
+            const checkedBoxes = Array.from(dayBlock.querySelectorAll('.exercise-item-wrapper .exercise-select-check:checked'));
+            if (checkedBoxes.length < 2) return;
+
+            const letter = getNextComboLetter(dayBlock);
+            const template = document.getElementById('superset-card-template').content.cloneNode(true);
+            const card = template.querySelector('.superset-card-wrapper');
+            card.dataset.supersetLetter = letter;
+
+            const firstWrapper = checkedBoxes[0].closest('.exercise-item-wrapper');
+            firstWrapper.parentNode.insertBefore(card, firstWrapper);
+
+            const groupContainer = card.querySelector('.group-exercises-container');
+
+            checkedBoxes.forEach(cb => {
+                const wrapper = cb.closest('.exercise-item-wrapper');
+                const exRow = wrapper.querySelector('.exercise-row');
+
+                const exId = exRow.querySelector('.exercise-id').value;
+                const exName = exRow.querySelector('.exercise-name-display').textContent;
+                const sets = exRow.querySelector('.exercise-sets').value;
+                const min = exRow.querySelector('.exercise-min').value;
+                const max = exRow.querySelector('.exercise-max').value;
+                const video = exRow.querySelector('.exercise-video').value;
+
+                const grpTemplate = document.getElementById('group-exercise-template').content.cloneNode(true);
+                const newRow = grpTemplate.querySelector('.exercise-row');
+
+                newRow.querySelector('.exercise-id').value = exId;
+                newRow.querySelector('.exercise-superset').value = letter;
+                newRow.querySelector('.exercise-name-display').textContent = exName;
+                newRow.querySelector('.exercise-sets').value = sets;
+                newRow.querySelector('.exercise-min').value = min;
+                newRow.querySelector('.exercise-max').value = max;
+                newRow.querySelector('.exercise-video').value = video;
+
+                attachGroupRowListeners(newRow, card, dayBlock);
+                groupContainer.appendChild(newRow);
+
+                wrapper.remove();
+            });
+
+            attachSupersetCardListeners(card, dayBlock);
+            initGroupSortable(groupContainer, dayBlock);
+            refreshSupersetCard(card);
+            updateGroupingToolbar(dayBlock);
+            updateExerciseIndices(dayBlock);
+        }
+
+        function attachSupersetCardListeners(card, dayBlock) {
+            const btnDissolve = card.querySelector('.btn-dissolve-superset');
+            if (btnDissolve) {
+                btnDissolve.addEventListener('click', function () {
+                    dissolveSuperset(card, dayBlock);
+                });
+            }
+        }
+
+        function attachGroupRowListeners(row, card, dayBlock) {
+            const btnUngroup = row.querySelector('.btn-ungroup-single');
+            if (btnUngroup) {
+                btnUngroup.addEventListener('click', function () {
+                    ungroupSingleExercise(row, card, dayBlock);
+                });
+            }
+
+            const btnRemove = row.querySelector('.remove-exercise');
+            if (btnRemove) {
+                btnRemove.addEventListener('click', function () {
+                    row.remove();
+                    if (card.querySelectorAll('.exercise-row').length === 0) {
+                        card.remove();
+                    } else {
+                        refreshSupersetCard(card);
+                    }
+                    updateGroupingToolbar(dayBlock);
+                    updateExerciseIndices(dayBlock);
+                });
+            }
+        }
+
+        function refreshSupersetCard(card) {
+            if (!card) return;
+            const letter = card.dataset.supersetLetter || 'A';
+            const rows = card.querySelectorAll('.exercise-row');
+            const count = rows.length;
+
+            if (count === 0) {
+                card.remove();
+                return;
+            }
+
+            const theme = getSupersetTheme(letter);
+
+            card.className = `superset-card-wrapper top-level-item rounded-3xl border-2 p-3 sm:p-4 shadow-xs transition-all ${theme.cardBorder}`;
+            
+            const header = card.querySelector('.superset-header');
+            if (header) {
+                header.className = `flex items-center justify-between pb-3 mb-3 border-b flex-wrap gap-2 superset-header ${theme.headerBorder}`;
+            }
+
+            const badge = card.querySelector('.superset-title-badge');
+            const titleText = card.querySelector('.superset-title-text');
+            const infoText = card.querySelector('.superset-info-text');
+
+            if (badge) {
+                badge.className = `superset-title-badge px-3 py-1 rounded-xl text-xs font-black tracking-wide uppercase shadow-xs flex items-center gap-1.5 ${theme.badge}`;
+            }
+
+            let typeName = 'Combinación';
+            if (count === 2) typeName = 'Biserie';
+            else if (count === 3) typeName = 'Triserie';
+            else if (count >= 4) typeName = 'Serie Gigante';
+
+            if (titleText) titleText.textContent = `${typeName} ${letter}`;
+            if (infoText) infoText.textContent = `${count} ejercicios consecutivos sin descanso`;
+
+            rows.forEach((row, idx) => {
+                const orderBadge = row.querySelector('.group-order-badge');
+                const posLabel = row.querySelector('.group-pos-label');
+
+                if (orderBadge) {
+                    orderBadge.className = `group-order-badge w-6 h-6 rounded-lg text-2xs font-black flex items-center justify-center shrink-0 shadow-2xs ${theme.orderBadge}`;
+                    orderBadge.textContent = idx + 1;
+                }
+                if (posLabel) {
+                    posLabel.textContent = `${idx + 1}º de ${count} en ${typeName}`;
+                }
+            });
+        }
+
+        function dissolveSuperset(card, dayBlock) {
+            const container = dayBlock.querySelector('.exercises-container');
+            const rows = Array.from(card.querySelectorAll('.exercise-row'));
+
+            rows.forEach(row => {
+                const exId = row.querySelector('.exercise-id').value;
+                const exName = row.querySelector('.exercise-name-display').textContent;
+                const sets = row.querySelector('.exercise-sets').value;
+                const min = row.querySelector('.exercise-min').value;
+                const max = row.querySelector('.exercise-max').value;
+                const video = row.querySelector('.exercise-video').value;
+
+                const indTemplate = document.getElementById('individual-exercise-template').content.cloneNode(true);
+                const wrapper = indTemplate.querySelector('.exercise-item-wrapper');
+                const newRow = wrapper.querySelector('.exercise-row');
+
+                newRow.querySelector('.exercise-id').value = exId;
+                newRow.querySelector('.exercise-superset').value = '';
+                newRow.querySelector('.exercise-name-display').textContent = exName;
+                newRow.querySelector('.exercise-sets').value = sets;
+                newRow.querySelector('.exercise-min').value = min;
+                newRow.querySelector('.exercise-max').value = max;
+                newRow.querySelector('.exercise-video').value = video;
+
+                attachIndividualRowListeners(wrapper, dayBlock);
+                container.insertBefore(wrapper, card);
+            });
+
+            card.remove();
+            updateGroupingToolbar(dayBlock);
+            updateExerciseIndices(dayBlock);
+        }
+
+        function ungroupSingleExercise(row, card, dayBlock) {
+            const container = dayBlock.querySelector('.exercises-container');
+
+            const exId = row.querySelector('.exercise-id').value;
+            const exName = row.querySelector('.exercise-name-display').textContent;
+            const sets = row.querySelector('.exercise-sets').value;
+            const min = row.querySelector('.exercise-min').value;
+            const max = row.querySelector('.exercise-max').value;
+            const video = row.querySelector('.exercise-video').value;
+
+            const indTemplate = document.getElementById('individual-exercise-template').content.cloneNode(true);
+            const wrapper = indTemplate.querySelector('.exercise-item-wrapper');
+            const newRow = wrapper.querySelector('.exercise-row');
+
+            newRow.querySelector('.exercise-id').value = exId;
+            newRow.querySelector('.exercise-superset').value = '';
+            newRow.querySelector('.exercise-name-display').textContent = exName;
+            newRow.querySelector('.exercise-sets').value = sets;
+            newRow.querySelector('.exercise-min').value = min;
+            newRow.querySelector('.exercise-max').value = max;
+            newRow.querySelector('.exercise-video').value = video;
+
+            attachIndividualRowListeners(wrapper, dayBlock);
+            
+            if (card.nextSibling) {
+                container.insertBefore(wrapper, card.nextSibling);
+            } else {
+                container.appendChild(wrapper);
+            }
+
+            row.remove();
+
+            if (card.querySelectorAll('.exercise-row').length === 0) {
+                card.remove();
+            } else {
+                refreshSupersetCard(card);
+            }
+
+            updateGroupingToolbar(dayBlock);
+            updateExerciseIndices(dayBlock);
+        }
+
+        function attachIndividualRowListeners(wrapper, dayBlock) {
+            const cb = wrapper.querySelector('.exercise-select-check');
+            if (cb) {
+                cb.addEventListener('change', function () {
+                    updateGroupingToolbar(dayBlock);
+                });
+            }
+
+            const btnRemove = wrapper.querySelector('.remove-exercise');
+            if (btnRemove) {
+                btnRemove.addEventListener('click', function () {
+                    wrapper.remove();
+                    updateGroupingToolbar(dayBlock);
+                    updateExerciseIndices(dayBlock);
+                });
+            }
+        }
+
+        function initTopLevelSortable(container, dayBlock) {
+            new Sortable(container, {
+                animation: 150,
+                handle: '.main-drag-handle',
+                onEnd: function () {
+                    updateExerciseIndices(dayBlock);
+                }
+            });
+        }
+
+        function initGroupSortable(groupContainer, dayBlock) {
+            new Sortable(groupContainer, {
+                animation: 150,
+                handle: '.inner-drag-handle',
+                onEnd: function () {
+                    const card = groupContainer.closest('.superset-card-wrapper');
+                    refreshSupersetCard(card);
+                    updateExerciseIndices(dayBlock);
+                }
+            });
+        }
+
         function addDay() {
             const container = document.getElementById('days-container');
 
@@ -621,27 +1060,49 @@
                         </div>
                     </div>
 
-                    <!-- Cabecera de ejercicios si hay -->
+                    <!-- Barra de herramientas para Agrupación de Ejercicios seleccionados -->
+                    <div class="grouping-toolbar hidden mb-3 p-3 bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950 text-white rounded-2xl shadow-lg border border-purple-500/30 flex items-center justify-between flex-wrap gap-2.5 transition-all">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-7 h-7 rounded-xl bg-purple-500/30 border border-purple-400/30 text-purple-200 flex items-center justify-center text-sm font-black shrink-0">⚡</span>
+                            <div>
+                                <span class="text-xs font-extrabold text-white selected-count-label">2 ejercicios seleccionados</span>
+                                <p class="text-3xs text-purple-200/80">Crea una biserie o triserie para ejecutarlos consecutivamente</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button type="button" class="btn-create-biserie hidden px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-xs shadow-md transition-all flex items-center gap-1.5">
+                                <span>⚡ Crear Biserie</span>
+                            </button>
+                            <button type="button" class="btn-create-triserie hidden px-3.5 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs shadow-md transition-all flex items-center gap-1.5">
+                                <span>⚡ Crear Triserie</span>
+                            </button>
+                            <button type="button" class="btn-create-custom-combo hidden px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs shadow-md transition-all flex items-center gap-1.5">
+                                <span>⚡ Agrupar en Combo</span>
+                            </button>
+                            <button type="button" class="btn-cancel-selection text-xs text-slate-300 hover:text-white px-2.5 py-1.5 rounded-xl hover:bg-white/10 transition-colors">
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="mb-3 px-3 flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider">
                         <span>Ejercicios Programados</span>
+                        <span class="text-3xs normal-case font-normal text-slate-400">Marca casillas para agrupar · Arrastra ⠿ para reordenar</span>
                     </div>
 
                     <div class="exercises-container space-y-3" id="exercises-container-${dayIndex}">
                         <!-- Ejercicios aquí -->
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mt-4">
-                        <button type="button" class="border-2 border-dashed border-indigo-200 hover:border-indigo-400 bg-indigo-50/40 hover:bg-indigo-50 text-indigo-700 font-bold py-2.5 px-3 rounded-2xl text-xs text-center transition flex items-center justify-center gap-1.5 open-modal-btn">
-                            <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-                            <span>+ Ejercicios</span>
-                        </button>
-                        <button type="button" class="border-2 border-dashed border-purple-200 hover:border-purple-400 bg-purple-50/40 hover:bg-purple-50 text-purple-700 font-bold py-2.5 px-3 rounded-2xl text-xs text-center transition flex items-center justify-center gap-1.5 open-biserie-btn">
-                            <span class="text-purple-600 font-black">⚡</span>
-                            <span>+ Crear Biserie (2)</span>
-                        </button>
-                        <button type="button" class="border-2 border-dashed border-teal-200 hover:border-teal-400 bg-teal-50/40 hover:bg-teal-50 text-teal-700 font-bold py-2.5 px-3 rounded-2xl text-xs text-center transition flex items-center justify-center gap-1.5 open-triserie-btn">
-                            <span class="text-teal-600 font-black">⚡</span>
-                            <span>+ Crear Triserie (3)</span>
+                    <!-- Botón para Seleccionar Ejercicios del Banco -->
+                    <div class="mt-4">
+                        <button type="button" class="w-full py-3.5 border-2 border-dashed border-indigo-200 hover:border-indigo-400 bg-indigo-50/40 hover:bg-indigo-50 text-indigo-700 font-bold rounded-2xl text-xs text-center transition-all shadow-2xs hover:shadow-xs flex items-center justify-center gap-2 open-modal-btn group">
+                            <span class="p-1 rounded-lg bg-indigo-100 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+                                </svg>
+                            </span>
+                            <span>+ Seleccionar Ejercicios del Banco</span>
                         </button>
                     </div>
                 </div>
@@ -650,83 +1111,40 @@
             container.insertAdjacentHTML('beforeend', dayHtml);
 
             const newBlock = container.lastElementChild;
-
             const exContainer = newBlock.querySelector('.exercises-container');
-            new Sortable(exContainer, {
-                animation: 150,
-                handle: '.cursor-move',
-                onEnd: function () {
-                    updateExerciseIndices(newBlock);
-                    refreshSupersetBadges(newBlock);
-                }
-            });
+            initTopLevelSortable(exContainer, newBlock);
 
             newBlock.querySelector('.remove-day').addEventListener('click', function () {
                 newBlock.remove();
             });
 
             newBlock.querySelector('.open-modal-btn').addEventListener('click', function () {
-                openExerciseModal(newBlock, 'normal');
+                openExerciseModal(newBlock);
             });
-            newBlock.querySelector('.open-biserie-btn').addEventListener('click', function () {
-                openExerciseModal(newBlock, 'biserie');
+
+            // Listeners de la barra de agrupación
+            const toolbar = newBlock.querySelector('.grouping-toolbar');
+            toolbar.querySelector('.btn-create-biserie').addEventListener('click', function () {
+                createSupersetFromSelection(newBlock);
             });
-            newBlock.querySelector('.open-triserie-btn').addEventListener('click', function () {
-                openExerciseModal(newBlock, 'triserie');
+            toolbar.querySelector('.btn-create-triserie').addEventListener('click', function () {
+                createSupersetFromSelection(newBlock);
+            });
+            toolbar.querySelector('.btn-create-custom-combo').addEventListener('click', function () {
+                createSupersetFromSelection(newBlock);
+            });
+            toolbar.querySelector('.btn-cancel-selection').addEventListener('click', function () {
+                newBlock.querySelectorAll('.exercise-select-check:checked').forEach(cb => cb.checked = false);
+                updateGroupingToolbar(newBlock);
             });
 
             dayIndex++;
         }
 
-        function openExerciseModal(dayBlock, mode = 'normal') {
+        function openExerciseModal(dayBlock) {
             currentDayBlockForModal = dayBlock;
-            modalMode = mode;
             showAllMgInModal = false;
 
-            const banner = document.getElementById('modal-mode-banner');
-            const modalTitle = document.getElementById('modal-title');
-            const modalSubtitle = document.getElementById('modal-subtitle');
-
-            if (mode === 'biserie') {
-                if (banner) {
-                    banner.className = 'mb-3.5 p-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-sm flex items-center justify-between text-xs';
-                    banner.innerHTML = `
-                        <div class="flex items-center gap-2.5">
-                            <span class="text-lg">⚡</span>
-                            <div>
-                                <strong class="font-extrabold text-sm block">Modo Biserie Activado</strong>
-                                <span class="text-purple-100 text-2xs">Selecciona 2 ejercicios que se realizarán consecutivamente sin descanso.</span>
-                            </div>
-                        </div>
-                        <span class="px-2.5 py-1 rounded-xl bg-white/20 border border-white/20 text-3xs font-extrabold uppercase tracking-wider">2 ejercicios</span>
-                    `;
-                    banner.classList.remove('hidden');
-                }
-                if (modalTitle) modalTitle.textContent = 'Crear Biserie';
-                if (modalSubtitle) modalSubtitle.textContent = 'Selecciona 2 ejercicios que se combinarán en el plan';
-            } else if (mode === 'triserie') {
-                if (banner) {
-                    banner.className = 'mb-3.5 p-3.5 rounded-2xl bg-gradient-to-r from-teal-600 to-emerald-600 text-white shadow-sm flex items-center justify-between text-xs';
-                    banner.innerHTML = `
-                        <div class="flex items-center gap-2.5">
-                            <span class="text-lg">⚡</span>
-                            <div>
-                                <strong class="font-extrabold text-sm block">Modo Triserie Activado</strong>
-                                <span class="text-teal-100 text-2xs">Selecciona 3 ejercicios que se realizarán consecutivamente sin descanso.</span>
-                            </div>
-                        </div>
-                        <span class="px-2.5 py-1 rounded-xl bg-white/20 border border-white/20 text-3xs font-extrabold uppercase tracking-wider">3 ejercicios</span>
-                    `;
-                    banner.classList.remove('hidden');
-                }
-                if (modalTitle) modalTitle.textContent = 'Crear Triserie';
-                if (modalSubtitle) modalSubtitle.textContent = 'Selecciona 3 ejercicios que se combinarán en el plan';
-            } else {
-                if (banner) banner.classList.add('hidden');
-                if (modalTitle) modalTitle.textContent = 'Banco de Ejercicios';
-                if (modalSubtitle) modalSubtitle.textContent = 'Selecciona los ejercicios que formarán parte de la sesión';
-            }
-            
             // Si el bloque de sesión tiene grupos musculares marcados, filtramos automáticamente por ellos
             const checkedBoxes = dayBlock.querySelectorAll('input[type="checkbox"]:checked');
             currentDaySelectedMgIds = Array.from(checkedBoxes).map(cb => String(cb.value));
@@ -835,125 +1253,32 @@
             }
         }
 
-        function getNextComboLetter(dayBlock) {
-            const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
-            const usedLetters = new Set();
-            dayBlock.querySelectorAll('.exercise-superset').forEach(s => {
-                if (s.value) usedLetters.add(s.value);
-            });
-            for (let l of letters) {
-                if (!usedLetters.has(l)) return l;
-            }
-            return 'Z';
-        }
-
-        function refreshSupersetBadges(dayBlock) {
-            if (!dayBlock) return;
-            const rows = dayBlock.querySelectorAll('.exercise-row');
-            const groupCounts = {};
-            const groupRows = {};
-
-            rows.forEach(row => {
-                const superset = row.querySelector('.exercise-superset').value;
-                if (superset) {
-                    groupCounts[superset] = (groupCounts[superset] || 0) + 1;
-                    if (!groupRows[superset]) groupRows[superset] = [];
-                    groupRows[superset].push(row);
-                }
-            });
-
-            const colorStyles = {
-                'A': { border: ['border-l-4', 'border-l-purple-500', 'bg-purple-50/20'], badge: 'bg-purple-100 text-purple-800 border-purple-200' },
-                'B': { border: ['border-l-4', 'border-l-teal-500', 'bg-teal-50/20'], badge: 'bg-teal-100 text-teal-800 border-teal-200' },
-                'C': { border: ['border-l-4', 'border-l-amber-500', 'bg-amber-50/20'], badge: 'bg-amber-100 text-amber-800 border-amber-200' },
-                'D': { border: ['border-l-4', 'border-l-rose-500', 'bg-rose-50/20'], badge: 'bg-rose-100 text-rose-800 border-rose-200' },
-                'E': { border: ['border-l-4', 'border-l-sky-500', 'bg-sky-50/20'], badge: 'bg-sky-100 text-sky-800 border-sky-200' },
-                'F': { border: ['border-l-4', 'border-l-indigo-500', 'bg-indigo-50/20'], badge: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
-                'G': { border: ['border-l-4', 'border-l-emerald-500', 'bg-emerald-50/20'], badge: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
-            };
-
-            const allBorderClasses = [
-                'border-l-4', 
-                'border-l-purple-500', 'bg-purple-50/20',
-                'border-l-teal-500', 'bg-teal-50/20',
-                'border-l-amber-500', 'bg-amber-50/20',
-                'border-l-rose-500', 'bg-rose-50/20',
-                'border-l-sky-500', 'bg-sky-50/20',
-                'border-l-indigo-500', 'bg-indigo-50/20',
-                'border-l-emerald-500', 'bg-emerald-50/20'
-            ];
-
-            rows.forEach(row => {
-                const select = row.querySelector('.exercise-superset');
-                const badge = row.querySelector('.exercise-combo-badge');
-                const val = select.value;
-
-                allBorderClasses.forEach(cls => row.classList.remove(cls));
-
-                if (!val) {
-                    badge.classList.add('hidden');
-                    badge.textContent = '';
-                } else {
-                    const count = groupCounts[val] || 1;
-                    const indexInGroup = (groupRows[val] ? groupRows[val].indexOf(row) : 0) + 1;
-                    let typeName = 'Combinación';
-                    if (count === 2) typeName = 'Biserie';
-                    else if (count === 3) typeName = 'Triserie';
-                    else if (count >= 4) typeName = 'Serie Gigante';
-
-                    const style = colorStyles[val] || colorStyles['A'];
-                    style.border.forEach(cls => row.classList.add(cls));
-
-                    badge.className = `exercise-combo-badge px-2 py-0.5 rounded-md text-3xs font-extrabold uppercase tracking-wider border shadow-2xs ${style.badge}`;
-                    badge.textContent = `⚡ ${typeName} ${val} (${indexInGroup}/${count})`;
-                    badge.classList.remove('hidden');
-                }
-            });
-        }
-
         function addSelectedExercises() {
             if (!currentDayBlockForModal) return;
 
             const checkboxes = document.querySelectorAll('.modal-exercise-checkbox:checked');
             const container = currentDayBlockForModal.querySelector('.exercises-container');
 
-            let assignedComboLetter = '';
-            if (modalMode === 'biserie' || modalMode === 'triserie') {
-                assignedComboLetter = getNextComboLetter(currentDayBlockForModal);
-            }
-
             checkboxes.forEach(cb => {
                 const exId = cb.value;
                 const exName = cb.getAttribute('data-name');
                 const videoUrl = cb.getAttribute('data-video') || '';
 
-                const template = document.getElementById('exercise-template').content.cloneNode(true);
-                const newRow = template.querySelector('.exercise-row');
+                const template = document.getElementById('individual-exercise-template').content.cloneNode(true);
+                const wrapper = template.querySelector('.exercise-item-wrapper');
+                const newRow = wrapper.querySelector('.exercise-row');
 
                 newRow.querySelector('.exercise-id').value = exId;
+                newRow.querySelector('.exercise-superset').value = '';
                 newRow.querySelector('.exercise-name-display').textContent = exName;
                 newRow.querySelector('.exercise-video').value = videoUrl;
 
-                if (assignedComboLetter) {
-                    newRow.querySelector('.exercise-superset').value = assignedComboLetter;
-                }
-
-                newRow.querySelector('.exercise-superset').addEventListener('change', function () {
-                    refreshSupersetBadges(currentDayBlockForModal || newRow.closest('.day-block'));
-                });
-
-                newRow.querySelector('.remove-exercise').addEventListener('click', function () {
-                    const dayParent = newRow.closest('.day-block');
-                    newRow.remove();
-                    updateExerciseIndices(dayParent);
-                    refreshSupersetBadges(dayParent);
-                });
-
-                container.appendChild(newRow);
+                attachIndividualRowListeners(wrapper, currentDayBlockForModal);
+                container.appendChild(wrapper);
             });
 
             updateExerciseIndices(currentDayBlockForModal);
-            refreshSupersetBadges(currentDayBlockForModal);
+            updateGroupingToolbar(currentDayBlockForModal);
             closeExerciseModal();
         }
 

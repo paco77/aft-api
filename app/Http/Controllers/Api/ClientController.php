@@ -21,7 +21,18 @@ class ClientController extends Controller
      */
     public function index(Request $request)
     {
-        $clients = $request->user()->clients()->latest()->get();
+        $user = $request->user();
+        if ($user->role === 'coach') {
+            $clients = User::where('role', 'client')
+                ->where(function ($q) use ($user) {
+                    $q->where('coach_id', $user->id)
+                      ->orWhereNull('coach_id');
+                })
+                ->latest()
+                ->get();
+        } else {
+            $clients = $user->clients()->latest()->get();
+        }
         return UserResource::collection($clients);
     }
 

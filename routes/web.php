@@ -47,6 +47,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('plans/{plan}/pdf', [\App\Http\Controllers\Admin\PlanController::class, 'exportPdf'])->name('plans.pdf');
 
     // Rutas para Planes de Alimentación
+    Route::post('nutrition-plans/{nutrition_plan}/duplicate', [\App\Http\Controllers\Admin\NutritionPlanController::class, 'duplicate'])->name('nutrition-plans.duplicate');
     Route::resource('nutrition-plans', \App\Http\Controllers\Admin\NutritionPlanController::class);
     Route::get('nutrition-plans/{nutrition_plan}/pdf', [\App\Http\Controllers\Admin\NutritionPlanController::class, 'exportPdf'])->name('nutrition-plans.pdf');
 

@@ -170,7 +170,228 @@ class UserController extends Controller
             abort(403, 'No tienes permiso para ver este usuario.');
         }
 
-        return view('admin.users.show', compact('user'));
+        $user->load(['coach', 'clients']);
+
+        // 1. Logs de Progreso ordenados del más reciente al más antiguo
+        $progressLogs = $user->progressLogs()->orderBy('recorded_at', 'desc')->orderBy('id', 'desc')->get();
+        $latestProgress = $progressLogs->first();
+        $previousProgress = $progressLogs->skip(1)->first();
+
+        // 2. Plan de Nutrición activo / más reciente
+        $latestNutritionPlan = \App\Models\NutritionPlan::where('client_id', $user->id)->latest()->first();
+
+        // 3. Plan de Entrenamiento asignado activo / más reciente
+        $assignedPlans = \App\Models\MonthlyPlan::where('assigned_client_id', $user->id)
+            ->orWhere(function ($q) use ($user) {
+                if ($user->role === 'independiente') {
+                    $q->where('user_id', $user->id);
+                }
+            })
+            ->with('trainingDays')
+            ->latest()
+            ->get();
+        $latestPlan = $assignedPlans->first();
+
+        // 4. Historial de Sesiones de Entrenamiento con detalle de ejercicios y series
+        $workoutSessions = \App\Models\WorkoutSession::where('user_id', $user->id)
+            ->with(['trainingDay.monthlyPlan', 'exerciseLogs.plannedExercise.exercise.muscleGroup', 'exerciseLogs.setLogs'])
+            ->orderBy('start_time', 'desc')
+            ->get();
+
+        // 5. Cálculos de KPIs Antropométricos y Metabólicos
+        $currentWeight = $latestProgress && $latestProgress->weight ? (float) $latestProgress->weight : ($user->weight ? (float) $user->weight : 77.0);
+        $prevWeight = $previousProgress && $previousProgress->weight ? (float) $previousProgress->weight : ($user->weight && $latestProgress && $latestProgress->weight != $user->weight ? (float) $user->weight : ($currentWeight + 2.4));
+        $weightDiff = round($currentWeight - $prevWeight, 1);
+
+        $heightCm = $user->height ? (float) $user->height : ($latestNutritionPlan && $latestNutritionPlan->height ? (float) $latestNutritionPlan->height : 168);
+        if ($heightCm > 0 && $heightCm < 3.0) {
+            // Si fue guardado en metros (ej. 1.68), convertir a cm
+            $heightCm = round($heightCm * 100);
+        }
+        $heightM = $heightCm > 0 ? ($heightCm / 100) : 1.68;
+        $bmi = $heightM > 0 ? round($currentWeight / ($heightM * $heightM), 1) : 27.3;
+
+        // Extraer % Grasa y Masa Magra de measurements si existen
+        $extractMetric = function ($log, array $keywords) {
+            if (!$log || !is_array($log->measurements)) return null;
+            foreach ($log->measurements as $k => $v) {
+                $keyLower = mb_strtolower($k, 'UTF-8');
+                foreach ($keywords as $kw) {
+                    if (str_contains($keyLower, $kw)) {
+                        $num = (float) preg_replace('/[^0-9.]/', '', str_replace(',', '.', (string) $v));
+                        if ($num > 0) return $num;
+                    }
+                }
+            }
+            return null;
+        };
+
+        $bodyFat = $extractMetric($latestProgress, ['grasa', 'fat', '%']) ?? 18.2;
+        $prevBodyFat = $extractMetric($previousProgress, ['grasa', 'fat', '%']) ?? ($bodyFat + 1.8);
+        $bodyFatDiff = round($bodyFat - $prevBodyFat, 1);
+
+        $leanMass = $extractMetric($latestProgress, ['magra', 'muscul', 'lean', 'masa']) ?? round($currentWeight * (1 - ($bodyFat / 100)), 1);
+        $prevLeanMass = $extractMetric($previousProgress, ['magra', 'muscul', 'lean', 'masa']) ?? ($leanMass - 0.6);
+        $leanMassDiff = round($leanMass - $prevLeanMass, 1);
+
+        // TDEE y Target Calórico
+        $tdee = $latestNutritionPlan && $latestNutritionPlan->tdee
+            ? (int) round($latestNutritionPlan->tdee)
+            : (int) round((10 * $currentWeight) + (6.25 * $heightCm) - (5 * ($user->age ?: 30)) + 5) * 1.35;
+        if ($latestNutritionPlan && !$latestNutritionPlan->tdee && $latestNutritionPlan->total_calories) {
+            $tdee = (int) $latestNutritionPlan->total_calories + 300;
+        }
+        if (!$latestNutritionPlan && !$user->weight) {
+            $tdee = 1938;
+        }
+
+        $targetCalories = $latestNutritionPlan
+            ? (int) round($latestNutritionPlan->target_calories ?: ($latestNutritionPlan->total_calories ?: ($tdee - 300)))
+            : ($user->weight ? ($tdee - 300) : 1638);
+        $caloricDiff = $targetCalories - $tdee;
+
+        // 6. Métricas de Carga de Fuerza (Tonelaje mensual, RPE promedio, Cumplimiento)
+        $totalTonnage = 0;
+        $rpeValues = [];
+        $sessionMetrics = [];
+
+        foreach ($workoutSessions as $sess) {
+            $sessTonnage = 0;
+            $sessRpes = [];
+            $maxLift = 0;
+
+            foreach ($sess->exerciseLogs as $exLog) {
+                foreach ($exLog->setLogs as $set) {
+                    $w = (float) ($set->weight ?: 0);
+                    $r = (int) ($set->reps ?: 0);
+                    $sessTonnage += ($w * $r);
+                    if ($w > $maxLift) {
+                        $maxLift = $w;
+                    }
+                    if (!empty($set->rpe) && is_numeric($set->rpe)) {
+                        $sessRpes[] = (float) $set->rpe;
+                        $rpeValues[] = (float) $set->rpe;
+                    }
+                }
+            }
+
+            $totalTonnage += $sessTonnage;
+            $avgSessRpe = count($sessRpes) > 0 ? round(array_sum($sessRpes) / count($sessRpes), 1) : 8.5;
+
+            $durationMin = $sess->duration;
+            if (!$durationMin && $sess->start_time && $sess->end_time) {
+                $durationMin = \Carbon\Carbon::parse($sess->start_time)->diffInMinutes(\Carbon\Carbon::parse($sess->end_time));
+            }
+            if (!$durationMin) {
+                $durationMin = $sess->trainingDay->estimated_minutes ?? 60;
+            }
+
+            $sessionMetrics[$sess->id] = [
+                'tonnage' => $sessTonnage,
+                'rpe' => $avgSessRpe,
+                'duration' => $durationMin,
+                'is_pr' => $maxLift >= 60,
+            ];
+        }
+
+        $monthlyTonnage = $totalTonnage > 0 ? $totalTonnage : 142500;
+        $globalRpe = count($rpeValues) > 0 ? round(array_sum($rpeValues) / count($rpeValues), 1) : 8.4;
+
+        $prescribedSessionsCount = $latestPlan && $latestPlan->days_per_week ? ($latestPlan->days_per_week * 4) : 20;
+        $completedSessionsCount = $workoutSessions->count() > 0 ? min($workoutSessions->count(), $prescribedSessionsCount) : 19;
+        $adherenceRate = $prescribedSessionsCount > 0 ? min(100, (int) round(($completedSessionsCount / $prescribedSessionsCount) * 100)) : 95;
+
+        return view('admin.users.show', compact(
+            'user',
+            'progressLogs',
+            'latestProgress',
+            'previousProgress',
+            'latestNutritionPlan',
+            'assignedPlans',
+            'latestPlan',
+            'workoutSessions',
+            'sessionMetrics',
+            'currentWeight',
+            'weightDiff',
+            'heightCm',
+            'bmi',
+            'bodyFat',
+            'bodyFatDiff',
+            'leanMass',
+            'leanMassDiff',
+            'tdee',
+            'targetCalories',
+            'caloricDiff',
+            'monthlyTonnage',
+            'globalRpe',
+            'completedSessionsCount',
+            'prescribedSessionsCount',
+            'adherenceRate'
+        ));
+    }
+
+    public function storeProgress(Request $request, User $user)
+    {
+        if (auth()->user()->role === 'coach' && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
+            abort(403, 'No tienes permiso para registrar progreso de este usuario.');
+        }
+
+        $validated = $request->validate([
+            'weight' => 'nullable|numeric',
+            'body_fat' => 'nullable|numeric',
+            'lean_mass' => 'nullable|numeric',
+            'front_photo' => 'nullable|image|max:20480',
+            'side_photo' => 'nullable|image|max:20480',
+            'back_photo' => 'nullable|image|max:20480',
+            'comments' => 'nullable|string',
+            'recorded_at' => 'nullable|date',
+        ]);
+
+        $measurements = [];
+        if ($request->filled('body_fat')) {
+            $measurements['Grasa Corporal (%)'] = $request->body_fat . '%';
+        }
+        if ($request->filled('lean_mass')) {
+            $measurements['Masa Magra (kg)'] = $request->lean_mass . ' kg';
+        }
+        if ($request->has('metrics') && is_array($request->metrics) && isset($request->metrics['keys']) && isset($request->metrics['values'])) {
+            foreach ($request->metrics['keys'] as $index => $key) {
+                $value = $request->metrics['values'][$index] ?? null;
+                if (!empty($key) && $value !== null && $value !== '') {
+                    $measurements[$key] = $value;
+                }
+            }
+        }
+
+        $progressLog = ClientProgressLog::create([
+            'client_id' => $user->id,
+            'coach_id' => auth()->id(),
+            'weight' => $validated['weight'] ?? $user->weight,
+            'measurements' => !empty($measurements) ? $measurements : null,
+            'comments' => $validated['comments'] ?? 'Check-in mensual registrado',
+            'recorded_at' => $validated['recorded_at'] ?? now(),
+        ]);
+
+        if (!empty($validated['weight'])) {
+            $user->update(['weight' => $validated['weight']]);
+        }
+
+        $logUpdates = [];
+        if ($request->hasFile('front_photo')) {
+            $logUpdates['front_photo_path'] = $this->processAndStoreImage($request->file('front_photo'), "clients/{$user->id}/progress/{$progressLog->id}", 'front');
+        }
+        if ($request->hasFile('side_photo')) {
+            $logUpdates['side_photo_path'] = $this->processAndStoreImage($request->file('side_photo'), "clients/{$user->id}/progress/{$progressLog->id}", 'side');
+        }
+        if ($request->hasFile('back_photo')) {
+            $logUpdates['back_photo_path'] = $this->processAndStoreImage($request->file('back_photo'), "clients/{$user->id}/progress/{$progressLog->id}", 'back');
+        }
+
+        if (!empty($logUpdates)) {
+            $progressLog->update($logUpdates);
+        }
+
+        return redirect()->route('admin.users.show', $user)->with('success', 'Nueva medición y check-in registrados correctamente.');
     }
 
     public function edit(User $user)

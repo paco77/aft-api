@@ -322,7 +322,7 @@
                                             </span>
                                             @if($item->superset_id)
                                                 <span class="px-1.5 py-0.5 rounded text-3xs font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/40 shrink-0">
-                                                    ⚡ Combo {{ $item->superset_id }}
+                                                    ⚡ Combo
                                                 </span>
                                             @endif
                                             <span class="text-sm font-semibold text-white truncate">
@@ -468,7 +468,7 @@
                                         </span>
                                         @if($item->superset_id)
                                             <span class="px-1.5 py-0.5 rounded text-3xs font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/40 shrink-0">
-                                                ⚡ Combo {{ $item->superset_id }}
+                                                ⚡ Combo
                                             </span>
                                         @endif
                                         <span class="text-sm font-semibold text-white truncate">

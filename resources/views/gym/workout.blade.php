@@ -120,19 +120,20 @@
                     <span class="w-2 h-2 rounded-full bg-orange-500 pulse-live"></span>
                     <span>LIVE</span>
                 </div>
-                <button type="button" class="p-1.5 text-slate-400 hover:text-white rounded-lg">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                            d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                    </svg>
-                </button>
-                <div
-                    class="w-8 h-8 rounded-full bg-blue-600/30 border border-blue-400/40 flex items-center justify-center text-blue-200">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                </div>
+                @if(auth()->check())
+                    <form action="{{ route('logout') }}" method="POST" class="inline">
+                        @csrf
+                        <input type="hidden" name="redirect" value="{{ route('gym.routines', ['identifier' => $gym->username ?: $gym->id]) }}">
+                        <button type="submit" title="Cerrar sesión"
+                            class="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 hover:text-red-400 hover:border-red-500/40 transition flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                            <span>Salir</span>
+                        </button>
+                    </form>
+                @endif
             </div>
         </header>
 
@@ -251,11 +252,6 @@
                                 class="w-5 h-5 rounded-full {{ $idx === 0 ? 'bg-white text-blue-700' : 'bg-slate-800 text-slate-300' }} text-2xs font-bold flex items-center justify-center">
                                 {{ $idx + 1 }}
                             </span>
-                            @if($pExercise->superset_id)
-                                <span class="px-1.5 py-0.5 rounded text-3xs font-extrabold bg-purple-500/30 text-purple-200 border border-purple-500/40">
-                                    ⚡ {{ $pExercise->superset_id }}
-                                </span>
-                            @endif
                             <svg class="w-3.5 h-3.5 {{ $idx === 0 ? 'text-white' : 'text-slate-500' }}" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -280,34 +276,25 @@
     <!-- 7. FLOATING BOTTOM ACTION BAR (Matching Image 2) -->
     <div class="fixed bottom-0 left-0 right-0 z-40 bg-[#070a12]/95 backdrop-blur-md border-t border-af-border p-3">
         <div class="max-w-md md:max-w-xl mx-auto space-y-2">
-            <!-- Next / Save Exercise CTA -->
-            <button type="button" onclick="nextExercise()"
-                class="w-full py-3.5 px-4 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-extrabold text-sm uppercase tracking-wider shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 transition active:scale-[0.99]">
+            <!-- Finalizar Sesión CTA -->
+            <button type="button" onclick="openFinishModal()"
+                class="w-full py-3.5 px-4 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-extrabold text-sm uppercase tracking-wider shadow-lg shadow-orange-600/25 flex items-center justify-center gap-2 transition active:scale-[0.99]">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                        d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        d="M5 13l4 4L19 7" />
                 </svg>
-                <span id="nextBtnText">Guardar y Siguiente Ejercicio</span>
+                <span>Finalizar Sesión</span>
             </button>
 
-            <!-- Bottom dual secondary actions -->
-            <div class="grid grid-cols-2 gap-2">
+            <!-- Secondary action -->
+            <div>
                 <button type="button" onclick="openNoteModal()"
-                    class="py-2.5 px-3 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center justify-center gap-1.5">
+                    class="w-full py-2.5 px-3 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center justify-center gap-1.5">
                     <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                     <span>Añadir Nota</span>
-                </button>
-
-                <button type="button" onclick="openFinishModal()"
-                    class="py-2.5 px-3 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-orange-400 hover:text-orange-300 hover:bg-slate-800 transition flex items-center justify-center gap-1.5">
-                    <svg class="w-4 h-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
-                    </svg>
-                    <span>Terminar Sesión</span>
                 </button>
             </div>
         </div>
@@ -1071,10 +1058,6 @@
                     </div>
                 </div>
             `;
-
-            // Update next button text if on last exercise
-            const isLast = workoutData.currentIndex === workoutData.plannedExercises.length - 1;
-            document.getElementById('nextBtnText').textContent = isLast ? 'Finalizar Todos los Ejercicios' : 'Guardar y Siguiente Ejercicio';
         }
 
         function updateExerciseLiveMetrics() {

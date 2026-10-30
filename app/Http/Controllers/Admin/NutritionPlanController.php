@@ -4,10 +4,177 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\NutritionPlan;
+use App\Models\FoodCategory;
+use App\Models\Food;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class NutritionPlanController extends Controller
 {
+    /**
+     * Ensure food catalog is seeded and return unique categories + grouped foods catalog.
+     */
+    protected function getFoodCatalogData(): array
+    {
+        try {
+            if (!Schema::hasTable('food_categories') || !Schema::hasTable('foods')) {
+                \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            }
+
+            if (Schema::hasTable('food_categories') && Schema::hasTable('foods')) {
+                if (FoodCategory::count() === 0 || Food::count() === 0) {
+                    (new \Database\Seeders\FoodSeeder())->run();
+                }
+
+                $foodCategories = FoodCategory::orderBy('name')->get(['id', 'name', 'slug']);
+                $rawFoods = Food::with('category:id,name')
+                    ->orderBy('name')
+                    ->orderBy('id')
+                    ->get();
+
+                $grouped = [];
+                foreach ($rawFoods as $f) {
+                    $key = $f->food_category_id . '|' . mb_strtolower($f->name) . '|' . mb_strtolower((string) $f->state);
+                    if (!isset($grouped[$key])) {
+                        $grouped[$key] = [
+                            'key' => $key,
+                            'food_category_id' => $f->food_category_id,
+                            'category_name' => $f->category?->name ?? '',
+                            'subcategory' => $f->subcategory ?? '',
+                            'name' => $f->name,
+                            'state' => $f->state ?? '',
+                            'display_name' => $f->state && !in_array(mb_strtolower($f->state), ['listo para consumo', 'fresco / crudo'])
+                                ? "{$f->name} ({$f->state})"
+                                : $f->name,
+                            'portions' => [],
+                        ];
+                    }
+
+                    $grouped[$key]['portions'][] = [
+                        'id' => $f->id,
+                        'portion_type' => $f->portion_type,
+                        'portion_detail' => $f->portion_detail,
+                        'base_quantity' => (float) $f->base_quantity,
+                        'base_unit' => $f->base_unit,
+                        'gram_weight' => $f->gram_weight ? (float) $f->gram_weight : null,
+                        'calories' => (float) $f->calories,
+                        'protein' => (float) $f->protein,
+                        'carbs' => (float) $f->carbs,
+                        'fat' => (float) $f->fat,
+                    ];
+                }
+
+                return [$foodCategories, array_values($grouped)];
+            }
+        } catch (\Throwable $e) {
+            // Fallback to dataset if DB migration hasn't run yet
+        }
+
+        // Fallback directly from dataset if tables are not yet migrated
+        $jsonPath = database_path('seeders/data/foods.json');
+        if (file_exists($jsonPath)) {
+            $rows = json_decode(file_get_contents($jsonPath), true) ?: [];
+            $categoriesMap = [];
+            $grouped = [];
+            $catIdCounter = 1;
+            $portionIdCounter = 1;
+
+            foreach ($rows as $r) {
+                $catName = trim($r['category'] ?? '');
+                $name = trim($r['name'] ?? '');
+                if ($catName === '' || $name === '') continue;
+
+                $slug = \Illuminate\Support\Str::slug($catName);
+                if (!isset($categoriesMap[$slug])) {
+                    $categoriesMap[$slug] = (object) [
+                        'id' => $catIdCounter++,
+                        'name' => $catName,
+                        'slug' => $slug,
+                    ];
+                }
+                $catObj = $categoriesMap[$slug];
+                $state = trim($r['state'] ?? '');
+                $key = $catObj->id . '|' . mb_strtolower($name) . '|' . mb_strtolower($state);
+
+                if (!isset($grouped[$key])) {
+                    $grouped[$key] = [
+                        'key' => $key,
+                        'food_category_id' => $catObj->id,
+                        'category_name' => $catObj->name,
+                        'subcategory' => trim($r['subcategory'] ?? ''),
+                        'name' => $name,
+                        'state' => $state,
+                        'display_name' => $state && !in_array(mb_strtolower($state), ['listo para consumo', 'fresco / crudo'])
+                            ? "{$name} ({$state})"
+                            : $name,
+                        'portions' => [],
+                    ];
+                }
+
+                $pt = mb_strtolower(trim($r['portion_type'] ?? '100 g'));
+                $detail = mb_strtolower(trim($r['portion_detail'] ?? ''));
+                $baseQty = 1;
+                $baseUnit = 'porcion';
+                if (str_contains($pt, '100')) {
+                    $baseQty = 100;
+                    $baseUnit = (preg_match('/\bml\b/', $detail) && !preg_match('/\bg\b/', $detail)) ? 'ml' : 'g';
+                } elseif (str_contains($pt, 'taza')) {
+                    $baseQty = 1;
+                    $baseUnit = 'taza';
+                } elseif (str_contains($pt, 'cda')) {
+                    $baseQty = 1;
+                    $baseUnit = 'cda';
+                } elseif (str_contains($pt, 'pieza') || str_contains($pt, 'pz')) {
+                    $baseQty = 1;
+                    $baseUnit = 'pz';
+                }
+
+                $grouped[$key]['portions'][] = [
+                    'id' => $portionIdCounter++,
+                    'portion_type' => $r['portion_type'] ?? '100 g',
+                    'portion_detail' => $r['portion_detail'] ?? '',
+                    'base_quantity' => (float) $baseQty,
+                    'base_unit' => $baseUnit,
+                    'gram_weight' => null,
+                    'calories' => (float) ($r['calories'] ?? 0),
+                    'protein' => (float) ($r['protein'] ?? 0),
+                    'carbs' => (float) ($r['carbs'] ?? 0),
+                    'fat' => (float) ($r['fat'] ?? 0),
+                ];
+            }
+
+            $sortedCategories = array_values($categoriesMap);
+            usort($sortedCategories, fn($a, $b) => strcmp($a->name, $b->name));
+
+            return [$sortedCategories, array_values($grouped)];
+        }
+
+        return [[], []];
+    }
+
+    public function searchFoods(Request $request)
+    {
+        [$foodCategories, $catalogFoods] = $this->getFoodCatalogData();
+
+        $categoryId = $request->query('category_id');
+        $query = mb_strtolower(trim((string) $request->query('query', '')));
+
+        $filtered = array_filter($catalogFoods, function ($item) use ($categoryId, $query) {
+            if ($categoryId !== null && $categoryId !== '' && (string) $item['food_category_id'] !== (string) $categoryId) {
+                return false;
+            }
+            if ($query !== '') {
+                $haystack = mb_strtolower($item['name'] . ' ' . $item['state'] . ' ' . $item['subcategory'] . ' ' . $item['category_name']);
+                return str_contains($haystack, $query);
+            }
+            return true;
+        });
+
+        return response()->json([
+            'categories' => $foodCategories,
+            'foods' => array_values($filtered),
+        ]);
+    }
     public function index()
     {
         $query = NutritionPlan::with(['client', 'coach'])->latest();
@@ -63,8 +230,9 @@ class NutritionPlanController extends Controller
         $clients = $query->orderBy('name')->get();
         
         $selectedClientId = $request->query('client_id');
+        [$foodCategories, $catalogFoods] = $this->getFoodCatalogData();
 
-        return view('admin.nutrition-plans.create', compact('clients', 'selectedClientId'));
+        return view('admin.nutrition-plans.create', compact('clients', 'selectedClientId', 'foodCategories', 'catalogFoods'));
     }
 
     public function store(Request $request)
@@ -180,8 +348,9 @@ class NutritionPlanController extends Controller
             });
         }
         $clients = $query->orderBy('name')->get();
+        [$foodCategories, $catalogFoods] = $this->getFoodCatalogData();
 
-        return view('admin.nutrition-plans.edit', compact('nutritionPlan', 'clients'));
+        return view('admin.nutrition-plans.edit', compact('nutritionPlan', 'clients', 'foodCategories', 'catalogFoods'));
     }
 
     public function update(Request $request, NutritionPlan $nutritionPlan)

@@ -54,6 +54,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             MuscleGroupSeeder::class ,
             ExerciseLibrarySeeder::class ,
+            FoodSeeder::class ,
         ]);
     }
 }

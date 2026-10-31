@@ -17,12 +17,20 @@ class NutritionPlanController extends Controller
     protected function getFoodCatalogData(): array
     {
         try {
-            if (!Schema::hasTable('food_categories') || !Schema::hasTable('foods')) {
-                \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            if (!Schema::hasTable('food_categories') || !Schema::hasTable('foods') || !Schema::hasColumn('foods', 'food_category_id')) {
+                if (Schema::hasTable('migrations')) {
+                    \Illuminate\Support\Facades\DB::table('migrations')
+                        ->where('migration', 'like', '%create_food_categories_and_foods_tables%')
+                        ->delete();
+                }
+                \Illuminate\Support\Facades\Artisan::call('migrate', [
+                    '--path' => 'database/migrations/2026_10_29_233000_create_food_categories_and_foods_tables.php',
+                    '--force' => true,
+                ]);
             }
 
-            if (Schema::hasTable('food_categories') && Schema::hasTable('foods')) {
-                if (FoodCategory::count() === 0 || Food::count() === 0) {
+            if (Schema::hasTable('food_categories') && Schema::hasTable('foods') && Schema::hasColumn('foods', 'food_category_id')) {
+                if (FoodCategory::count() === 0 || Food::count() < 600) {
                     (new \Database\Seeders\FoodSeeder())->run();
                 }
 
@@ -175,6 +183,35 @@ class NutritionPlanController extends Controller
             'foods' => array_values($filtered),
         ]);
     }
+
+    public function syncCatalog()
+    {
+        Schema::disableForeignKeyConstraints();
+        Schema::dropIfExists('foods');
+        Schema::dropIfExists('food_categories');
+        Schema::enableForeignKeyConstraints();
+
+        if (Schema::hasTable('migrations')) {
+            \Illuminate\Support\Facades\DB::table('migrations')
+                ->where('migration', 'like', '%create_food_categories_and_foods_tables%')
+                ->delete();
+        }
+
+        \Illuminate\Support\Facades\Artisan::call('migrate', [
+            '--path' => 'database/migrations/2026_10_29_233000_create_food_categories_and_foods_tables.php',
+            '--force' => true,
+        ]);
+
+        (new \Database\Seeders\FoodSeeder())->run();
+
+        return response()->json([
+            'status' => 'ok',
+            'message' => 'Catálogo de alimentos migrado y cargado correctamente.',
+            'categories_count' => FoodCategory::count(),
+            'foods_count' => Food::count(),
+        ]);
+    }
+
     public function index()
     {
         $query = NutritionPlan::with(['client', 'coach'])->latest();

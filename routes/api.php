@@ -58,6 +58,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // FatSecret
     Route::get('/fatsecret/search', [\App\Http\Controllers\Api\FatSecretController::class , 'search']);
 
+    // Foods Catalog (DB table foods)
+    Route::get('/foods', [NutritionPlanController::class , 'searchFoods']);
+    Route::get('/foods/search', [NutritionPlanController::class , 'searchFoods']);
+
     // Nutrition Plans
     Route::apiResource('nutrition-plans', NutritionPlanController::class);
 

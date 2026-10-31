@@ -48,6 +48,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Rutas para Planes de Alimentación
     Route::get('foods/search', [\App\Http\Controllers\Admin\NutritionPlanController::class, 'searchFoods'])->name('foods.search');
+    Route::get('foods/sync-catalog', [\App\Http\Controllers\Admin\NutritionPlanController::class, 'syncCatalog'])->name('foods.sync');
     Route::post('nutrition-plans/{nutrition_plan}/duplicate', [\App\Http\Controllers\Admin\NutritionPlanController::class, 'duplicate'])->name('nutrition-plans.duplicate');
     Route::resource('nutrition-plans', \App\Http\Controllers\Admin\NutritionPlanController::class);
     Route::get('nutrition-plans/{nutrition_plan}/pdf', [\App\Http\Controllers\Admin\NutritionPlanController::class, 'exportPdf'])->name('nutrition-plans.pdf');

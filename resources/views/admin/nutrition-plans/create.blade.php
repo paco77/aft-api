@@ -513,10 +513,18 @@
                             </svg>
                             Catálogo de Alimentos en Base de Datos
                         </label>
-                        <span id="db_results_count"
-                            class="text-[11px] font-semibold text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-full">
-                            {{ count($catalogFoods ?? []) }} alimentos disponibles
-                        </span>
+                        <div class="flex items-center gap-2">
+                            <span id="db_results_count"
+                                class="text-[11px] font-semibold text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-full">
+                                {{ count($catalogFoods ?? []) }} alimentos disponibles
+                            </span>
+                            @if(in_array(auth()->user()->role, ['admin', 'super_admin']))
+                                <a href="{{ route('admin.foods.create') }}" target="_blank"
+                                    class="inline-flex items-center gap-1 text-[11px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-2.5 py-1 rounded-full shadow-2xs transition">
+                                    <span>+ Dar de Alta Alimento</span>
+                                </a>
+                            @endif
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">

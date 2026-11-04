@@ -180,24 +180,50 @@ class User extends Authenticatable
         'back_photo_url',
     ];
 
+    public function getMediaUrl(?string $path): ?string
+    {
+        if (!$path) {
+            return null;
+        }
+
+        // Si ya es una URL completa (http:// o https://)
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        // Si existe físicamente en el storage local público (storage/app/public)
+        if (file_exists(storage_path('app/public/' . $path))) {
+            return asset('storage/' . $path);
+        }
+
+        // Si está en el bucket S3 / DigitalOcean Spaces
+        if (config('filesystems.disks.s3.key') && config('filesystems.disks.s3.bucket')) {
+            try {
+                return \Illuminate\Support\Facades\Storage::disk('s3')->url($path);
+            } catch (\Throwable $e) {}
+        }
+
+        return asset('storage/' . $path);
+    }
+
     public function getProfilePhotoUrlAttribute()
     {
-        return $this->profile_photo_path ? \Illuminate\Support\Facades\Storage::disk('s3')->url($this->profile_photo_path) : null;
+        return $this->getMediaUrl($this->profile_photo_path);
     }
 
     public function getFrontPhotoUrlAttribute()
     {
-        return $this->front_photo ? \Illuminate\Support\Facades\Storage::disk('s3')->url($this->front_photo) : null;
+        return $this->getMediaUrl($this->front_photo);
     }
 
     public function getSidePhotoUrlAttribute()
     {
-        return $this->side_photo ? \Illuminate\Support\Facades\Storage::disk('s3')->url($this->side_photo) : null;
+        return $this->getMediaUrl($this->side_photo);
     }
 
     public function getBackPhotoUrlAttribute()
     {
-        return $this->back_photo ? \Illuminate\Support\Facades\Storage::disk('s3')->url($this->back_photo) : null;
+        return $this->getMediaUrl($this->back_photo);
     }
 
     public function monthlyPlans()
@@ -218,6 +244,32 @@ class User extends Authenticatable
     public function gymRoutines()
     {
         return $this->hasMany(TrainingDay::class, 'user_id');
+    }
+
+    /**
+     * Desactiva al usuario y, si es coach o tiene clientes asignados,
+     * desactiva automáticamente a todos sus clientes y revoca sus tokens.
+     */
+    public function deactivateWithClients(): int
+    {
+        $this->is_active = false;
+        $this->save();
+
+        $this->tokens()->delete();
+
+        $affectedCount = 0;
+        if ($this->role === 'coach' || $this->clients()->exists()) {
+            $clientIds = $this->clients()->pluck('id');
+            $affectedCount = $this->clients()->update(['is_active' => false]);
+
+            if ($clientIds->isNotEmpty()) {
+                \Laravel\Sanctum\PersonalAccessToken::whereIn('tokenable_id', $clientIds)
+                    ->where('tokenable_type', self::class)
+                    ->delete();
+            }
+        }
+
+        return $affectedCount;
     }
 }
 

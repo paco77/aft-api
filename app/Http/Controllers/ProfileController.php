@@ -6,9 +6,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 use Illuminate\Support\Facades\Hash;
+use App\Traits\ImageUploadTrait;
 
 class ProfileController extends Controller
 {
+    use ImageUploadTrait;
     /**
      * Show the form for editing the profile.
      */
@@ -55,10 +57,19 @@ class ProfileController extends Controller
         if ($request->hasFile('profile_photo')) {
             // Delete old photo if exists
             if ($user->profile_photo_path) {
-                Storage::disk('public')->delete($user->profile_photo_path);
+                try {
+                    Storage::disk('s3')->delete($user->profile_photo_path);
+                } catch (\Throwable $e) {}
+                try {
+                    Storage::disk('public')->delete($user->profile_photo_path);
+                } catch (\Throwable $e) {}
             }
 
-            $path = $request->file('profile_photo')->store('profile-photos', 'public');
+            try {
+                $path = $this->processAndStoreImage($request->file('profile_photo'), "profile-photos", 'profile');
+            } catch (\Throwable $e) {
+                $path = $request->file('profile_photo')->store('profile-photos', 'public');
+            }
             $user->profile_photo_path = $path;
         }
 

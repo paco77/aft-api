@@ -14,7 +14,7 @@ class UserController extends Controller
     use ImageUploadTrait;
     public function index()
     {
-        $query = User::with('coach')->latest();
+        $query = User::with(['coach', 'clients'])->latest();
         if (auth()->user()->role === 'coach') {
             $query->where('role', 'client')->where('coach_id', auth()->id());
         }
@@ -581,6 +581,8 @@ class UserController extends Controller
             $userData['is_active'] = $request->boolean('is_active', false);
         }
 
+        $wasActive = (bool) $user->is_active;
+
         if ($request->hasFile('profile_photo')) {
             $userData['profile_photo_path'] = $this->processAndStoreImage($request->file('profile_photo'), "clients/{$user->id}/profile", 'profile');
         }
@@ -634,7 +636,16 @@ class UserController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.users.index')->with('success', 'Usuario actualizado correctamente.');
+        $affectedClients = 0;
+        if ($wasActive && !$user->is_active && ($user->role === 'coach' || $user->clients()->exists())) {
+            $affectedClients = $user->deactivateWithClients();
+        }
+
+        $successMessage = $affectedClients > 0
+            ? "Usuario actualizado correctamente. Se desactivaron automáticamente sus {$affectedClients} cliente(s) asociados."
+            : 'Usuario actualizado correctamente.';
+
+        return redirect()->route('admin.users.index')->with('success', $successMessage);
     }
 
     public function progress(User $user)
@@ -759,11 +770,21 @@ class UserController extends Controller
             return back()->with('error', 'No puedes desactivar tu propia cuenta de superadministrador.');
         }
 
-        $user->is_active = !$user->is_active;
-        $user->save();
+        $isDeactivating = (bool) $user->is_active;
 
-        $action = $user->is_active ? 'activado' : 'desactivado';
-        return back()->with('success', "El usuario \"{$user->name}\" ha sido {$action} correctamente.");
+        if ($isDeactivating) {
+            $affectedClients = $user->deactivateWithClients();
+
+            if ($user->role === 'coach' || $user->clients()->exists()) {
+                return back()->with('success', "El coach \"{$user->name}\" y sus {$affectedClients} cliente(s) asociados han sido desactivados correctamente.");
+            }
+
+            return back()->with('success', "El usuario \"{$user->name}\" ha sido desactivado correctamente.");
+        } else {
+            $user->is_active = true;
+            $user->save();
+            return back()->with('success', "El usuario \"{$user->name}\" ha sido activado correctamente.");
+        }
     }
 
     public function destroy(User $user)

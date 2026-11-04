@@ -259,10 +259,14 @@
                         <span class="text-xs text-gray-500 capitalize">{{ auth()->user()->role }}</span>
                     </div>
 
-                    @if(auth()->user()->profile_photo_path)
-                        <img src="{{ asset('storage/' . auth()->user()->profile_photo_path) }}"
+                    @if(auth()->user()->profile_photo_url)
+                        <img src="{{ auth()->user()->profile_photo_url }}"
                             alt="{{ auth()->user()->name }}"
-                            class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border border-gray-200 shadow-xs">
+                            class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border border-gray-200 shadow-xs"
+                            onerror="this.onerror=null; this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+                        <div class="hidden w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-800 items-center justify-center text-white text-xs sm:text-sm font-bold shadow-xs">
+                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                        </div>
                     @else
                         <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-800 flex items-center justify-center text-white text-xs sm:text-sm font-bold shadow-xs">
                             {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}

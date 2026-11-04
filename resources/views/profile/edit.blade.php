@@ -11,8 +11,11 @@
                 <!-- Foto de Perfil -->
                 <div class="flex items-center gap-6">
                     <div class="flex-shrink-0">
-                        @if(auth()->user()->profile_photo_path)
-                            <img src="{{ asset('storage/' . auth()->user()->profile_photo_path) }}" alt="{{ auth()->user()->name }}" class="h-24 w-24 rounded-full object-cover border-2 border-primary">
+                        @if(auth()->user()->profile_photo_url)
+                            <img src="{{ auth()->user()->profile_photo_url }}" alt="{{ auth()->user()->name }}" class="h-24 w-24 rounded-full object-cover border-2 border-primary" onerror="this.onerror=null; this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+                            <div class="hidden h-24 w-24 rounded-full bg-slate-800 items-center justify-center text-white text-3xl font-bold">
+                                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                            </div>
                         @else
                             <div class="h-24 w-24 rounded-full bg-slate-500 flex items-center justify-center text-white text-3xl">
                                 {{ substr(auth()->user()->name, 0, 1) }}

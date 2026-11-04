@@ -65,6 +65,8 @@
                                     <button type="button" 
                                         data-user-name="{{ $user->name }}" 
                                         data-is-active="{{ $user->is_active ? '1' : '0' }}"
+                                        data-user-role="{{ $user->role }}"
+                                        data-clients-count="{{ ($user->role === 'coach' || $user->clients->count() > 0) ? $user->clients->count() : 0 }}"
                                         class="toggle-status-btn group inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full transition-all duration-200 cursor-pointer shadow-sm border
                                         {{ $user->is_active 
                                             ? 'bg-green-50 text-green-700 border-green-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300' 
@@ -168,11 +170,22 @@
                 const form = toggleBtn.closest('form');
                 const userName = toggleBtn.getAttribute('data-user-name');
                 const isActive = toggleBtn.getAttribute('data-is-active') === '1';
+                const userRole = toggleBtn.getAttribute('data-user-role');
+                const clientsCount = parseInt(toggleBtn.getAttribute('data-clients-count') || '0', 10);
 
-                const title = isActive ? '¿Desactivar usuario?' : '¿Activar usuario?';
-                const text = isActive 
-                    ? `El usuario "${userName}" no podrá iniciar sesión en la app ni en el sistema.`
-                    : `El usuario "${userName}" tendrá acceso nuevamente al sistema.`;
+                let title = isActive ? '¿Desactivar usuario?' : '¿Activar usuario?';
+                let text = '';
+                if (isActive) {
+                    if ((userRole === 'coach' || clientsCount > 0) && clientsCount > 0) {
+                        title = '¿Desactivar coach y sus clientes?';
+                        text = `Al desactivar a "${userName}", también se desactivarán automáticamente sus ${clientsCount} cliente(s) asociados. Ninguno podrá acceder a la app ni al sistema.`;
+                    } else {
+                        text = `El usuario "${userName}" no podrá iniciar sesión en la app ni en el sistema.`;
+                    }
+                } else {
+                    text = `El usuario "${userName}" tendrá acceso nuevamente al sistema.`;
+                }
+
                 const confirmText = isActive ? 'Sí, desactivar' : 'Sí, activar';
                 const confirmColor = isActive ? '#ef4444' : '#10b981';
 

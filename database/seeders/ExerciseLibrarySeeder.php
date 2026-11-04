@@ -302,7 +302,7 @@ class ExerciseLibrarySeeder extends Seeder
             ],
             [
                 'name' => 'Elevación de Gemelos de Pie',
-                'muscleGroup' => 'Isquios',
+                'muscleGroup' => 'Pantorrilla',
                 'equipment' => 'Máquina de gemelos o step',
                 'description' => 'De pie con las puntas de los pies en el borde de un step o máquina, sube elevándote sobre las puntas lo más alto posible. Baja lentamente estirando los gemelos.',
                 'primaryMuscles' => ['Gastrocnemio'],

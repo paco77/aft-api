@@ -16,6 +16,7 @@ class MuscleGroupSeeder extends Seeder
             ['name' => 'Cuádriceps', 'color' => '#70A1FF'],
             ['name' => 'Isquios', 'color' => '#3742FA'],
             ['name' => 'Glúteos', 'color' => '#FF6348'],
+            ['name' => 'Pantorrilla', 'color' => '#10B981'],
             ['name' => 'Hombros', 'color' => '#ECCC68'],
             ['name' => 'Bícep', 'color' => '#A29BFE'],
             ['name' => 'Trícep', 'color' => '#FF6B81'],

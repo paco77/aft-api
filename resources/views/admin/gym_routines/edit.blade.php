@@ -127,7 +127,7 @@
                         @php
                             $activeMuscles = old('muscle_groups', $routine->muscle_groups ?? []);
                         @endphp
-                        @foreach(['Espalda', 'Pecho', 'Pierna', 'Cuádriceps', 'Isquios', 'Glúteos', 'Hombros', 'Bíceps', 'Tríceps', 'Abdomen', 'Fullbody'] as $muscle)
+                        @foreach(['Espalda', 'Pecho', 'Pierna', 'Cuádriceps', 'Isquios', 'Glúteos', 'Pantorrilla', 'Hombros', 'Bíceps', 'Tríceps', 'Abdomen', 'Fullbody'] as $muscle)
                             <label class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-700 cursor-pointer hover:bg-slate-100 has-[:checked]:bg-indigo-600 has-[:checked]:text-white has-[:checked]:border-indigo-600 transition shadow-2xs">
                                 <input type="checkbox" name="muscle_groups[]" value="{{ $muscle }}" class="hidden" {{ in_array($muscle, $activeMuscles) ? 'checked' : '' }}>
                                 <span>{{ $muscle }}</span>

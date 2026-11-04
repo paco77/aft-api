@@ -20,25 +20,101 @@
     <link href="https://cdn.datatables.net/v/dt/jq-3.7.0/dt-2.0.8/datatables.min.css" rel="stylesheet">
     <script src="https://cdn.datatables.net/v/dt/jq-3.7.0/dt-2.0.8/datatables.min.js"></script>
     <style>
-        /* Responsive tweaks for DataTables wrapper */
-        .dataTables_wrapper {
+        /* DataTables 1 & 2 Compact & Modern Styling */
+        div.dt-container, .dataTables_wrapper {
             width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
         }
-        .dataTables_wrapper .dataTables_length,
-        .dataTables_wrapper .dataTables_filter {
-            margin-bottom: 0.75rem;
+        div.dt-container div.dt-layout-row:first-child,
+        .dataTables_wrapper > div:first-child {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+            margin: 0 0 0.5rem 0 !important;
+            padding: 0 0.25rem !important;
         }
-        @media (max-width: 640px) {
-            .dataTables_wrapper .dataTables_length,
-            .dataTables_wrapper .dataTables_filter,
-            .dataTables_wrapper .dataTables_info,
-            .dataTables_wrapper .dataTables_paginate {
-                text-align: left;
-                float: none;
-                margin-top: 0.5rem;
-            }
+        div.dt-container div.dt-layout-cell {
+            display: flex !important;
+            align-items: center !important;
+        }
+        div.dt-container div.dt-layout-cell.dt-layout-end {
+            justify-content: flex-end !important;
+            margin-left: auto !important;
+        }
+        div.dt-container .dt-length, .dataTables_length,
+        div.dt-container .dt-search, .dataTables_filter {
+            margin: 0 !important;
+            float: none !important;
+            font-size: 0.8125rem !important;
+            color: #475569 !important;
+            font-weight: 500 !important;
+        }
+        .dataTables_wrapper .dataTables_filter,
+        div.dt-container .dt-layout-cell.dt-layout-end {
+            margin-left: auto !important;
+            text-align: right !important;
+        }
+        div.dt-container .dt-search input, .dataTables_filter input {
+            height: 32px !important;
+            padding: 0.25rem 0.65rem !important;
+            font-size: 0.8125rem !important;
+            border-radius: 0.5rem !important;
+            border: 1px solid #cbd5e1 !important;
+            background-color: #f8fafc !important;
+            margin-left: 0.4rem !important;
+            outline: none !important;
+            transition: all 0.2s !important;
+        }
+        div.dt-container .dt-search input:focus, .dataTables_filter input:focus {
+            border-color: #3b82f6 !important;
+            background-color: #ffffff !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+        }
+        div.dt-container .dt-length select, .dataTables_length select {
+            height: 32px !important;
+            padding: 0.2rem 1.75rem 0.2rem 0.5rem !important;
+            font-size: 0.8125rem !important;
+            border-radius: 0.5rem !important;
+            border: 1px solid #cbd5e1 !important;
+            background-color: #f8fafc !important;
+            margin: 0 0.35rem !important;
+            outline: none !important;
+        }
+        /* Sticky Header for DataTables */
+        table.dataTable thead,
+        div.dt-container table thead,
+        .dataTables_wrapper table thead {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 20 !important;
+        }
+        table.dataTable thead th,
+        div.dt-container table thead th,
+        .dataTables_wrapper table thead th {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 20 !important;
+            background-color: #f8fafc !important;
+            box-shadow: 0 1px 0 #e2e8f0, 0 2px 4px -2px rgba(0, 0, 0, 0.05) !important;
+        }
+        /* Bottom Pagination & Info Compact */
+        div.dt-container div.dt-layout-row:last-child,
+        .dataTables_wrapper > div:last-child {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+            margin-top: 0.5rem !important;
+            padding: 0.25rem 0.25rem 0 !important;
+            font-size: 0.8125rem !important;
+            color: #64748b !important;
+        }
+        div.dt-container .dt-paging .dt-paging-button {
+            padding: 0.25rem 0.6rem !important;
+            border-radius: 0.375rem !important;
+            font-size: 0.8125rem !important;
         }
 
         /* Fallback utility styles for buttons and headers when Vite bundle is not recompiled on server */

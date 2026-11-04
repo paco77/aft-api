@@ -40,6 +40,28 @@
                 margin-top: 0.5rem;
             }
         }
+
+        /* Fallback utility styles for buttons and headers when Vite bundle is not recompiled on server */
+        .from-blue-600.to-indigo-600 {
+            background-color: #2563eb !important;
+            background-image: linear-gradient(to right, #2563eb, #4f46e5) !important;
+            color: #ffffff !important;
+        }
+        .from-indigo-600.to-blue-600 {
+            background-color: #4f46e5 !important;
+            background-image: linear-gradient(to right, #4f46e5, #2563eb) !important;
+            color: #ffffff !important;
+        }
+        .from-slate-900.via-indigo-950.to-slate-900,
+        .from-slate-900.via-slate-800.to-indigo-950 {
+            background-color: #0f172a !important;
+            background-image: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%) !important;
+            color: #ffffff !important;
+        }
+        .px-7 { padding-left: 1.75rem !important; padding-right: 1.75rem !important; }
+        .bg-emerald-50 { background-color: #ecfdf5 !important; }
+        .text-emerald-700 { color: #047857 !important; }
+        .border-emerald-300 { border-color: #6ee7b7 !important; }
     </style>
 </head>
 

@@ -37,7 +37,15 @@
                     </p>
                 </div>
 
-                <div class="flex items-center gap-3 self-start md:self-auto shrink-0">
+                <div class="flex flex-wrap items-center gap-3 self-start md:self-auto shrink-0">
+                    <button type="button" onclick="document.getElementById('btn_submit').click();"
+                        style="background-color: #2563eb; color: #ffffff;"
+                        class="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md transition-all flex items-center gap-2 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Guardar Plan
+                    </button>
                     <a href="{{ route('admin.nutrition-plans.index') }}"
                         class="px-4 py-2 rounded-xl text-sm font-medium text-slate-300 bg-white/5 hover:bg-white/10 hover:text-white border border-white/10 transition-all flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -213,7 +221,8 @@
 
                 <div class="mt-8 pt-5 border-t border-slate-100 flex justify-end">
                     <button type="button" id="btn_calculate"
-                        class="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-indigo-500/25 active:scale-95 transition-all flex items-center gap-2.5 text-sm">
+                        style="background-color: #4f46e5; color: #ffffff;"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg active:scale-95 transition-all flex items-center gap-2.5 text-sm cursor-pointer">
                         <svg class="w-5 h-5 text-indigo-200 animate-pulse" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -449,14 +458,15 @@
             </div>
 
             <!-- Form Actions Bar -->
-            <div class="flex items-center justify-between pt-4 border-t border-slate-200 flex-wrap gap-4">
+            <div class="bg-white rounded-2xl shadow-md border border-slate-200 p-5 flex items-center justify-between flex-wrap gap-4 sticky bottom-4 z-20">
                 <a href="{{ url()->previous() }}"
-                    class="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm">
+                    class="px-5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm">
                     Cancelar
                 </a>
 
                 <button type="submit" id="btn_submit"
-                    class="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/25 transition-all text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
+                    style="background-color: #2563eb; color: #ffffff;"
+                    class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg transition-all text-sm flex items-center gap-2 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>

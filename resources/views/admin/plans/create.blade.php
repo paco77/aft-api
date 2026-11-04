@@ -29,7 +29,15 @@
                     </p>
                 </div>
 
-                <div class="flex items-center gap-3 self-start md:self-auto shrink-0">
+                <div class="flex flex-wrap items-center gap-3 self-start md:self-auto shrink-0">
+                    <button type="button" id="btn_submit_top" onclick="document.getElementById('btn_submit').click();"
+                        style="background-color: #2563eb; color: #ffffff;"
+                        class="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md transition-all flex items-center gap-2 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Guardar Plan
+                    </button>
                     <a href="{{ route('admin.plans.index') }}"
                         class="px-4 py-2 rounded-xl text-sm font-medium text-slate-300 bg-white/5 hover:bg-white/10 hover:text-white border border-white/10 transition-all flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -31,12 +31,21 @@
                     </p>
                 </div>
 
-                <div class="flex items-center gap-3 self-start md:self-auto shrink-0">
+                <div class="flex flex-wrap items-center gap-3 self-start md:self-auto shrink-0">
+                    <button type="button" id="btn_submit_top" onclick="document.getElementById('input_save_as_new').value='0'; document.getElementById('btn_submit').click();"
+                        style="background-color: #2563eb; color: #ffffff;"
+                        class="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md transition-all flex items-center gap-2 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Guardar Edición
+                    </button>
                     <form action="{{ route('admin.nutrition-plans.destroy', $nutritionPlan) }}" method="POST" class="inline-block" onsubmit="return confirm('¿Estás seguro de eliminar este plan de alimentación?');">
                         @csrf
                         @method('DELETE')
                         <button type="submit"
-                            class="px-4 py-2 rounded-xl text-sm font-medium text-red-300 bg-red-500/15 hover:bg-red-500/25 hover:text-white border border-red-500/30 transition-all flex items-center gap-2">
+                            style="background-color: #dc2626; color: #ffffff;"
+                            class="px-4 py-2 rounded-xl text-sm font-medium text-white bg-red-600 hover:bg-red-700 border border-red-500/30 transition-all flex items-center gap-2 cursor-pointer">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
@@ -215,7 +224,8 @@
 
                 <div class="mt-8 pt-5 border-t border-slate-100 flex justify-end">
                     <button type="button" id="btn_calculate"
-                        class="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-indigo-500/25 active:scale-95 transition-all flex items-center gap-2.5 text-sm">
+                        style="background-color: #4f46e5; color: #ffffff;"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg active:scale-95 transition-all flex items-center gap-2.5 text-sm cursor-pointer">
                         <svg class="w-5 h-5 text-indigo-200 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
@@ -413,28 +423,30 @@
             </div>
 
             <!-- Form Actions Bar -->
-            <div class="flex items-center justify-between pt-5 border-t border-slate-200 flex-wrap gap-4">
+            <div class="bg-white rounded-2xl shadow-md border border-slate-200 p-5 flex items-center justify-between flex-wrap gap-4 sticky bottom-4 z-20">
                 <a href="{{ route('admin.nutrition-plans.index') }}"
-                    class="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors text-sm">
+                    class="px-5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 transition-colors text-sm">
                     Cancelar
                 </a>
 
                 <div class="flex items-center gap-3 flex-wrap">
                     <button type="button" id="btn_save_as_new"
-                        class="px-5 py-2.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 border border-emerald-300 rounded-xl font-bold shadow-xs transition-all text-sm flex items-center gap-2"
+                        style="background-color: #059669; color: #ffffff;"
+                        class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-sm transition-all text-sm flex items-center gap-2 cursor-pointer"
                         title="Guarda una nueva copia de este plan asignada al cliente seleccionado sin modificar el original">
-                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                         </svg>
                         Guardar como Nuevo Plan
                     </button>
 
                     <button type="submit" id="btn_submit"
-                        class="px-7 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold shadow-md shadow-blue-500/20 transition-all text-sm flex items-center gap-2">
+                        style="background-color: #2563eb; color: #ffffff;"
+                        class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-md transition-all text-sm flex items-center gap-2 cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
-                        Guardar Cambios en este Plan
+                        Guardar Edición del Plan
                     </button>
                 </div>
             </div>

@@ -29,12 +29,21 @@
                     </p>
                 </div>
 
-                <div class="flex items-center gap-3 self-start md:self-auto shrink-0">
+                <div class="flex flex-wrap items-center gap-3 self-start md:self-auto shrink-0">
+                    <button type="button" id="btn_submit_top" onclick="document.getElementById('btn_submit').click();"
+                        style="background-color: #2563eb; color: #ffffff;"
+                        class="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md transition-all flex items-center gap-2 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Guardar Edición
+                    </button>
                     <form action="{{ route('admin.plans.destroy', $plan) }}" method="POST" class="inline-block" onsubmit="return confirm('¿Estás seguro de eliminar este plan de entrenamiento?');">
                         @csrf
                         @method('DELETE')
                         <button type="submit"
-                            class="px-4 py-2 rounded-xl text-sm font-medium text-red-300 bg-red-500/15 hover:bg-red-500/25 hover:text-white border border-red-500/30 transition-all flex items-center gap-2">
+                            style="background-color: #dc2626; color: #ffffff;"
+                            class="px-4 py-2 rounded-xl text-sm font-medium text-white bg-red-600 hover:bg-red-700 border border-red-500/30 transition-all flex items-center gap-2 cursor-pointer">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
@@ -170,18 +179,19 @@
             </div>
 
             <!-- Form Actions Bar -->
-            <div class="flex items-center justify-between pt-6 border-t border-slate-200 flex-wrap gap-4">
+            <div class="bg-white rounded-2xl shadow-md border border-slate-200 p-5 flex items-center justify-between flex-wrap gap-4 sticky bottom-4 z-20">
                 <a href="{{ route('admin.plans.index') }}"
-                    class="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm">
+                    class="px-5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm">
                     Cancelar
                 </a>
                 
                 <button type="submit" id="btn_submit"
-                    class="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/25 transition-all text-sm flex items-center gap-2">
+                    style="background-color: #2563eb; color: #ffffff;"
+                    class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg transition-all text-sm flex items-center gap-2 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
-                    Actualizar Plan de Entrenamiento
+                    Guardar Edición del Plan
                 </button>
             </div>
         </form>

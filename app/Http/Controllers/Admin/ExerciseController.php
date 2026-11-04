@@ -35,8 +35,11 @@ class ExerciseController extends Controller
             'name' => 'required|string|max:255',
             'muscle_group_id' => 'required|exists:muscle_groups,id',
             'description' => 'nullable|string',
-            'video_file' => 'nullable|file|mimes:mp4,mov,ogg,qt,gif|max:50000',
+            'video_file' => 'nullable|file|mimes:mp4,mov,ogg,qt,webm,gif,png,jpg,jpeg,webp,svg|max:50000',
             'video_url' => 'nullable|string|max:500',
+        ], [
+            'video_file.mimes' => 'El archivo multimedia debe ser de tipo: MP4, MOV, WEBM, GIF, PNG, JPG, JPEG o WEBP.',
+            'video_file.max' => 'El archivo no debe superar los 50 MB.',
         ]);
 
         $data = $request->except(['video_file']);
@@ -61,8 +64,11 @@ class ExerciseController extends Controller
             'name' => 'required|string|max:255',
             'muscle_group_id' => 'required|exists:muscle_groups,id',
             'description' => 'nullable|string',
-            'video_file' => 'nullable|file|mimes:mp4,mov,ogg,qt,gif|max:50000',
+            'video_file' => 'nullable|file|mimes:mp4,mov,ogg,qt,webm,gif,png,jpg,jpeg,webp,svg|max:50000',
             'video_url' => 'nullable|string|max:500',
+        ], [
+            'video_file.mimes' => 'El archivo multimedia debe ser de tipo: MP4, MOV, WEBM, GIF, PNG, JPG, JPEG o WEBP.',
+            'video_file.max' => 'El archivo no debe superar los 50 MB.',
         ]);
 
         $data = $request->only(['name', 'muscle_group_id', 'description']);
@@ -106,8 +112,11 @@ class ExerciseController extends Controller
             'name' => 'required|string|max:255',
             'muscle_group_id' => 'required|exists:muscle_groups,id',
             'description' => 'nullable|string',
-            'video_file' => 'nullable|file|mimes:mp4,mov,ogg,qt,gif|max:50000',
+            'video_file' => 'nullable|file|mimes:mp4,mov,ogg,qt,webm,gif,png,jpg,jpeg,webp,svg|max:50000',
             'video_url' => 'nullable|string|max:500',
+        ], [
+            'video_file.mimes' => 'El archivo multimedia debe ser de tipo: MP4, MOV, WEBM, GIF, PNG, JPG, JPEG o WEBP.',
+            'video_file.max' => 'El archivo no debe superar los 50 MB.',
         ]);
 
         $data = $request->except(['video_file']);

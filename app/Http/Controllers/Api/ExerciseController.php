@@ -27,7 +27,7 @@ class ExerciseController extends Controller
             'secondary_muscles' => 'array|nullable',
             'benefits' => 'array|nullable',
             'level' => 'string|nullable',
-            'video_file' => 'nullable|file|mimes:mp4,mov,ogg,qt,gif|max:50000',
+            'video_file' => 'nullable|file|mimes:mp4,mov,ogg,qt,webm,gif,png,jpg,jpeg,webp,svg|max:50000',
         ]);
 
         $muscleGroup = \App\Models\MuscleGroup::where('name', $data['muscle_group'])->first();
@@ -73,7 +73,7 @@ class ExerciseController extends Controller
             'benefits' => 'array|nullable',
             'level' => 'string|nullable',
             'is_custom' => 'boolean',
-            'video_file' => 'nullable|file|mimes:mp4,mov,ogg,qt,gif|max:50000',
+            'video_file' => 'nullable|file|mimes:mp4,mov,ogg,qt,webm,gif,png,jpg,jpeg,webp,svg|max:50000',
         ]);
 
         if (isset($data['muscle_group'])) {

@@ -61,12 +61,12 @@
                 <div class="sm:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2 border-t border-slate-100">
                     <div>
                         <label for="video_file" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5 flex items-center justify-between">
-                            <span>Reemplazar con Archivo de Video o GIF</span>
+                            <span>Reemplazar con Archivo (Video, GIF o Imagen)</span>
                             <span class="text-2xs font-normal text-slate-400">Opcional</span>
                         </label>
-                        <input type="file" name="video_file" id="video_file" accept="video/*,image/gif"
+                        <input type="file" name="video_file" id="video_file" accept="video/*,image/*"
                             class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 file:cursor-pointer border border-slate-300 rounded-xl px-2 py-1.5 bg-slate-50/50 focus:outline-none @error('video_file') border-rose-500 @enderror">
-                        <p class="mt-1 text-2xs text-slate-400">Si seleccionas un archivo, reemplazará al actual (GIF, MP4, WebM máx. 50 MB).</p>
+                        <p class="mt-1 text-2xs text-slate-400">Si seleccionas un archivo, reemplazará al actual (GIF, PNG, JPG, WebP, MP4 máx. 50 MB).</p>
                         @error('video_file') <p class="mt-1 text-xs text-rose-500 font-semibold">{{ $message }}</p> @enderror
                     </div>
 

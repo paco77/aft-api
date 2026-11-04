@@ -139,9 +139,27 @@ class PlanController extends Controller
         return $redirect;
     }
 
+    protected function canAccessPlan(MonthlyPlan $plan): bool
+    {
+        $user = auth()->user();
+        if (in_array($user->role, ['admin', 'super_admin', 'gimnasio'])) {
+            return true;
+        }
+        if ((int) $plan->user_id === (int) $user->id || (int) $plan->assigned_client_id === (int) $user->id) {
+            return true;
+        }
+        if ($user->role === 'coach' && $plan->assigned_client_id) {
+            $client = User::find($plan->assigned_client_id);
+            if ($client && ((int) $client->coach_id === (int) $user->id || is_null($client->coach_id))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public function show(MonthlyPlan $plan)
     {
-        if (in_array(auth()->user()->role, ['coach', 'client', 'independiente']) && $plan->user_id !== auth()->id() && $plan->assigned_client_id !== auth()->id()) {
+        if (!$this->canAccessPlan($plan)) {
             abort(403, 'No tienes permiso para ver este plan.');
         }
 
@@ -156,7 +174,7 @@ class PlanController extends Controller
             abort(403, 'Los clientes no tienen permisos para editar planes.');
         }
 
-        if (auth()->user()->role === 'coach' && $plan->user_id !== auth()->id() && $plan->assigned_client_id !== auth()->id()) {
+        if (!$this->canAccessPlan($plan)) {
             abort(403, 'No tienes permiso para editar este plan.');
         }
 
@@ -197,13 +215,13 @@ class PlanController extends Controller
 
         if (auth()->user()->role === 'coach') {
             $client = User::find($data['assigned_client_id']);
-            if (!$client || ($client->coach_id !== auth()->id() && !is_null($client->coach_id))) {
+            if (!$client || (!is_null($client->coach_id) && (int) $client->coach_id !== (int) auth()->id())) {
                 abort(403, 'No tienes permiso para asignar un plan a este usuario.');
             }
-                if (is_null($client->coach_id)) {
-                    $client->coach_id = auth()->id();
-                    $client->save();
-                }
+            if (is_null($client->coach_id)) {
+                $client->coach_id = auth()->id();
+                $client->save();
+            }
         }
 
         DB::transaction(function () use ($data, $plan) {
@@ -263,16 +281,20 @@ class PlanController extends Controller
             abort(403, 'Los clientes no tienen permisos para eliminar planes.');
         }
 
-        if (auth()->user()->role === 'coach' && $plan->user_id !== auth()->id()) {
+        if (!$this->canAccessPlan($plan)) {
             abort(403, 'No tienes permiso para eliminar este plan.');
         }
-        $plan->delete();
+
+        DB::transaction(function () use ($plan) {
+            $plan->delete();
+        });
+
         return redirect()->route('admin.plans.index')->with('success', 'Plan eliminado correctamente.');
     }
 
     public function exportPdf(MonthlyPlan $plan)
     {
-        if (in_array(auth()->user()->role, ['coach', 'client', 'independiente']) && $plan->user_id !== auth()->id() && $plan->assigned_client_id !== auth()->id()) {
+        if (!$this->canAccessPlan($plan)) {
             abort(403, 'No tienes permiso para exportar este plan.');
         }
 
@@ -288,7 +310,7 @@ class PlanController extends Controller
             abort(403, 'Los clientes no tienen permisos para duplicar planes.');
         }
 
-        if (auth()->user()->role === 'coach' && $plan->user_id !== auth()->id() && $plan->assigned_client_id !== auth()->id()) {
+        if (!$this->canAccessPlan($plan)) {
             abort(403, 'No tienes permiso para duplicar este plan.');
         }
 
@@ -302,13 +324,13 @@ class PlanController extends Controller
 
         if (auth()->user()->role === 'coach') {
             $client = User::find($data['assigned_client_id']);
-            if (!$client || ($client->coach_id !== auth()->id() && !is_null($client->coach_id))) {
+            if (!$client || (!is_null($client->coach_id) && (int) $client->coach_id !== (int) auth()->id())) {
                 abort(403, 'No tienes permiso para asignar un plan a este usuario.');
             }
-                if (is_null($client->coach_id)) {
-                    $client->coach_id = auth()->id();
-                    $client->save();
-                }
+            if (is_null($client->coach_id)) {
+                $client->coach_id = auth()->id();
+                $client->save();
+            }
         }
 
         $newPlan = DB::transaction(function () use ($plan, $data) {

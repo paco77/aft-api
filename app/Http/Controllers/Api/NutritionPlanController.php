@@ -281,8 +281,13 @@ class NutritionPlanController extends Controller
     public function update(Request $request, string $id)
     {
         $plan = NutritionPlan::findOrFail($id);
+        $user = $request->user();
 
-        if ($plan->coach_id !== $request->user()->id) {
+        if (
+            !in_array($user->role, ['admin', 'super_admin', 'gimnasio']) &&
+            (int) $plan->coach_id !== (int) $user->id &&
+            (int) $plan->client_id !== (int) $user->id
+        ) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -364,8 +369,13 @@ class NutritionPlanController extends Controller
     public function show(Request $request, string $id)
     {
         $plan = NutritionPlan::with(['client', 'meals.foods'])->findOrFail($id);
+        $user = $request->user();
 
-        if ($plan->coach_id !== $request->user()->id && $plan->client_id !== $request->user()->id) {
+        if (
+            !in_array($user->role, ['admin', 'super_admin', 'gimnasio']) &&
+            (int) $plan->coach_id !== (int) $user->id &&
+            (int) $plan->client_id !== (int) $user->id
+        ) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -375,8 +385,13 @@ class NutritionPlanController extends Controller
     public function destroy(Request $request, string $id)
     {
         $plan = NutritionPlan::findOrFail($id);
+        $user = $request->user();
 
-        if ($plan->coach_id !== $request->user()->id) {
+        if (
+            !in_array($user->role, ['admin', 'super_admin', 'gimnasio']) &&
+            (int) $plan->coach_id !== (int) $user->id &&
+            (int) $plan->client_id !== (int) $user->id
+        ) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 

@@ -455,7 +455,7 @@
                     Cancelar
                 </a>
 
-                <button type="submit" id="btn_submit" disabled
+                <button type="submit" id="btn_submit"
                     class="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/25 transition-all text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -748,6 +748,7 @@
 @endsection
 
 @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         const DB_CATALOG_FOODS = @json($catalogFoods ?? []);
         document.addEventListener('DOMContentLoaded', function () {
@@ -1697,11 +1698,75 @@
             calcProteinKg.addEventListener('input', calculateMacros);
             calcLipidsKg.addEventListener('input', calculateMacros);
 
+            function syncCreateFormBeforeSubmit() {
+                document.querySelectorAll('.meal-name-input').forEach(input => {
+                    const mIdx = parseInt(input.getAttribute('data-meal-idx'));
+                    if (!isNaN(mIdx) && meals[mIdx]) {
+                        meals[mIdx].name = input.value;
+                    }
+                });
+                updateMealsData();
+
+                let sumCals = 0, sumProt = 0, sumCarbs = 0, sumFat = 0;
+                meals.forEach(m => {
+                    (m.foods || []).forEach(f => {
+                        sumCals += parseFloat(f.calories || 0);
+                        sumProt += parseFloat(f.protein || 0);
+                        sumCarbs += parseFloat(f.carbs || 0);
+                        sumFat += parseFloat(f.fat || 0);
+                    });
+                });
+
+                if (!inputTargetCalories.value || parseFloat(inputTargetCalories.value) <= 0) {
+                    inputTargetCalories.value = Math.round(sumCals);
+                } else {
+                    inputTargetCalories.value = Math.round(parseFloat(inputTargetCalories.value));
+                }
+                if (!inputProtein.value || parseFloat(inputProtein.value) <= 0) {
+                    inputProtein.value = sumProt.toFixed(1);
+                }
+                if (!inputCarbs.value || parseFloat(inputCarbs.value) <= 0) {
+                    inputCarbs.value = sumCarbs.toFixed(1);
+                }
+                if (!inputFat.value || parseFloat(inputFat.value) <= 0) {
+                    inputFat.value = sumFat.toFixed(1);
+                }
+            }
+
+            function finalizeCreateSubmit(formEl) {
+                syncCreateFormBeforeSubmit();
+                formEl.dataset.confirmed = 'true';
+
+                const btn = document.getElementById('btn_submit');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                    btn.innerHTML = '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Guardando...';
+                }
+
+                HTMLFormElement.prototype.submit.call(formEl);
+            }
+
             const formElement = document.getElementById('nutrition-form');
             if (formElement) {
                 formElement.addEventListener('submit', function (e) {
                     if (!this.dataset.confirmed) {
                         e.preventDefault();
+
+                        const select = document.getElementById('client_id');
+                        if (!select.value) {
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire('Atención', 'Por favor selecciona un cliente.', 'warning');
+                            } else {
+                                alert('Por favor selecciona un cliente.');
+                            }
+                            return;
+                        }
+
+                        if (typeof Swal === 'undefined') {
+                            finalizeCreateSubmit(this);
+                            return;
+                        }
 
                         Swal.fire({
                             title: '¿Avisar por WhatsApp?',
@@ -1713,7 +1778,6 @@
                             confirmButtonColor: '#25D366'
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                const select = document.getElementById('client_id');
                                 if (select.selectedIndex > 0) {
                                     const option = select.options[select.selectedIndex];
                                     const phone = option.getAttribute('data-phone');
@@ -1729,19 +1793,11 @@
                                 }
                             }
 
-                            this.dataset.confirmed = true;
-
-                            const btn = document.getElementById('btn_submit');
-                            btn.disabled = true;
-                            btn.classList.add('opacity-50', 'cursor-not-allowed');
-                            btn.innerHTML = '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Guardando...';
-
-                            this.submit();
+                            finalizeCreateSubmit(this);
                         });
                     }
                 });
             }
         });
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @endpush

@@ -208,7 +208,7 @@ class PlanController extends Controller
 
         return DB::transaction(function () use ($request, $data, $plan) {
             // Verificar permisos
-            if ($plan->user_id !== $request->user()->id) {
+            if (!in_array($request->user()->role, ['admin', 'super_admin', 'gimnasio']) && (int) $plan->user_id !== (int) $request->user()->id && (int) $plan->assigned_client_id !== (int) $request->user()->id) {
                 abort(403, 'Unauthorized');
             }
 
@@ -363,7 +363,7 @@ class PlanController extends Controller
     public function destroy(Request $request, MonthlyPlan $plan)
     {
         // Solo el creador puede eliminar el plan
-        if ($plan->user_id !== $request->user()->id) {
+        if (!in_array($request->user()->role, ['admin', 'super_admin', 'gimnasio']) && (int) $plan->user_id !== (int) $request->user()->id && (int) $plan->assigned_client_id !== (int) $request->user()->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 

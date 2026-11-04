@@ -162,12 +162,18 @@
 
         if (!modal || !form) return;
 
-        form.action = `/admin/nutrition-plans/${planId}/duplicate`;
+        const baseUrl = "{{ url('/admin/nutrition-plans') }}";
+        form.action = `${baseUrl}/${planId}/duplicate`;
         if (nameEl) nameEl.textContent = planName || 'Plan de Alimentación';
         if (nameInput) nameInput.value = (planName ? planName + ' (Copia)' : 'Plan de Alimentación');
 
-        if (clientSelect && currentClientId) {
-            clientSelect.value = currentClientId;
+        if (clientSelect) {
+            if (currentClientId) {
+                clientSelect.value = String(currentClientId);
+            }
+            if (!clientSelect.value && clientSelect.options.length > 1) {
+                clientSelect.selectedIndex = 1;
+            }
         }
 
         updateNutrActionCards();

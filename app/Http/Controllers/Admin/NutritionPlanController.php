@@ -235,9 +235,90 @@ class NutritionPlanController extends Controller
         return view('admin.nutrition-plans.index', compact('plans', 'clients'));
     }
 
+    protected function canCoachAccessPlan(NutritionPlan $nutritionPlan): bool
+    {
+        if (auth()->user()->role !== 'coach') {
+            return true;
+        }
+        $coachId = (int) auth()->id();
+        if ((int) $nutritionPlan->coach_id === $coachId || (int) $nutritionPlan->client_id === $coachId) {
+            return true;
+        }
+        if ($nutritionPlan->client_id) {
+            $client = \App\Models\User::find($nutritionPlan->client_id);
+            if ($client && ((int) $client->coach_id === $coachId || is_null($client->coach_id))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected function normalizeServingSize($rawSize): string
+    {
+        $str = trim((string) ($rawSize ?? '1'));
+        if ($str === '') {
+            return '1';
+        }
+        return $str;
+    }
+
+    protected function saveMealsToPlan(NutritionPlan $plan, array $meals): void
+    {
+        foreach ($meals as $index => $mealData) {
+            $mealName = isset($mealData['name']) && trim((string) $mealData['name']) !== ''
+                ? trim((string) $mealData['name'])
+                : 'Comida ' . ($index + 1);
+
+            $meal = $plan->meals()->create([
+                'name' => $mealName,
+                'time' => !empty($mealData['time']) ? $mealData['time'] : null,
+            ]);
+
+            if (isset($mealData['foods']) && is_array($mealData['foods'])) {
+                foreach ($mealData['foods'] as $foodData) {
+                    if (empty($foodData['name'])) {
+                        continue;
+                    }
+                    $servingSize = $this->normalizeServingSize($foodData['serving_size'] ?? '1');
+                    $foodPayload = [
+                        'fatsecret_food_id' => !empty($foodData['fatsecret_food_id']) ? (string) $foodData['fatsecret_food_id'] : 'manual_' . uniqid(),
+                        'name' => trim((string) $foodData['name']),
+                        'serving_size' => $servingSize,
+                        'serving_unit' => !empty($foodData['serving_unit']) ? trim((string) $foodData['serving_unit']) : 'g',
+                        'calories' => round((float) ($foodData['calories'] ?? 0), 2),
+                        'protein' => round((float) ($foodData['protein'] ?? 0), 2),
+                        'carbs' => round((float) ($foodData['carbs'] ?? 0), 2),
+                        'fat' => round((float) ($foodData['fat'] ?? 0), 2),
+                    ];
+
+                    try {
+                        $meal->foods()->create($foodPayload);
+                    } catch (\Throwable $e) {
+                        // Fallback if serving_size column on server is numeric and received a fraction like "1/2"
+                        if (str_contains($servingSize, '/')) {
+                            $parts = preg_split('/\s+/', $servingSize);
+                            $numericVal = 1.0;
+                            if (count($parts) === 2 && str_contains($parts[1], '/')) {
+                                [$num, $den] = explode('/', $parts[1]) + [1, 1];
+                                $numericVal = (float) $parts[0] + ((float) $den > 0 ? ((float) $num / (float) $den) : 0);
+                            } else {
+                                [$num, $den] = explode('/', $parts[0]) + [1, 1];
+                                $numericVal = (float) $den > 0 ? ((float) $num / (float) $den) : 1.0;
+                            }
+                            $foodPayload['serving_size'] = (string) round($numericVal, 2);
+                        } else {
+                            $foodPayload['serving_size'] = (string) ((float) $servingSize ?: 1);
+                        }
+                        $meal->foods()->create($foodPayload);
+                    }
+                }
+            }
+        }
+    }
+
     public function show(NutritionPlan $nutritionPlan)
     {
-        if (auth()->user()->role === 'coach' && $nutritionPlan->coach_id !== auth()->id() && $nutritionPlan->client_id !== auth()->id()) {
+        if (!$this->canCoachAccessPlan($nutritionPlan)) {
             abort(403, 'No tienes permiso para ver este plan nutricional.');
         }
 
@@ -278,11 +359,11 @@ class NutritionPlanController extends Controller
             'client_id' => 'required|integer|exists:users,id',
             'name' => 'nullable|string|max:255',
             'description' => 'nullable|string',
-            'objective' => 'required|string',
-            'target_calories' => 'required|integer',
-            'total_protein' => 'required|numeric',
-            'total_carbs' => 'required|numeric',
-            'total_fat' => 'required|numeric',
+            'objective' => 'nullable|string',
+            'target_calories' => 'nullable|numeric',
+            'total_protein' => 'nullable|numeric',
+            'total_carbs' => 'nullable|numeric',
+            'total_fat' => 'nullable|numeric',
             'gender' => 'nullable|string',
             'weight' => 'nullable|numeric',
             'height' => 'nullable|numeric',
@@ -294,7 +375,7 @@ class NutritionPlanController extends Controller
 
         if (auth()->user()->role === 'coach') {
             $client = \App\Models\User::find($data['client_id']);
-            if (!$client || ($client->coach_id !== auth()->id() && !is_null($client->coach_id))) {
+            if (!$client || (!is_null($client->coach_id) && (int) $client->coach_id !== (int) auth()->id())) {
                 abort(403, 'No tienes permiso para asignar un plan a este usuario.');
             }
             if (is_null($client->coach_id)) {
@@ -303,56 +384,54 @@ class NutritionPlanController extends Controller
             }
         }
 
-        $plan = NutritionPlan::create([
-            'coach_id' => auth()->id(),
-            'client_id' => $data['client_id'],
-            'name' => $data['name'],
-            'description' => $data['description'],
-            'objective' => $data['objective'],
-            'target_calories' => $data['target_calories'],
-            'total_calories' => $data['target_calories'], 
-            'total_protein' => $data['total_protein'],
-            'total_carbs' => $data['total_carbs'],
-            'total_fat' => $data['total_fat'],
-            'gender' => $data['gender'] ?? null,
-            'weight' => $data['weight'] ?? null,
-            'height' => $data['height'] ?? null,
-            'age' => $data['age'] ?? null,
-            'activity_level' => $data['activity_level'] ?? null,
-            'formula' => $data['formula'] ?? null,
-            'caloric_adjustment' => $data['caloric_adjustment'] ?? null,
-        ]);
-
-        if ($request->filled('meals_data')) {
-            $meals = json_decode($request->input('meals_data'), true);
-            if (is_array($meals)) {
-                foreach ($meals as $index => $mealData) {
-                    $mealName = isset($mealData['name']) && trim($mealData['name']) !== ''
-                        ? trim($mealData['name'])
-                        : 'Comida ' . ($index + 1);
-
-                    $meal = $plan->meals()->create([
-                        'name' => $mealName,
-                        'time' => $mealData['time'] ?? null,
-                    ]);
-
-                    if (isset($mealData['foods']) && is_array($mealData['foods'])) {
-                        foreach ($mealData['foods'] as $foodData) {
-                            $meal->foods()->create([
-                                'fatsecret_food_id' => $foodData['fatsecret_food_id'] ?? 'manual_' . uniqid(),
-                                'name' => $foodData['name'],
-                                'serving_size' => $foodData['serving_size'],
-                                'serving_unit' => $foodData['serving_unit'],
-                                'calories' => $foodData['calories'],
-                                'protein' => $foodData['protein'],
-                                'carbs' => $foodData['carbs'],
-                                'fat' => $foodData['fat'],
-                            ]);
-                        }
-                    }
+        $meals = $request->filled('meals_data') ? (json_decode($request->input('meals_data'), true) ?: []) : [];
+        $mealsCalories = 0;
+        $mealsProtein = 0;
+        $mealsCarbs = 0;
+        $mealsFat = 0;
+        if (is_array($meals)) {
+            foreach ($meals as $m) {
+                foreach (($m['foods'] ?? []) as $f) {
+                    $mealsCalories += (float) ($f['calories'] ?? 0);
+                    $mealsProtein += (float) ($f['protein'] ?? 0);
+                    $mealsCarbs += (float) ($f['carbs'] ?? 0);
+                    $mealsFat += (float) ($f['fat'] ?? 0);
                 }
             }
         }
+
+        $targetCalories = (int) round((float) ($data['target_calories'] ?? 0) ?: $mealsCalories);
+        $totalProtein = round((float) ($data['total_protein'] ?? 0) ?: $mealsProtein, 2);
+        $totalCarbs = round((float) ($data['total_carbs'] ?? 0) ?: $mealsCarbs, 2);
+        $totalFat = round((float) ($data['total_fat'] ?? 0) ?: $mealsFat, 2);
+
+        $plan = \Illuminate\Support\Facades\DB::transaction(function () use ($data, $meals, $targetCalories, $totalProtein, $totalCarbs, $totalFat) {
+            $createdPlan = NutritionPlan::create([
+                'coach_id' => auth()->id(),
+                'client_id' => $data['client_id'],
+                'name' => !empty($data['name']) ? trim($data['name']) : 'Plan de Alimentación',
+                'description' => $data['description'] ?? null,
+                'objective' => !empty($data['objective']) ? $data['objective'] : 'mantenimiento',
+                'target_calories' => $targetCalories,
+                'total_calories' => $targetCalories,
+                'total_protein' => $totalProtein,
+                'total_carbs' => $totalCarbs,
+                'total_fat' => $totalFat,
+                'gender' => $data['gender'] ?? null,
+                'weight' => $data['weight'] ?? null,
+                'height' => $data['height'] ?? null,
+                'age' => $data['age'] ?? null,
+                'activity_level' => $data['activity_level'] ?? null,
+                'formula' => $data['formula'] ?? null,
+                'caloric_adjustment' => $data['caloric_adjustment'] ?? null,
+            ]);
+
+            if (is_array($meals) && count($meals) > 0) {
+                $this->saveMealsToPlan($createdPlan, $meals);
+            }
+
+            return $createdPlan;
+        });
 
         $redirect = redirect()->route('admin.users.nutrition-plans', $plan->client_id)->with('success', 'Plan de alimentación creado correctamente.');
 
@@ -370,7 +449,7 @@ class NutritionPlanController extends Controller
 
     public function edit(NutritionPlan $nutritionPlan)
     {
-        if (auth()->user()->role === 'coach' && $nutritionPlan->coach_id !== auth()->id() && $nutritionPlan->client_id !== auth()->id()) {
+        if (!$this->canCoachAccessPlan($nutritionPlan)) {
             abort(403, 'No tienes permiso para editar este plan nutricional.');
         }
 
@@ -396,11 +475,11 @@ class NutritionPlanController extends Controller
             'client_id' => 'required|integer|exists:users,id',
             'name' => 'nullable|string|max:255',
             'description' => 'nullable|string',
-            'objective' => 'required|string',
-            'target_calories' => 'required|integer',
-            'total_protein' => 'required|numeric',
-            'total_carbs' => 'required|numeric',
-            'total_fat' => 'required|numeric',
+            'objective' => 'nullable|string',
+            'target_calories' => 'nullable|numeric',
+            'total_protein' => 'nullable|numeric',
+            'total_carbs' => 'nullable|numeric',
+            'total_fat' => 'nullable|numeric',
             'gender' => 'nullable|string',
             'weight' => 'nullable|numeric',
             'height' => 'nullable|numeric',
@@ -412,11 +491,11 @@ class NutritionPlanController extends Controller
         ]);
 
         if (auth()->user()->role === 'coach') {
-            if ($nutritionPlan->coach_id !== auth()->id()) {
+            if (!$this->canCoachAccessPlan($nutritionPlan)) {
                 abort(403, 'No tienes permiso para modificar este plan.');
             }
             $client = \App\Models\User::find($data['client_id']);
-            if (!$client || ($client->coach_id !== auth()->id() && !is_null($client->coach_id))) {
+            if (!$client || (!is_null($client->coach_id) && (int) $client->coach_id !== (int) auth()->id())) {
                 abort(403, 'No tienes permiso para asignar un plan a este usuario.');
             }
             if (is_null($client->coach_id)) {
@@ -425,81 +504,109 @@ class NutritionPlanController extends Controller
             }
         }
 
-        if ($request->boolean('save_as_new')) {
-            $targetPlan = NutritionPlan::create([
-                'coach_id' => auth()->id(),
-                'client_id' => $data['client_id'],
-                'name' => $data['name'] ?: ($nutritionPlan->name ? $nutritionPlan->name . ' (Copia)' : 'Plan de Alimentación'),
-                'description' => $data['description'],
-                'objective' => $data['objective'],
-                'target_calories' => $data['target_calories'],
-                'total_calories' => $data['target_calories'], 
-                'total_protein' => $data['total_protein'],
-                'total_carbs' => $data['total_carbs'],
-                'total_fat' => $data['total_fat'],
-                'gender' => $data['gender'] ?? null,
-                'weight' => $data['weight'] ?? null,
-                'height' => $data['height'] ?? null,
-                'age' => $data['age'] ?? null,
-                'activity_level' => $data['activity_level'] ?? null,
-                'formula' => $data['formula'] ?? null,
-                'caloric_adjustment' => $data['caloric_adjustment'] ?? null,
-            ]);
-            $successMsg = 'Plan guardado como nuevo plan exitosamente para ' . ($targetPlan->client->name ?? 'el cliente') . '.';
-        } else {
-            $nutritionPlan->update([
-                'client_id' => $data['client_id'],
-                'name' => $data['name'],
-                'description' => $data['description'],
-                'objective' => $data['objective'],
-                'target_calories' => $data['target_calories'],
-                'total_calories' => $data['target_calories'], 
-                'total_protein' => $data['total_protein'],
-                'total_carbs' => $data['total_carbs'],
-                'total_fat' => $data['total_fat'],
-                'gender' => $data['gender'] ?? null,
-                'weight' => $data['weight'] ?? null,
-                'height' => $data['height'] ?? null,
-                'age' => $data['age'] ?? null,
-                'activity_level' => $data['activity_level'] ?? null,
-                'formula' => $data['formula'] ?? null,
-                'caloric_adjustment' => $data['caloric_adjustment'] ?? null,
-            ]);
-            $nutritionPlan->meals()->delete();
-            $targetPlan = $nutritionPlan;
-            $successMsg = 'Plan de alimentación actualizado correctamente.';
-        }
-
-        if ($request->filled('meals_data')) {
-            $meals = json_decode($request->input('meals_data'), true);
-            if (is_array($meals)) {
-                foreach ($meals as $index => $mealData) {
-                    $mealName = isset($mealData['name']) && trim($mealData['name']) !== ''
-                        ? trim($mealData['name'])
-                        : 'Comida ' . ($index + 1);
-
-                    $meal = $targetPlan->meals()->create([
-                        'name' => $mealName,
-                        'time' => $mealData['time'] ?? null,
-                    ]);
-
-                    if (isset($mealData['foods']) && is_array($mealData['foods'])) {
-                        foreach ($mealData['foods'] as $foodData) {
-                            $meal->foods()->create([
-                                'fatsecret_food_id' => $foodData['fatsecret_food_id'] ?? 'manual_' . uniqid(),
-                                'name' => $foodData['name'],
-                                'serving_size' => $foodData['serving_size'],
-                                'serving_unit' => $foodData['serving_unit'],
-                                'calories' => $foodData['calories'],
-                                'protein' => $foodData['protein'],
-                                'carbs' => $foodData['carbs'],
-                                'fat' => $foodData['fat'],
-                            ]);
-                        }
-                    }
+        $meals = $request->filled('meals_data') ? (json_decode($request->input('meals_data'), true) ?: []) : null;
+        $mealsCalories = 0;
+        $mealsProtein = 0;
+        $mealsCarbs = 0;
+        $mealsFat = 0;
+        if (is_array($meals)) {
+            foreach ($meals as $m) {
+                foreach (($m['foods'] ?? []) as $f) {
+                    $mealsCalories += (float) ($f['calories'] ?? 0);
+                    $mealsProtein += (float) ($f['protein'] ?? 0);
+                    $mealsCarbs += (float) ($f['carbs'] ?? 0);
+                    $mealsFat += (float) ($f['fat'] ?? 0);
                 }
             }
         }
+
+        $targetCalories = (int) round(
+            (float) ($data['target_calories'] ?? 0)
+            ?: ($nutritionPlan->target_calories ?: ($nutritionPlan->total_calories ?: $mealsCalories))
+        );
+        $totalProtein = round(
+            (float) ($data['total_protein'] ?? 0)
+            ?: ($nutritionPlan->total_protein ?: $mealsProtein),
+            2
+        );
+        $totalCarbs = round(
+            (float) ($data['total_carbs'] ?? 0)
+            ?: ($nutritionPlan->total_carbs ?: $mealsCarbs),
+            2
+        );
+        $totalFat = round(
+            (float) ($data['total_fat'] ?? 0)
+            ?: ($nutritionPlan->total_fat ?: $mealsFat),
+            2
+        );
+
+        $saveAsNew = $request->boolean('save_as_new');
+
+        $targetPlan = \Illuminate\Support\Facades\DB::transaction(function () use (
+            $nutritionPlan,
+            $data,
+            $meals,
+            $saveAsNew,
+            $targetCalories,
+            $totalProtein,
+            $totalCarbs,
+            $totalFat
+        ) {
+            if ($saveAsNew) {
+                $plan = NutritionPlan::create([
+                    'coach_id' => auth()->id(),
+                    'client_id' => $data['client_id'],
+                    'name' => !empty($data['name']) ? trim($data['name']) : ($nutritionPlan->name ? $nutritionPlan->name . ' (Copia)' : 'Plan de Alimentación'),
+                    'description' => $data['description'] ?? $nutritionPlan->description,
+                    'objective' => !empty($data['objective']) ? $data['objective'] : ($nutritionPlan->objective ?: 'mantenimiento'),
+                    'target_calories' => $targetCalories,
+                    'total_calories' => $targetCalories,
+                    'total_protein' => $totalProtein,
+                    'total_carbs' => $totalCarbs,
+                    'total_fat' => $totalFat,
+                    'gender' => $data['gender'] ?? $nutritionPlan->gender,
+                    'weight' => $data['weight'] ?? $nutritionPlan->weight,
+                    'height' => $data['height'] ?? $nutritionPlan->height,
+                    'age' => $data['age'] ?? $nutritionPlan->age,
+                    'activity_level' => $data['activity_level'] ?? $nutritionPlan->activity_level,
+                    'formula' => $data['formula'] ?? $nutritionPlan->formula,
+                    'caloric_adjustment' => $data['caloric_adjustment'] ?? $nutritionPlan->caloric_adjustment,
+                ]);
+            } else {
+                $nutritionPlan->update([
+                    'client_id' => $data['client_id'],
+                    'name' => !empty($data['name']) ? trim($data['name']) : ($nutritionPlan->name ?: 'Plan de Alimentación'),
+                    'description' => $data['description'] ?? null,
+                    'objective' => !empty($data['objective']) ? $data['objective'] : ($nutritionPlan->objective ?: 'mantenimiento'),
+                    'target_calories' => $targetCalories,
+                    'total_calories' => $targetCalories,
+                    'total_protein' => $totalProtein,
+                    'total_carbs' => $totalCarbs,
+                    'total_fat' => $totalFat,
+                    'gender' => $data['gender'] ?? null,
+                    'weight' => $data['weight'] ?? null,
+                    'height' => $data['height'] ?? null,
+                    'age' => $data['age'] ?? null,
+                    'activity_level' => $data['activity_level'] ?? null,
+                    'formula' => $data['formula'] ?? null,
+                    'caloric_adjustment' => $data['caloric_adjustment'] ?? null,
+                ]);
+                $plan = $nutritionPlan;
+            }
+
+            if (is_array($meals)) {
+                if (!$saveAsNew) {
+                    $plan->meals()->delete();
+                }
+                $this->saveMealsToPlan($plan, $meals);
+            }
+
+            return $plan;
+        });
+
+        $successMsg = $saveAsNew
+            ? 'Plan guardado como nuevo plan exitosamente para ' . ($targetPlan->client->name ?? 'el cliente') . '.'
+            : 'Plan de alimentación actualizado correctamente.';
 
         $redirect = redirect()->route('admin.users.nutrition-plans', $targetPlan->client_id)->with('success', $successMsg);
 
@@ -507,7 +614,7 @@ class NutritionPlanController extends Controller
             $client = \App\Models\User::find($data['client_id']);
             if ($client && !empty($client->phone)) {
                 $planText = $targetPlan->name ? ": {$targetPlan->name}" : "";
-                $actionText = $request->boolean('save_as_new') ? "un nuevo plan de alimentación" : "tu plan de alimentación";
+                $actionText = $saveAsNew ? "un nuevo plan de alimentación" : "tu plan de alimentación";
                 $message = urlencode("Hola {$client->name}, he preparado {$actionText}{$planText}. Puedes revisarlo en tu app.");
                 $phone = preg_replace('/[^0-9]/', '', $client->phone);
                 $redirect->with('whatsapp_url', "https://wa.me/{$phone}?text={$message}");
@@ -519,19 +626,21 @@ class NutritionPlanController extends Controller
 
     public function duplicate(Request $request, NutritionPlan $nutritionPlan)
     {
-        if (auth()->user()->role === 'coach' && $nutritionPlan->coach_id !== auth()->id() && $nutritionPlan->client_id !== auth()->id()) {
+        if (!$this->canCoachAccessPlan($nutritionPlan)) {
             abort(403, 'No tienes permiso para duplicar este plan.');
         }
 
         $data = $request->validate([
             'client_id' => 'required|integer|exists:users,id',
             'name' => 'nullable|string|max:255',
-            'action_type' => 'required|string|in:direct,edit',
+            'action_type' => 'nullable|string|in:direct,edit',
         ]);
+
+        $actionType = $data['action_type'] ?? 'edit';
 
         if (auth()->user()->role === 'coach') {
             $client = \App\Models\User::find($data['client_id']);
-            if (!$client || ($client->coach_id !== auth()->id() && !is_null($client->coach_id))) {
+            if (!$client || (!is_null($client->coach_id) && (int) $client->coach_id !== (int) auth()->id())) {
                 abort(403, 'No tienes permiso para asignar un plan a este usuario.');
             }
             if (is_null($client->coach_id)) {
@@ -542,18 +651,21 @@ class NutritionPlanController extends Controller
 
         $nutritionPlan->load('meals.foods');
 
-        $newPlan = \DB::transaction(function () use ($nutritionPlan, $data) {
+        $newPlan = \Illuminate\Support\Facades\DB::transaction(function () use ($nutritionPlan, $data) {
+            $targetCals = (int) round((float) ($nutritionPlan->target_calories ?: ($nutritionPlan->total_calories ?: 0)));
+            $totalCals = round((float) ($nutritionPlan->total_calories ?: $targetCals), 2);
+
             $clonedPlan = NutritionPlan::create([
                 'coach_id' => auth()->id(),
                 'client_id' => $data['client_id'],
-                'name' => $data['name'] ?: ($nutritionPlan->name ? $nutritionPlan->name . ' (Copia)' : 'Plan de Alimentación'),
+                'name' => !empty($data['name']) ? trim($data['name']) : ($nutritionPlan->name ? $nutritionPlan->name . ' (Copia)' : 'Plan de Alimentación (Copia)'),
                 'description' => $nutritionPlan->description,
-                'objective' => $nutritionPlan->objective,
-                'target_calories' => $nutritionPlan->target_calories,
-                'total_calories' => $nutritionPlan->total_calories ?? $nutritionPlan->target_calories,
-                'total_protein' => $nutritionPlan->total_protein,
-                'total_carbs' => $nutritionPlan->total_carbs,
-                'total_fat' => $nutritionPlan->total_fat,
+                'objective' => $nutritionPlan->objective ?: 'mantenimiento',
+                'target_calories' => $targetCals,
+                'total_calories' => $totalCals,
+                'total_protein' => round((float) ($nutritionPlan->total_protein ?? 0), 2),
+                'total_carbs' => round((float) ($nutritionPlan->total_carbs ?? 0), 2),
+                'total_fat' => round((float) ($nutritionPlan->total_fat ?? 0), 2),
                 'gender' => $nutritionPlan->gender,
                 'weight' => $nutritionPlan->weight,
                 'height' => $nutritionPlan->height,
@@ -563,14 +675,11 @@ class NutritionPlanController extends Controller
                 'caloric_adjustment' => $nutritionPlan->caloric_adjustment,
             ]);
 
+            $mealsPayload = [];
             foreach ($nutritionPlan->meals as $meal) {
-                $newMeal = $clonedPlan->meals()->create([
-                    'name' => $meal->name,
-                    'time' => $meal->time,
-                ]);
-
+                $foodsArr = [];
                 foreach ($meal->foods as $food) {
-                    $newMeal->foods()->create([
+                    $foodsArr[] = [
                         'fatsecret_food_id' => $food->fatsecret_food_id,
                         'name' => $food->name,
                         'serving_size' => $food->serving_size,
@@ -579,8 +688,17 @@ class NutritionPlanController extends Controller
                         'protein' => $food->protein,
                         'carbs' => $food->carbs,
                         'fat' => $food->fat,
-                    ]);
+                    ];
                 }
+                $mealsPayload[] = [
+                    'name' => $meal->name,
+                    'time' => $meal->time,
+                    'foods' => $foodsArr,
+                ];
+            }
+
+            if (!empty($mealsPayload)) {
+                $this->saveMealsToPlan($clonedPlan, $mealsPayload);
             }
 
             return $clonedPlan;
@@ -596,7 +714,7 @@ class NutritionPlanController extends Controller
             }
         }
 
-        if ($data['action_type'] === 'edit') {
+        if ($actionType === 'edit') {
             $redirect = redirect()->route('admin.nutrition-plans.edit', $newPlan)
                 ->with('success', 'Plan duplicado exitosamente. Ahora puedes modificar y personalizar las comidas para ' . ($newPlan->client->name ?? 'el cliente') . '.');
         } else {
@@ -611,18 +729,34 @@ class NutritionPlanController extends Controller
         return $redirect;
     }
 
-    public function destroy(NutritionPlan $nutritionPlan)
+    public function destroy(Request $request, NutritionPlan $nutritionPlan)
     {
-        if (auth()->user()->role === 'coach' && $nutritionPlan->coach_id !== auth()->id()) {
+        if (!$this->canCoachAccessPlan($nutritionPlan)) {
             abort(403, 'No tienes permiso para eliminar este plan.');
         }
-        $nutritionPlan->delete();
-        return redirect()->route('admin.nutrition-plans.index')->with('success', 'Plan nutricional eliminado correctamente.');
+
+        $clientId = $nutritionPlan->client_id;
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($nutritionPlan) {
+            foreach ($nutritionPlan->meals as $meal) {
+                $meal->foods()->delete();
+                $meal->delete();
+            }
+            $nutritionPlan->delete();
+        });
+
+        if ($request->input('redirect_to') === 'user' && $clientId) {
+            return redirect()->route('admin.users.nutrition-plans', $clientId)
+                ->with('success', 'Plan nutricional eliminado correctamente.');
+        }
+
+        return redirect()->route('admin.nutrition-plans.index')
+            ->with('success', 'Plan nutricional eliminado correctamente.');
     }
 
     public function exportPdf(NutritionPlan $nutritionPlan)
     {
-        if (auth()->user()->role === 'coach' && $nutritionPlan->coach_id !== auth()->id() && $nutritionPlan->client_id !== auth()->id()) {
+        if (!$this->canCoachAccessPlan($nutritionPlan)) {
             abort(403, 'No tienes permiso para exportar este plan nutricional.');
         }
 

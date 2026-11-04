@@ -21,4 +21,11 @@ class NutritionPlanMeal extends Model
     {
         return $this->hasMany(MealFood::class);
     }
+
+    protected static function booted()
+    {
+        static::deleting(function ($meal) {
+            $meal->foods()->delete();
+        });
+    }
 }

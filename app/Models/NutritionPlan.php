@@ -43,4 +43,13 @@ class NutritionPlan extends Model
     {
         return $this->hasMany(NutritionPlanMeal::class);
     }
+
+    protected static function booted()
+    {
+        static::deleting(function ($plan) {
+            $plan->meals()->each(function ($meal) {
+                $meal->delete();
+            });
+        });
+    }
 }

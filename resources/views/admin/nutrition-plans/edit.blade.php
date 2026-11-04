@@ -32,6 +32,17 @@
                 </div>
 
                 <div class="flex items-center gap-3 self-start md:self-auto shrink-0">
+                    <form action="{{ route('admin.nutrition-plans.destroy', $nutritionPlan) }}" method="POST" class="inline-block" onsubmit="return confirm('¿Estás seguro de eliminar este plan de alimentación?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit"
+                            class="px-4 py-2 rounded-xl text-sm font-medium text-red-300 bg-red-500/15 hover:bg-red-500/25 hover:text-white border border-red-500/30 transition-all flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Eliminar Plan
+                        </button>
+                    </form>
                     <a href="{{ route('admin.nutrition-plans.index') }}"
                         class="px-4 py-2 rounded-xl text-sm font-medium text-slate-300 bg-white/5 hover:bg-white/10 hover:text-white border border-white/10 transition-all flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -257,10 +268,10 @@
                                 <span class="text-xs px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 font-semibold border border-indigo-100">Meta Plan</span>
                             </div>
                             <div class="flex items-baseline gap-2">
-                                <span id="display_target" class="text-4xl sm:text-5xl font-black text-indigo-600 tracking-tight">{{ old('target_calories', $nutritionPlan->target_calories ?? 0) }}</span>
+                                <span id="display_target" class="text-4xl sm:text-5xl font-black text-indigo-600 tracking-tight">{{ old('target_calories', (int) round($nutritionPlan->target_calories ?: ($nutritionPlan->total_calories ?: 0))) }}</span>
                                 <span class="text-base font-bold text-indigo-400">kcal</span>
                             </div>
-                            <input type="hidden" name="target_calories" id="input_target_calories" value="{{ old('target_calories', $nutritionPlan->target_calories) }}">
+                            <input type="hidden" name="target_calories" id="input_target_calories" value="{{ old('target_calories', (int) round($nutritionPlan->target_calories ?: ($nutritionPlan->total_calories ?: 0))) }}">
                         </div>
                     </div>
 
@@ -334,7 +345,7 @@
                             <span class="text-sm font-bold text-blue-600">gramos</span>
                         </div>
                         <p class="text-xs text-slate-500 mt-2 font-medium">Aporte: <span id="display_protein_kcal" class="font-bold text-blue-700">0</span> kcal</p>
-                        <input type="hidden" name="total_protein" id="input_protein" value="{{ old('total_protein', $nutritionPlan->total_protein) }}">
+                        <input type="hidden" name="total_protein" id="input_protein" value="{{ old('total_protein', $nutritionPlan->total_protein ?? 0) }}">
                     </div>
 
                     <!-- Carbohidratos -->
@@ -351,7 +362,7 @@
                             <span class="text-sm font-bold text-amber-600">gramos</span>
                         </div>
                         <p class="text-xs text-slate-500 mt-2 font-medium">Aporte: <span id="display_carbs_kcal" class="font-bold text-amber-700">0</span> kcal</p>
-                        <input type="hidden" name="total_carbs" id="input_carbs" value="{{ old('total_carbs', $nutritionPlan->total_carbs) }}">
+                        <input type="hidden" name="total_carbs" id="input_carbs" value="{{ old('total_carbs', $nutritionPlan->total_carbs ?? 0) }}">
                     </div>
 
                     <!-- Grasas -->
@@ -368,7 +379,7 @@
                             <span class="text-sm font-bold text-emerald-600">gramos</span>
                         </div>
                         <p class="text-xs text-slate-500 mt-2 font-medium">Aporte: <span id="display_lipids_kcal" class="font-bold text-emerald-700">0</span> kcal</p>
-                        <input type="hidden" name="total_fat" id="input_fat" value="{{ old('total_fat', $nutritionPlan->total_fat) }}">
+                        <input type="hidden" name="total_fat" id="input_fat" value="{{ old('total_fat', $nutritionPlan->total_fat ?? 0) }}">
                     </div>
                 </div>
             </div>
@@ -658,6 +669,7 @@
 @endsection
 
 @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         const DB_CATALOG_FOODS = @json($catalogFoods ?? []);
         document.addEventListener('DOMContentLoaded', function () {
@@ -1609,9 +1621,9 @@
             calcObjective.value = "{{ old('objective', $nutritionPlan->objective ?? 'mantenimiento') }}";
             calcAdjustment.value = "{{ old('caloric_adjustment', $nutritionPlan->caloric_adjustment ?? '0') }}";
 
-            @if($nutritionPlan->weight && $nutritionPlan->total_protein && $nutritionPlan->target_calories)
-                calcProteinKg.value = ({{ $nutritionPlan->total_protein }} / {{ $nutritionPlan->weight }}).toFixed(1);
-                calcLipidsKg.value = ({{ $nutritionPlan->total_fat }} / {{ $nutritionPlan->weight }}).toFixed(1);
+            @if($nutritionPlan->weight && ($nutritionPlan->total_protein || $nutritionPlan->total_fat))
+                calcProteinKg.value = ({{ (float) ($nutritionPlan->total_protein ?? 0) }} / {{ (float) ($nutritionPlan->weight ?: 1) }}).toFixed(1);
+                calcLipidsKg.value = ({{ (float) ($nutritionPlan->total_fat ?? 0) }} / {{ (float) ($nutritionPlan->weight ?: 1) }}).toFixed(1);
             @endif
 
             @php
@@ -1651,7 +1663,7 @@
                 const newGender = selected.getAttribute('data-gender');
                 const clientName = selected.getAttribute('data-name');
 
-                if (selected.value !== originalClientId && (newWeight || newHeight || newAge)) {
+                if (selected.value !== originalClientId && (newWeight || newHeight || newAge) && typeof Swal !== 'undefined') {
                     Swal.fire({
                         title: '¿Cargar datos del nuevo cliente?',
                         html: `Has cambiado el cliente asignado a <strong>${clientName}</strong>.<br><br>` +
@@ -1680,16 +1692,85 @@
                 }
             });
 
+            function syncFormBeforeSubmit() {
+                document.querySelectorAll('.meal-name-input').forEach(input => {
+                    const mIdx = parseInt(input.getAttribute('data-meal-idx'));
+                    if (!isNaN(mIdx) && meals[mIdx]) {
+                        meals[mIdx].name = input.value;
+                    }
+                });
+                updateMealsData();
+
+                let sumCals = 0, sumProt = 0, sumCarbs = 0, sumFat = 0;
+                meals.forEach(m => {
+                    (m.foods || []).forEach(f => {
+                        sumCals += parseFloat(f.calories || 0);
+                        sumProt += parseFloat(f.protein || 0);
+                        sumCarbs += parseFloat(f.carbs || 0);
+                        sumFat += parseFloat(f.fat || 0);
+                    });
+                });
+
+                if (!inputTargetCalories.value || parseFloat(inputTargetCalories.value) <= 0) {
+                    inputTargetCalories.value = Math.round(sumCals);
+                } else {
+                    inputTargetCalories.value = Math.round(parseFloat(inputTargetCalories.value));
+                }
+                if (!inputProtein.value || parseFloat(inputProtein.value) <= 0) {
+                    inputProtein.value = sumProt.toFixed(1);
+                }
+                if (!inputCarbs.value || parseFloat(inputCarbs.value) <= 0) {
+                    inputCarbs.value = sumCarbs.toFixed(1);
+                }
+                if (!inputFat.value || parseFloat(inputFat.value) <= 0) {
+                    inputFat.value = sumFat.toFixed(1);
+                }
+            }
+
+            function finalizeSubmit(formEl, isSaveAsNew) {
+                syncFormBeforeSubmit();
+                formEl.dataset.confirmed = 'true';
+
+                const btn = isSaveAsNew ? document.getElementById('btn_save_as_new') : document.getElementById('btn_submit');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                    btn.innerHTML = '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-current inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Guardando...';
+                }
+
+                HTMLFormElement.prototype.submit.call(formEl);
+            }
+
+            const formElement = document.getElementById('nutrition-form');
+
+            if (btnSubmit) {
+                btnSubmit.addEventListener('click', function () {
+                    document.getElementById('input_save_as_new').value = '0';
+                });
+            }
+
             const btnSaveAsNew = document.getElementById('btn_save_as_new');
-            if (btnSaveAsNew) {
+            if (btnSaveAsNew && formElement) {
                 btnSaveAsNew.addEventListener('click', function () {
                     const select = document.getElementById('client_id');
                     if (!select.value) {
-                        Swal.fire('Atención', 'Por favor selecciona un cliente para el nuevo plan.', 'warning');
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire('Atención', 'Por favor selecciona un cliente para el nuevo plan.', 'warning');
+                        } else {
+                            alert('Por favor selecciona un cliente para el nuevo plan.');
+                        }
                         return;
                     }
                     const option = select.options[select.selectedIndex];
-                    const clientName = option.getAttribute('data-name');
+                    const clientName = option.getAttribute('data-name') || 'el cliente';
+
+                    if (typeof Swal === 'undefined') {
+                        if (confirm(`¿Guardar una nueva copia de este plan asignada a ${clientName}?`)) {
+                            document.getElementById('input_save_as_new').value = '1';
+                            finalizeSubmit(formElement, true);
+                        }
+                        return;
+                    }
 
                     Swal.fire({
                         title: '¿Guardar como nuevo plan?',
@@ -1712,7 +1793,6 @@
                 });
             }
 
-            const formElement = document.getElementById('nutrition-form');
             if (formElement) {
                 formElement.addEventListener('submit', function (e) {
                     if (!this.dataset.confirmed) {
@@ -1720,9 +1800,22 @@
 
                         const isSaveAsNew = document.getElementById('input_save_as_new').value === '1';
                         const select = document.getElementById('client_id');
+                        if (!select.value) {
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire('Atención', 'Por favor selecciona un cliente.', 'warning');
+                            } else {
+                                alert('Por favor selecciona un cliente.');
+                            }
+                            return;
+                        }
                         const option = select.selectedIndex > 0 ? select.options[select.selectedIndex] : null;
                         const clientName = option ? option.getAttribute('data-name') : 'el cliente';
-                        
+
+                        if (typeof Swal === 'undefined') {
+                            finalizeSubmit(this, isSaveAsNew);
+                            return;
+                        }
+
                         Swal.fire({
                             title: '¿Avisar por WhatsApp?',
                             text: isSaveAsNew 
@@ -1747,27 +1840,12 @@
                                     window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
                                 }
                             }
-                            
-                            this.dataset.confirmed = true;
-                            
-                            const btn = isSaveAsNew ? document.getElementById('btn_save_as_new') : document.getElementById('btn_submit');
-                            if (btn) {
-                                btn.disabled = true;
-                                btn.classList.add('opacity-50', 'cursor-not-allowed');
-                                btn.innerHTML = '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-current inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Guardando...';
-                            }
 
-                            const mealsDataInput = document.getElementById('input_meals_data');
-                            if (mealsDataInput) {
-                                mealsDataInput.value = JSON.stringify(window.meals);
-                            }
-
-                            this.submit();
+                            finalizeSubmit(this, isSaveAsNew);
                         });
                     }
                 });
             }
         });
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @endpush

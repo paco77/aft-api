@@ -492,7 +492,7 @@
                         </svg>
                     </span>
                     <div>
-                        <h4 class="font-bold text-slate-900 text-base">Añadir Alimento al Tiempo de Comida</h4>
+                        <h4 class="font-bold text-slate-900 text-base" id="modal_food_title">Añadir Alimento al Tiempo de Comida</h4>
                         <p class="text-xs text-slate-500">Consulta el catálogo nutricional por categoría o nombre y calcula
                             sus macros automáticamente</p>
                     </div>
@@ -508,6 +508,7 @@
 
             <div class="p-6 space-y-5 max-h-[82vh] overflow-y-auto">
                 <input type="hidden" id="modal_meal_index">
+                <input type="hidden" id="modal_food_index">
                 <input type="hidden" id="modal_fatsecret_id">
 
                 <!-- BUSCADOR CATÁLOGO BASE DE DATOS NUTRICIONAL -->
@@ -745,11 +746,11 @@
                         Cancelar
                     </button>
                     <button type="button" id="btn_save_food"
-                        class="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-500/20 active:scale-95 text-sm flex items-center gap-1.5">
+                        class="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-500/20 active:scale-95 text-sm flex items-center gap-1.5 cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                         </svg>
-                        Añadir a la Comida
+                        <span id="btn_save_food_text">Añadir a la Comida</span>
                     </button>
                 </div>
             </div>
@@ -802,6 +803,9 @@
             const modalAddFood = document.getElementById('modal_add_food');
             const btnCloseModal = document.getElementById('btn_close_modal');
             const modalMealIndex = document.getElementById('modal_meal_index');
+            const modalFoodIndex = document.getElementById('modal_food_index');
+            const modalFoodTitle = document.getElementById('modal_food_title');
+            const btnSaveFoodText = document.getElementById('btn_save_food_text');
             const modalFoodName = document.getElementById('modal_food_name');
             const modalFoodQty = document.getElementById('modal_food_qty');
             const modalFoodUnit = document.getElementById('modal_food_unit');
@@ -821,6 +825,17 @@
                 if (str.includes('/')) return str;
                 const num = parseFloat(str);
                 return isNaN(num) ? str : String(num);
+            }
+
+            function ensureFoodBase(food) {
+                if (!food._baseQty || food._baseQty <= 0) {
+                    const cur = parseQuantityValue(food.serving_size) || 1;
+                    food._baseQty = cur;
+                    food._baseCals = parseFloat(food.calories || 0);
+                    food._baseProt = parseFloat(food.protein || 0);
+                    food._baseCarbs = parseFloat(food.carbs || 0);
+                    food._baseFat = parseFloat(food.fat || 0);
+                }
             }
 
             function updateMealsData() {
@@ -853,7 +868,8 @@
                     let mealCarbs = 0;
                     let mealFat = 0;
 
-                    meal.foods.forEach(f => {
+                    (meal.foods || []).forEach(f => {
+                        ensureFoodBase(f);
                         mealTotalCals += parseFloat(f.calories || 0);
                         mealProt += parseFloat(f.protein || 0);
                         mealCarbs += parseFloat(f.carbs || 0);
@@ -866,36 +882,48 @@
                     planTotalFat += mealFat;
 
                     let foodsHtml = '';
-                    if (meal.foods.length > 0) {
+                    if (meal.foods && meal.foods.length > 0) {
                         foodsHtml = `<ul class="divide-y divide-slate-100 border-t border-slate-100 mt-3">`;
                         meal.foods.forEach((food, foodIndex) => {
+                            ensureFoodBase(food);
                             foodsHtml += `
-                                    <li class="py-2.5 px-3 rounded-xl hover:bg-slate-50 flex justify-between items-center group transition-colors gap-3">
+                                    <li class="py-2.5 px-3 rounded-xl hover:bg-slate-50 flex justify-between items-center group transition-colors gap-3" data-meal-idx="${mealIndex}" data-food-idx="${foodIndex}">
                                         <div class="flex items-center gap-3 min-w-0">
                                             <div class="w-2 h-2 rounded-full bg-indigo-500 shrink-0"></div>
                                             <div class="min-w-0">
                                                 <p class="font-bold text-sm text-slate-800 truncate">${food.name}</p>
                                                 <div class="flex flex-wrap items-center gap-1.5 mt-1">
-                                                    <span class="text-xs font-bold px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md">
-                                                        ${formatServingSize(food.serving_size)} ${food.serving_unit}
+                                                    <!-- Cantidad editable directamente -->
+                                                    <div class="inline-flex items-center gap-1 bg-white border border-slate-200/90 rounded-lg px-2 py-0.5 shadow-2xs hover:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all" title="Haz clic para modificar la cantidad">
+                                                        <span class="text-[10px] font-bold text-slate-400 uppercase select-none">Cant:</span>
+                                                        <input type="text" 
+                                                            value="${formatServingSize(food.serving_size)}" 
+                                                            class="food-qty-input w-12 sm:w-14 text-xs font-bold text-slate-900 bg-transparent text-center border-0 p-0 focus:ring-0 focus:outline-none"
+                                                            data-meal-idx="${mealIndex}" 
+                                                            data-food-idx="${foodIndex}"
+                                                            title="Modificar cantidad de este alimento">
+                                                        <span class="text-xs font-semibold text-slate-600 select-none">${food.serving_unit}</span>
+                                                    </div>
+                                                    <span class="food-cals-badge text-xs font-bold px-2 py-0.5 bg-slate-900 text-white rounded-md">
+                                                        <span class="food-cals-val">${parseFloat(food.calories || 0).toFixed(0)}</span> kcal
                                                     </span>
-                                                    <span class="text-xs font-bold px-2 py-0.5 bg-slate-900 text-white rounded-md">
-                                                        ${parseFloat(food.calories || 0).toFixed(0)} kcal
+                                                    <span class="food-prot-badge text-[11px] font-semibold px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md border border-blue-100">
+                                                        <span class="food-prot-val">P: ${parseFloat(food.protein || 0).toFixed(1)}g</span>
                                                     </span>
-                                                    <span class="text-[11px] font-semibold px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md border border-blue-100">
-                                                        P: ${parseFloat(food.protein || 0).toFixed(1)}g
+                                                    <span class="food-carbs-badge text-[11px] font-semibold px-2 py-0.5 bg-amber-50 text-amber-700 rounded-md border border-amber-100">
+                                                        <span class="food-carbs-val">C: ${parseFloat(food.carbs || 0).toFixed(1)}g</span>
                                                     </span>
-                                                    <span class="text-[11px] font-semibold px-2 py-0.5 bg-amber-50 text-amber-700 rounded-md border border-amber-100">
-                                                        C: ${parseFloat(food.carbs || 0).toFixed(1)}g
-                                                    </span>
-                                                    <span class="text-[11px] font-semibold px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-md border border-emerald-100">
-                                                        G: ${parseFloat(food.fat || 0).toFixed(1)}g
+                                                    <span class="food-fat-badge text-[11px] font-semibold px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-md border border-emerald-100">
+                                                        <span class="food-fat-val">G: ${parseFloat(food.fat || 0).toFixed(1)}g</span>
                                                     </span>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="flex items-center gap-2 shrink-0">
-                                            <button type="button" class="btn-remove-food text-slate-300 hover:text-rose-500 p-1.5 rounded-lg hover:bg-rose-50 transition-colors" data-meal-idx="${mealIndex}" data-food-idx="${foodIndex}" title="Eliminar alimento">
+                                        <div class="flex items-center gap-1.5 shrink-0">
+                                            <button type="button" class="btn-edit-food text-slate-400 hover:text-indigo-600 p-1.5 rounded-lg hover:bg-indigo-50 transition-colors cursor-pointer" data-meal-idx="${mealIndex}" data-food-idx="${foodIndex}" title="Modificar alimento / porción">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                            </button>
+                                            <button type="button" class="btn-remove-food text-slate-300 hover:text-rose-500 p-1.5 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer" data-meal-idx="${mealIndex}" data-food-idx="${foodIndex}" title="Eliminar alimento">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                             </button>
                                         </div>
@@ -918,13 +946,13 @@
                                         <input type="text" class="meal-name-input font-bold text-slate-900 border-b-2 border-dashed border-slate-200 hover:border-indigo-400 focus:border-indigo-600 bg-transparent py-1 px-1 focus:ring-0 w-full placeholder-slate-400 focus:outline-none transition-colors text-base" value="${meal.name ? meal.name : ''}" data-meal-idx="${mealIndex}" placeholder="Ej. Desayuno, Almuerzo, Merienda, Cena...">
                                     </div>
                                     <div class="flex items-center justify-between sm:justify-end gap-2 flex-wrap">
-                                        <div class="flex items-center gap-1.5 text-[11px] font-bold">
-                                            <span class="px-2 py-1 rounded-lg bg-slate-100 text-slate-800">${mealTotalCals.toFixed(0)} kcal</span>
-                                            <span class="px-2 py-1 rounded-lg bg-blue-50 text-blue-700">P: ${mealProt.toFixed(1)}g</span>
-                                            <span class="px-2 py-1 rounded-lg bg-amber-50 text-amber-700">C: ${mealCarbs.toFixed(1)}g</span>
-                                            <span class="px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700">G: ${mealFat.toFixed(1)}g</span>
+                                        <div class="meal-macros-${mealIndex} flex items-center gap-1.5 text-[11px] font-bold">
+                                            <span class="meal-cals px-2 py-1 rounded-lg bg-slate-100 text-slate-800">${mealTotalCals.toFixed(0)} kcal</span>
+                                            <span class="meal-prot px-2 py-1 rounded-lg bg-blue-50 text-blue-700">P: ${mealProt.toFixed(1)}g</span>
+                                            <span class="meal-carbs px-2 py-1 rounded-lg bg-amber-50 text-amber-700">C: ${mealCarbs.toFixed(1)}g</span>
+                                            <span class="meal-fat px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700">G: ${mealFat.toFixed(1)}g</span>
                                         </div>
-                                        <button type="button" class="btn-remove-meal text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors" data-meal-idx="${mealIndex}" title="Eliminar comida completa">
+                                        <button type="button" class="btn-remove-meal text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer" data-meal-idx="${mealIndex}" title="Eliminar comida completa">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                         </button>
                                     </div>
@@ -933,7 +961,7 @@
                                 ${foodsHtml}
 
                                 <div class="mt-4 pt-3 border-t border-slate-100 flex justify-center">
-                                    <button type="button" class="btn-open-modal text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50/70 hover:bg-indigo-100 px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 active:scale-95" data-meal-idx="${mealIndex}">
+                                    <button type="button" class="btn-open-modal text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50/70 hover:bg-indigo-100 px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer" data-meal-idx="${mealIndex}">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                                         Añadir Alimento a esta comida
                                     </button>
@@ -949,10 +977,10 @@
                                 <p class="text-xs text-slate-400">Suma automática de todos los alimentos añadidos</p>
                             </div>
                             <div class="flex flex-wrap items-center gap-2 text-xs font-bold">
-                                <span class="px-3 py-1.5 rounded-xl bg-white/10 text-white border border-white/15">${planTotalCals.toFixed(0)} kcal</span>
-                                <span class="px-3 py-1.5 rounded-xl bg-blue-500/20 text-blue-300 border border-blue-400/30">Proteína: ${planTotalProt.toFixed(1)} g</span>
-                                <span class="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-400/30">Carbos: ${planTotalCarbs.toFixed(1)} g</span>
-                                <span class="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">Grasas: ${planTotalFat.toFixed(1)} g</span>
+                                <span id="plan_total_cals" class="px-3 py-1.5 rounded-xl bg-white/10 text-white border border-white/15">${planTotalCals.toFixed(0)} kcal</span>
+                                <span id="plan_total_prot" class="px-3 py-1.5 rounded-xl bg-blue-500/20 text-blue-300 border border-blue-400/30">Proteína: ${planTotalProt.toFixed(1)} g</span>
+                                <span id="plan_total_carbs" class="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-400/30">Carbos: ${planTotalCarbs.toFixed(1)} g</span>
+                                <span id="plan_total_fat" class="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">Grasas: ${planTotalFat.toFixed(1)} g</span>
                             </div>
                         </div>
                     `;
@@ -1343,6 +1371,142 @@
                     });
                 });
 
+                // Modificación directa de cantidad en la fila del alimento
+                document.querySelectorAll('.food-qty-input').forEach(input => {
+                    input.addEventListener('input', function () {
+                        const mIdx = parseInt(this.getAttribute('data-meal-idx'));
+                        const fIdx = parseInt(this.getAttribute('data-food-idx'));
+                        const food = meals[mIdx]?.foods?.[fIdx];
+                        if (!food) return;
+
+                        ensureFoodBase(food);
+                        const val = this.value.trim();
+                        const newQty = parseQuantityValue(val);
+                        food.serving_size = val;
+
+                        if (newQty > 0 && food._baseQty > 0) {
+                            const ratio = newQty / food._baseQty;
+                            food.calories = Number((food._baseCals * ratio).toFixed(1));
+                            food.protein = Number((food._baseProt * ratio).toFixed(1));
+                            food.carbs = Number((food._baseCarbs * ratio).toFixed(1));
+                            food.fat = Number((food._baseFat * ratio).toFixed(1));
+                        } else if (newQty === 0) {
+                            food.calories = 0;
+                            food.protein = 0;
+                            food.carbs = 0;
+                            food.fat = 0;
+                        }
+
+                        // Actualizar insignias de macros de la fila sin perder foco
+                        const row = this.closest('li');
+                        if (row) {
+                            const calsEl = row.querySelector('.food-cals-val');
+                            const protEl = row.querySelector('.food-prot-val');
+                            const carbsEl = row.querySelector('.food-carbs-val');
+                            const fatEl = row.querySelector('.food-fat-val');
+                            if (calsEl) calsEl.textContent = `${food.calories.toFixed(0)}`;
+                            if (protEl) protEl.textContent = `P: ${food.protein.toFixed(1)}g`;
+                            if (carbsEl) carbsEl.textContent = `C: ${food.carbs.toFixed(1)}g`;
+                            if (fatEl) fatEl.textContent = `G: ${food.fat.toFixed(1)}g`;
+                        }
+
+                        // Recalcular totales de esta comida
+                        let mCals = 0, mProt = 0, mCarbs = 0, mFat = 0;
+                        (meals[mIdx].foods || []).forEach(f => {
+                            mCals += parseFloat(f.calories || 0);
+                            mProt += parseFloat(f.protein || 0);
+                            mCarbs += parseFloat(f.carbs || 0);
+                            mFat += parseFloat(f.fat || 0);
+                        });
+
+                        const mMacroContainer = document.querySelector(`.meal-macros-${mIdx}`);
+                        if (mMacroContainer) {
+                            const mcEl = mMacroContainer.querySelector('.meal-cals');
+                            const mpEl = mMacroContainer.querySelector('.meal-prot');
+                            const mcbEl = mMacroContainer.querySelector('.meal-carbs');
+                            const mfEl = mMacroContainer.querySelector('.meal-fat');
+                            if (mcEl) mcEl.textContent = `${mCals.toFixed(0)} kcal`;
+                            if (mpEl) mpEl.textContent = `P: ${mProt.toFixed(1)}g`;
+                            if (mcbEl) mcbEl.textContent = `C: ${mCarbs.toFixed(1)}g`;
+                            if (mfEl) mfEl.textContent = `G: ${mFat.toFixed(1)}g`;
+                        }
+
+                        // Recalcular totales generales del plan
+                        let pCals = 0, pProt = 0, pCarbs = 0, pFat = 0;
+                        meals.forEach(m => {
+                            (m.foods || []).forEach(f => {
+                                pCals += parseFloat(f.calories || 0);
+                                pProt += parseFloat(f.protein || 0);
+                                pCarbs += parseFloat(f.carbs || 0);
+                                pFat += parseFloat(f.fat || 0);
+                            });
+                        });
+
+                        const ptCals = document.getElementById('plan_total_cals');
+                        const ptProt = document.getElementById('plan_total_prot');
+                        const ptCarbs = document.getElementById('plan_total_carbs');
+                        const ptFat = document.getElementById('plan_total_fat');
+                        if (ptCals) ptCals.textContent = `${pCals.toFixed(0)} kcal`;
+                        if (ptProt) ptProt.textContent = `Proteína: ${pProt.toFixed(1)} g`;
+                        if (ptCarbs) ptCarbs.textContent = `Carbos: ${pCarbs.toFixed(1)} g`;
+                        if (ptFat) ptFat.textContent = `Grasas: ${pFat.toFixed(1)} g`;
+
+                        updateMealsData();
+                    });
+
+                    input.addEventListener('change', function () {
+                        renderMeals();
+                    });
+
+                    input.addEventListener('keydown', function (e) {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            this.blur();
+                        }
+                    });
+                });
+
+                // Botón para editar alimento en modal
+                document.querySelectorAll('.btn-edit-food').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const mIdx = parseInt(this.getAttribute('data-meal-idx'));
+                        const fIdx = parseInt(this.getAttribute('data-food-idx'));
+                        const food = meals[mIdx]?.foods?.[fIdx];
+                        if (!food) return;
+
+                        ensureFoodBase(food);
+
+                        modalMealIndex.value = mIdx;
+                        modalFoodIndex.value = fIdx;
+
+                        if (modalFoodTitle) modalFoodTitle.textContent = 'Modificar Cantidad / Alimento';
+                        if (btnSaveFoodText) btnSaveFoodText.textContent = 'Guardar Cambios';
+
+                        modalFoodName.value = food.name;
+                        modalFatsecretId.value = food.fatsecret_food_id || '';
+                        modalFoodQty.value = food.serving_size || '1';
+                        modalFoodUnit.value = food.serving_unit || 'g';
+                        modalFoodCals.value = food.calories || '0';
+                        modalFoodProt.value = food.protein || '0';
+                        modalFoodCarbs.value = food.carbs || '0';
+                        modalFoodFat.value = food.fat || '0';
+
+                        modalFoodQty.dataset.baseQty = food._baseQty || parseQuantityValue(food.serving_size) || 100;
+                        modalFoodQty.dataset.baseCals = food._baseCals !== undefined ? food._baseCals : food.calories;
+                        modalFoodQty.dataset.baseProt = food._baseProt !== undefined ? food._baseProt : food.protein;
+                        modalFoodQty.dataset.baseCarbs = food._baseCarbs !== undefined ? food._baseCarbs : food.carbs;
+                        modalFoodQty.dataset.baseFat = food._baseFat !== undefined ? food._baseFat : food.fat;
+
+                        if (selectedDbFoodBanner) selectedDbFoodBanner.classList.add('hidden');
+                        if (unitPortionDetailHint) unitPortionDetailHint.textContent = `Porción base: ${modalFoodQty.dataset.baseQty} ${food.serving_unit}`;
+                        if (macroCalcFormulaBadge) macroCalcFormulaBadge.textContent = 'Edición activa';
+
+                        modalAddFood.classList.remove('hidden');
+                        modalAddFood.classList.add('flex');
+                        document.body.style.overflow = 'hidden';
+                    });
+                });
+
                 document.querySelectorAll('.meal-name-input').forEach(input => {
                     input.addEventListener('input', function () {
                         const mIdx = parseInt(this.getAttribute('data-meal-idx'));
@@ -1360,6 +1524,10 @@
                     btn.addEventListener('click', function () {
                         const idx = parseInt(this.getAttribute('data-meal-idx'));
                         modalMealIndex.value = idx;
+                        modalFoodIndex.value = '';
+
+                        if (modalFoodTitle) modalFoodTitle.textContent = 'Añadir Alimento al Tiempo de Comida';
+                        if (btnSaveFoodText) btnSaveFoodText.textContent = 'Añadir a la Comida';
 
                         // Clear modal fields
                         currentSelectedDbFood = null;
@@ -1434,7 +1602,7 @@
                 if (!name) { alert('Selecciona o ingresa un nombre para el alimento.'); return; }
 
                 const rawQty = modalFoodQty.value.trim();
-                const newFood = {
+                const updatedFood = {
                     fatsecret_food_id: modalFatsecretId.value || null,
                     name: name,
                     serving_size: rawQty || '1',
@@ -1442,10 +1610,23 @@
                     calories: parseFloat(modalFoodCals.value) || 0,
                     protein: parseFloat(modalFoodProt.value) || 0,
                     carbs: parseFloat(modalFoodCarbs.value) || 0,
-                    fat: parseFloat(modalFoodFat.value) || 0
+                    fat: parseFloat(modalFoodFat.value) || 0,
+                    _baseQty: parseFloat(modalFoodQty.dataset.baseQty) || parseQuantityValue(rawQty) || 100,
+                    _baseCals: parseFloat(modalFoodQty.dataset.baseCals) || parseFloat(modalFoodCals.value) || 0,
+                    _baseProt: parseFloat(modalFoodQty.dataset.baseProt) || parseFloat(modalFoodProt.value) || 0,
+                    _baseCarbs: parseFloat(modalFoodQty.dataset.baseCarbs) || parseFloat(modalFoodCarbs.value) || 0,
+                    _baseFat: parseFloat(modalFoodQty.dataset.baseFat) || parseFloat(modalFoodFat.value) || 0
                 };
 
-                meals[idx].foods.push(newFood);
+                if (!meals[idx].foods) meals[idx].foods = [];
+
+                const foodIdxStr = modalFoodIndex.value;
+                if (foodIdxStr !== '' && !isNaN(parseInt(foodIdxStr))) {
+                    const fIdx = parseInt(foodIdxStr);
+                    meals[idx].foods[fIdx] = updatedFood;
+                } else {
+                    meals[idx].foods.push(updatedFood);
+                }
 
                 modalAddFood.classList.add('hidden');
                 modalAddFood.classList.remove('flex');

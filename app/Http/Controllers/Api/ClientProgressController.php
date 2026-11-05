@@ -105,6 +105,26 @@ class ClientProgressController extends Controller
         if (array_key_exists('comments', $validated)) $logUpdates['comments'] = $validated['comments'];
         if (array_key_exists('recorded_at', $validated)) $logUpdates['recorded_at'] = $validated['recorded_at'];
 
+        // Manejo de eliminación explícita de fotos
+        if ($request->boolean('delete_front_photo') || $request->input('delete_front_photo') === '1') {
+            if ($progress->front_photo_path) {
+                Storage::disk('s3')->delete($progress->front_photo_path);
+            }
+            $logUpdates['front_photo_path'] = null;
+        }
+        if ($request->boolean('delete_side_photo') || $request->input('delete_side_photo') === '1') {
+            if ($progress->side_photo_path) {
+                Storage::disk('s3')->delete($progress->side_photo_path);
+            }
+            $logUpdates['side_photo_path'] = null;
+        }
+        if ($request->boolean('delete_back_photo') || $request->input('delete_back_photo') === '1') {
+            if ($progress->back_photo_path) {
+                Storage::disk('s3')->delete($progress->back_photo_path);
+            }
+            $logUpdates['back_photo_path'] = null;
+        }
+
         if ($request->hasFile('front_photo')) {
             $logUpdates['front_photo_path'] = $this->processAndStoreImage($request->file('front_photo'), "clients/{$client->id}/progress/{$progress->id}", 'front');
         }

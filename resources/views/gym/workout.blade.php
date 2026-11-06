@@ -862,24 +862,28 @@
         function renderPreviousSetsList(ex) {
             const prevSets = (ex.previous_sets && ex.previous_sets.length > 0)
                 ? ex.previous_sets
-                : [
-                    { set_number: 1, reps: 8, weight: 40.82, weight_lb: 90.0 },
-                    { set_number: 2, reps: 8, weight: 40.82, weight_lb: 90.0 },
-                    { set_number: 3, reps: 6, weight: 40.82, weight_lb: 90.0 },
-                ];
+                : [];
+
+            if (prevSets.length === 0) {
+                return `
+                    <div class="py-2.5 border-t border-slate-800/80 text-xs text-slate-400 italic text-center">
+                        No hay registros previos para este ejercicio en este plan.
+                    </div>
+                `;
+            }
 
             return prevSets.map((s, i) => {
                 const reps = s.reps || 0;
                 const wKg = (s.weight !== undefined && s.weight !== null && s.weight !== '') 
                     ? Number(s.weight).toFixed(2) 
-                    : (s.load ? Number(s.load).toFixed(2) : '40.82');
+                    : (s.load ? Number(s.load).toFixed(2) : '0.00');
                 const wLb = (s.weight_lb !== undefined && s.weight_lb !== null && s.weight_lb !== '') 
                     ? Number(s.weight_lb).toFixed(1) 
                     : (Number(wKg) * 2.20462).toFixed(1);
 
                 return `
                     <div class="flex items-center justify-between py-2.5 border-t border-slate-800/80 text-xs">
-                        <span class="text-slate-300 font-medium">Serie</span>
+                        <span class="text-slate-300 font-medium">Serie ${s.set_number || (i + 1)}</span>
                         <span class="text-sky-400 font-bold font-mono tracking-tight">${reps} reps, ${wKg} kg (${wLb} lb)</span>
                     </div>
                 `;
@@ -978,7 +982,7 @@
                                 <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <span class="text-xs font-black uppercase tracking-wider text-slate-200">ÚLTIMA SESIÓN: ${ex.last_session_date || '12/10/2026'}</span>
+                                <span class="text-xs font-black uppercase tracking-wider text-slate-200">${ex.last_session_date ? `ÚLTIMA SESIÓN: ${ex.last_session_date}` : 'SIN REGISTRO PREVIO'}</span>
                             </div>
                             <svg id="prevSessionChevron" class="w-4 h-4 text-slate-400 transition-transform duration-200 ${workoutData.prevSessionOpen !== false ? 'rotate-180' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
@@ -1005,8 +1009,7 @@
                         <div class="col-span-1 text-left">SET</div>
                         <div class="col-span-3">PESO (KG)</div>
                         <div class="col-span-3">PESO (LB)</div>
-                        <div class="col-span-2">REPS</div>
-                        <div class="col-span-1">RPE</div>
+                        <div class="col-span-3">REPS</div>
                         <div class="col-span-2 flex justify-center">CHECK</div>
                     </div>
 
@@ -1109,7 +1112,6 @@
                 ? s.weight_lb 
                 : (weightKgVal !== '' ? parseFloat((parseFloat(weightKgVal) * 2.20462).toFixed(2)) : '');
             const repsVal = (s.reps !== undefined && s.reps !== null && s.reps !== '') ? s.reps : '';
-            const rpeVal = (s.rpe !== undefined && s.rpe !== null && s.rpe !== '') ? s.rpe : '';
 
             const summaryKg = weightKgVal !== '' ? weightKgVal : '0';
             const summaryLb = weightLbVal !== '' ? weightLbVal : '0';
@@ -1140,17 +1142,10 @@
                         </div>
 
                         <!-- Reps -->
-                        <div class="col-span-2">
+                        <div class="col-span-3">
                             <input type="number" placeholder="0" id="set-reps-${idx}" value="${repsVal}" 
                                    oninput="updateSetField(${idx}, 'reps', this.value)"
                                    class="w-full text-center py-2 px-1 rounded-xl bg-slate-900 border border-slate-700 text-xs sm:text-sm font-black text-white font-mono focus:outline-none focus:border-blue-500 placeholder-slate-600">
-                        </div>
-
-                        <!-- RPE -->
-                        <div class="col-span-1">
-                            <input type="number" step="0.5" min="0" max="10" placeholder="RPE" id="set-rpe-${idx}" value="${rpeVal}" 
-                                   oninput="updateSetField(${idx}, 'rpe', this.value)"
-                                   class="w-full text-center py-2 px-0.5 rounded-xl bg-slate-900 border border-slate-700 text-xs sm:text-sm font-black text-orange-400 font-mono focus:outline-none focus:border-blue-500 placeholder-slate-600">
                         </div>
 
                         <!-- Checkmark Action -->
@@ -1264,7 +1259,6 @@
                     weight: '',
                     weight_lb: '',
                     reps: '',
-                    rpe: '',
                     checked: false,
                 });
                 renderActiveExercise();
@@ -1308,12 +1302,6 @@
                         s.reps = 0;
                     } else {
                         s.reps = parseInt(s.reps, 10);
-                    }
-
-                    if (s.rpe === '' || s.rpe === null || s.rpe === undefined || isNaN(parseFloat(s.rpe))) {
-                        s.rpe = 0;
-                    } else {
-                        s.rpe = parseFloat(s.rpe);
                     }
                 });
             });
@@ -1376,7 +1364,7 @@
                                 weight: wNum,
                                 weight_lb: wLbNum,
                                 reps: parseInt(s.reps, 10) || 0,
-                                rpe: parseFloat(s.rpe) || 0,
+                                rpe: null,
                             };
                         })
                     };

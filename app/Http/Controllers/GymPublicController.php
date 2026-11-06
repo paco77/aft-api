@@ -123,7 +123,11 @@ class GymPublicController extends Controller
             abort(403, 'No tienes permiso para acceder a esta sesión de entrenamiento o no pertenece a este gimnasio.');
         }
 
-        $trainingDay->load(['plannedExercises.exercise.muscleGroup', 'plannedExercises.exerciseLogs.setLogs']);
+        $trainingDay->load(['monthlyPlan', 'plannedExercises.exercise.muscleGroup', 'plannedExercises.exerciseLogs.setLogs']);
+
+        // Determine client for this routine: if routine belongs to a monthly plan, use plan's assigned client
+        $plan = $trainingDay->monthlyPlan;
+        $targetClientId = $plan ? ($plan->assigned_client_id ?? $plan->user_id) : (auth()->check() ? auth()->id() : null);
 
         // Sibling routines for day sequence indicator
         if ($isClientRoutine) {
@@ -143,7 +147,7 @@ class GymPublicController extends Controller
         $currentDayNumber = ($currentRoutineIndex !== false) ? ($currentRoutineIndex + 1) : 1;
         $totalDays = $allRoutines->count() ?: 1;
 
-        $exercisesPayload = $trainingDay->plannedExercises->map(function ($p) {
+        $exercisesPayload = $trainingDay->plannedExercises->map(function ($p) use ($targetClientId, $trainingDay) {
             $initialSets = [];
             for ($i = 0; $i < max(1, $p->sets); $i++) {
                 $initialSets[] = [
@@ -151,7 +155,6 @@ class GymPublicController extends Controller
                     'weight' => '',
                     'weight_lb' => '',
                     'reps' => '',
-                    'rpe' => '',
                     'checked' => false,
                 ];
             }
@@ -178,34 +181,20 @@ class GymPublicController extends Controller
                 $videoUrl = $pVideo;
             }
 
-            // Retrieve previous session for this exercise (for user or routine)
-            $userId = auth()->id();
-            $lastExerciseLog = \App\Models\ExerciseLog::where('planned_exercise_id', $p->id)
-                ->when($userId, function ($q) use ($userId) {
-                    $q->whereHas('workoutSession', function ($sq) use ($userId) {
-                        $sq->where('user_id', $userId);
-                    });
-                })
-                ->with(['setLogs' => function ($q) {
-                    $q->orderBy('set_number');
-                }, 'workoutSession'])
-                ->latest('id')
-                ->first();
-
-            if (!$lastExerciseLog && $p->exercise_id) {
-                $lastExerciseLog = \App\Models\ExerciseLog::whereHas('plannedExercise', function ($q) use ($p) {
-                    $q->where('exercise_id', $p->exercise_id);
-                })
-                ->when($userId, function ($q) use ($userId) {
-                    $q->whereHas('workoutSession', function ($sq) use ($userId) {
-                        $sq->where('user_id', $userId);
-                    });
-                })
-                ->with(['setLogs' => function ($q) {
-                    $q->orderBy('set_number');
-                }, 'workoutSession'])
-                ->latest('id')
-                ->first();
+            // Retrieve previous session for this planned exercise strictly for this client and routine
+            $lastExerciseLog = null;
+            if ($targetClientId) {
+                $lastExerciseLog = \App\Models\ExerciseLog::where('planned_exercise_id', $p->id)
+                    ->whereHas('workoutSession', function ($sq) use ($targetClientId, $trainingDay) {
+                        $sq->where('user_id', $targetClientId)
+                           ->where('training_day_id', $trainingDay->id);
+                    })
+                    ->whereHas('setLogs')
+                    ->with(['setLogs' => function ($q) {
+                        $q->orderBy('set_number');
+                    }, 'workoutSession'])
+                    ->latest('id')
+                    ->first();
             }
 
             $lastSessionDate = null;
@@ -226,13 +215,6 @@ class GymPublicController extends Controller
                         'weight_lb' => $wLb,
                     ];
                 }
-            } else {
-                $lastSessionDate = '12/10/2026';
-                $previousSets = [
-                    ['set_number' => 1, 'reps' => 8, 'weight' => 40.82, 'weight_lb' => 90.0],
-                    ['set_number' => 2, 'reps' => 8, 'weight' => 40.82, 'weight_lb' => 90.0],
-                    ['set_number' => 3, 'reps' => 6, 'weight' => 40.82, 'weight_lb' => 90.0],
-                ];
             }
 
             return [
@@ -277,7 +259,16 @@ class GymPublicController extends Controller
             'exercises.*.sets.*.rpe' => 'nullable|numeric',
         ]);
 
-        $userId = auth()->check() ? auth()->id() : null;
+        $trainingDay = TrainingDay::with('monthlyPlan')->find($validated['training_day_id']);
+        $targetUserId = null;
+        if ($trainingDay && $trainingDay->monthlyPlan) {
+            $targetUserId = $trainingDay->monthlyPlan->assigned_client_id ?? $trainingDay->monthlyPlan->user_id;
+        }
+        if (!$targetUserId && auth()->check()) {
+            $targetUserId = auth()->id();
+        }
+
+        $userId = $targetUserId;
         $guestName = $validated['guest_name'] ?? ($userId ? null : 'Atleta Gimnasio');
 
         // Parse duration to integer minutes

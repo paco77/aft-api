@@ -128,6 +128,11 @@ class GymPublicController extends Controller
         // Determine client for this routine: if routine belongs to a monthly plan, use plan's assigned client
         $plan = $trainingDay->monthlyPlan;
         $targetClientId = $plan ? ($plan->assigned_client_id ?? $plan->user_id) : (auth()->check() ? auth()->id() : null);
+        $validUserIds = array_values(array_unique(array_filter([
+            $plan?->assigned_client_id,
+            $plan?->user_id,
+            auth()->id(),
+        ])));
 
         // Sibling routines for day sequence indicator
         if ($isClientRoutine) {
@@ -147,7 +152,7 @@ class GymPublicController extends Controller
         $currentDayNumber = ($currentRoutineIndex !== false) ? ($currentRoutineIndex + 1) : 1;
         $totalDays = $allRoutines->count() ?: 1;
 
-        $exercisesPayload = $trainingDay->plannedExercises->map(function ($p) use ($targetClientId, $trainingDay) {
+        $exercisesPayload = $trainingDay->plannedExercises->map(function ($p) use ($targetClientId, $trainingDay, $plan, $validUserIds) {
             $initialSets = [];
             for ($i = 0; $i < max(1, $p->sets); $i++) {
                 $initialSets[] = [
@@ -181,20 +186,88 @@ class GymPublicController extends Controller
                 $videoUrl = $pVideo;
             }
 
-            // Retrieve previous session for this planned exercise strictly for this client and routine
-            $lastExerciseLog = null;
-            if ($targetClientId) {
-                $lastExerciseLog = \App\Models\ExerciseLog::where('planned_exercise_id', $p->id)
-                    ->whereHas('workoutSession', function ($sq) use ($targetClientId, $trainingDay) {
-                        $sq->where('user_id', $targetClientId)
-                           ->where('training_day_id', $trainingDay->id);
-                    })
-                    ->whereHas('setLogs')
-                    ->with(['setLogs' => function ($q) {
-                        $q->orderBy('set_number');
-                    }, 'workoutSession'])
-                    ->latest('id')
-                    ->first();
+            // 1. Prioridad: Buscar registro previo para este planned_exercise específico en esta rutina
+            $lastExerciseLog = \App\Models\ExerciseLog::where('planned_exercise_id', $p->id)
+                ->whereHas('workoutSession', function ($sq) use ($trainingDay, $validUserIds) {
+                    $sq->where('training_day_id', $trainingDay->id);
+                    if (!empty($validUserIds)) {
+                        $sq->where(function ($wsq) use ($validUserIds) {
+                            $wsq->whereIn('user_id', $validUserIds)
+                                ->orWhereNull('user_id');
+                        });
+                    }
+                })
+                ->whereHas('setLogs')
+                ->with(['setLogs' => function ($q) {
+                    $q->orderBy('set_number');
+                }, 'workoutSession'])
+                ->latest('id')
+                ->first();
+
+            // 2. Si no se encontró por planned_exercise_id (por ejemplo si la rutina fue editada o re-guardada),
+            // buscar el mismo ejercicio ($p->exercise_id) en esta misma rutina
+            if (!$lastExerciseLog && $p->exercise_id) {
+                $lastExerciseLog = \App\Models\ExerciseLog::whereHas('plannedExercise', function ($q) use ($p, $trainingDay) {
+                    $q->where('exercise_id', $p->exercise_id)
+                      ->where('training_day_id', $trainingDay->id);
+                })
+                ->whereHas('workoutSession', function ($sq) use ($trainingDay, $validUserIds) {
+                    $sq->where('training_day_id', $trainingDay->id);
+                    if (!empty($validUserIds)) {
+                        $sq->where(function ($wsq) use ($validUserIds) {
+                            $wsq->whereIn('user_id', $validUserIds)
+                                ->orWhereNull('user_id');
+                        });
+                    }
+                })
+                ->whereHas('setLogs')
+                ->with(['setLogs' => function ($q) {
+                    $q->orderBy('set_number');
+                }, 'workoutSession'])
+                ->latest('id')
+                ->first();
+            }
+
+            // 3. Si no se encontró en esta rutina pero pertenece a un plan mensual,
+            // buscar si este ejercicio ya fue realizado en otra rutina del mismo plan mensual
+            if (!$lastExerciseLog && $p->exercise_id && $plan) {
+                $lastExerciseLog = \App\Models\ExerciseLog::whereHas('plannedExercise', function ($q) use ($p, $plan) {
+                    $q->where('exercise_id', $p->exercise_id)
+                      ->whereHas('trainingDay', function ($tdq) use ($plan) {
+                          $tdq->where('monthly_plan_id', $plan->id);
+                      });
+                })
+                ->whereHas('workoutSession', function ($sq) use ($validUserIds) {
+                    if (!empty($validUserIds)) {
+                        $sq->where(function ($wsq) use ($validUserIds) {
+                            $wsq->whereIn('user_id', $validUserIds)
+                                ->orWhereNull('user_id');
+                        });
+                    }
+                })
+                ->whereHas('setLogs')
+                ->with(['setLogs' => function ($q) {
+                    $q->orderBy('set_number');
+                }, 'workoutSession'])
+                ->latest('id')
+                ->first();
+            }
+
+            // 4. Si aún no hay registro en este plan, buscar el último registro histórico de este ejercicio
+            // específicamente para este cliente (sin cruzar datos con otros atletas)
+            if (!$lastExerciseLog && $p->exercise_id && $targetClientId) {
+                $lastExerciseLog = \App\Models\ExerciseLog::whereHas('plannedExercise', function ($q) use ($p) {
+                    $q->where('exercise_id', $p->exercise_id);
+                })
+                ->whereHas('workoutSession', function ($sq) use ($targetClientId) {
+                    $sq->where('user_id', $targetClientId);
+                })
+                ->whereHas('setLogs')
+                ->with(['setLogs' => function ($q) {
+                    $q->orderBy('set_number');
+                }, 'workoutSession'])
+                ->latest('id')
+                ->first();
             }
 
             $lastSessionDate = null;

@@ -235,8 +235,8 @@
                             <td class="px-4 py-3 sm:px-5 whitespace-nowrap text-sm text-slate-600 font-medium">
                                 {{ $plan->assignedClient->name ?? 'N/A' }}
                             </td>
-                            <td class="px-4 py-3 sm:px-5 whitespace-nowrap text-sm text-slate-500">
-                                {{ $plan->created_at->format('d/m/Y') }}
+                            <td class="px-4 py-3 sm:px-5 whitespace-nowrap text-sm text-slate-500" data-order="{{ $plan->created_at?->timestamp ?? 0 }}">
+                                {{ $plan->created_at ? $plan->created_at->format('d/m/Y') : 'N/A' }}
                             </td>
                             <td class="px-4 py-3 sm:px-5 whitespace-nowrap text-right text-sm font-medium">
                                 <a href="{{ route('admin.plans.show', $plan) }}" class="inline-flex items-center text-indigo-600 hover:text-indigo-900 font-bold mr-3" title="Ver Detalles">

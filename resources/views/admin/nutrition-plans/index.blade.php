@@ -22,6 +22,7 @@
                     <th class="px-6 py-4 text-sm font-semibold text-gray-600">Coach</th>
                     <th class="px-6 py-4 text-sm font-semibold text-gray-600">Calorías Totales</th>
                     <th class="px-6 py-4 text-sm font-semibold text-gray-600">Objetivo</th>
+                    <th class="px-6 py-4 text-sm font-semibold text-gray-600">Fecha</th>
                     <th class="px-6 py-4 text-sm font-semibold text-gray-600 text-right">Acciones</th>
                 </tr>
             </thead>
@@ -50,6 +51,9 @@
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-600">
                             {{ ucfirst(str_replace('_', ' ', $plan->objective)) }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-order="{{ $plan->created_at?->timestamp ?? 0 }}">
+                            {{ $plan->created_at ? $plan->created_at->format('d/m/Y') : 'N/A' }}
                         </td>
                         <td class="px-6 py-4 text-right space-x-2">
                             <a href="{{ route('admin.nutrition-plans.show', $plan) }}" class="inline-flex items-center px-3 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900 rounded-md text-sm font-medium transition-colors" title="Ver Detalles">
@@ -92,7 +96,8 @@
         new DataTable('#nutrition-plans-table', {
             language: {
                 url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-            }
+            },
+            order: [[6, 'desc']]
         });
     });
 </script>

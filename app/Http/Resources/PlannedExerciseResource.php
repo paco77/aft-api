@@ -20,6 +20,7 @@ class PlannedExerciseResource extends JsonResource
             'sets' => $this->sets,
             'min_reps' => $this->min_reps,
             'max_reps' => $this->max_reps,
+            'rir' => $this->rir,
             'instruction' => $this->instruction,
             'video_url' => $this->video_url,
             'superset_id' => $this->superset_id,

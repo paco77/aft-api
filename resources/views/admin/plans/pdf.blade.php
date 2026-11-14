@@ -160,7 +160,10 @@
                                         @endif
                                     </td>
                                     <td rowspan="{{ $sets }}">
-                                        {{ $planned->sets }} x {{ $planned->min_reps }} - {{ $planned->max_reps }}
+                                        {{ $planned->sets }} x {{ $planned->min_reps == $planned->max_reps ? $planned->min_reps : ($planned->min_reps . ' - ' . $planned->max_reps) }}
+                                        @if(!empty($planned->rir))
+                                            <br><span style="font-size: 10px; color: #4338ca; font-weight: bold;">RIR: {{ $planned->rir }}</span>
+                                        @endif
                                     </td>
                                 @endif
                                 <td>{{ $i }}</td>

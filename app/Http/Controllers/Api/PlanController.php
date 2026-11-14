@@ -84,6 +84,7 @@ class PlanController extends Controller
             'days.*.exercises.*.sets' => 'required|integer',
             'days.*.exercises.*.min_reps' => 'required|integer',
             'days.*.exercises.*.max_reps' => 'required|integer',
+            'days.*.exercises.*.rir' => 'string|nullable|max:20',
             'days.*.exercises.*.instruction' => 'string|nullable',
             'days.*.exercises.*.video_url' => 'string|nullable',
             'days.*.exercises.*.superset_id' => 'string|nullable',
@@ -162,6 +163,7 @@ class PlanController extends Controller
                             'sets' => $sets,
                             'min_reps' => $exerciseData['min_reps'],
                             'max_reps' => $exerciseData['max_reps'],
+                            'rir' => (isset($exerciseData['rir']) && $exerciseData['rir'] !== '' && $exerciseData['rir'] !== null) ? trim((string)$exerciseData['rir']) : null,
                             'instruction' => $exerciseData['instruction'] ?? null,
                             'video_url' => $exerciseData['video_url'] ?? null,
                             'superset_id' => $exerciseData['superset_id'] ?? null,
@@ -201,6 +203,7 @@ class PlanController extends Controller
             'days.*.exercises.*.sets' => 'required|integer',
             'days.*.exercises.*.min_reps' => 'required|integer',
             'days.*.exercises.*.max_reps' => 'required|integer',
+            'days.*.exercises.*.rir' => 'string|nullable|max:20',
             'days.*.exercises.*.instruction' => 'string|nullable',
             'days.*.exercises.*.video_url' => 'string|nullable',
             'days.*.exercises.*.superset_id' => 'string|nullable',
@@ -309,6 +312,7 @@ class PlanController extends Controller
                                                 'sets' => $sets,
                                                 'min_reps' => $exerciseData['min_reps'],
                                                 'max_reps' => $exerciseData['max_reps'],
+                                                'rir' => (isset($exerciseData['rir']) && $exerciseData['rir'] !== '' && $exerciseData['rir'] !== null) ? trim((string)$exerciseData['rir']) : null,
                                                 'instruction' => $exerciseData['instruction'] ?? null,
                                                 'video_url' => $exerciseData['video_url'] ?? null,
                                                 'superset_id' => $exerciseData['superset_id'] ?? null,
@@ -320,6 +324,7 @@ class PlanController extends Controller
                                                 'sets' => $sets,
                                                 'min_reps' => $exerciseData['min_reps'],
                                                 'max_reps' => $exerciseData['max_reps'],
+                                                'rir' => (isset($exerciseData['rir']) && $exerciseData['rir'] !== '' && $exerciseData['rir'] !== null) ? trim((string)$exerciseData['rir']) : null,
                                                 'instruction' => $exerciseData['instruction'] ?? null,
                                                 'video_url' => $exerciseData['video_url'] ?? null,
                                                 'superset_id' => $exerciseData['superset_id'] ?? null,
@@ -332,6 +337,7 @@ class PlanController extends Controller
                                             'sets' => $sets,
                                             'min_reps' => $exerciseData['min_reps'],
                                             'max_reps' => $exerciseData['max_reps'],
+                                            'rir' => (isset($exerciseData['rir']) && $exerciseData['rir'] !== '' && $exerciseData['rir'] !== null) ? trim((string)$exerciseData['rir']) : null,
                                             'instruction' => $exerciseData['instruction'] ?? null,
                                             'video_url' => $exerciseData['video_url'] ?? null,
                                             'superset_id' => $exerciseData['superset_id'] ?? null,
@@ -432,6 +438,7 @@ class PlanController extends Controller
                         'sets' => $exercise->sets,
                         'min_reps' => $exercise->min_reps,
                         'max_reps' => $exercise->max_reps,
+                        'rir' => $exercise->rir,
                         'instruction' => $exercise->instruction,
                         'video_url' => $exercise->video_url,
                         'superset_id' => $exercise->superset_id,
@@ -443,6 +450,42 @@ class PlanController extends Controller
         });
 
         return new MonthlyPlanResource($newPlan->load('trainingDays.plannedExercises.exercise'));
+    }
+
+    /**
+     * Permite actualizar un ejercicio planificado directamente desde la app mobile (incluyendo RIR).
+     */
+    public function updatePlannedExercise(Request $request, PlannedExercise $plannedExercise)
+    {
+        $user = $request->user();
+        $plan = $plannedExercise->trainingDay?->monthlyPlan;
+
+        if ($plan) {
+            $isOwner = (int) $plan->user_id === (int) $user->id;
+            $isClient = (int) $plan->assigned_client_id === (int) $user->id;
+            $isAdmin = in_array($user->role, ['admin', 'super_admin', 'gimnasio']);
+            if (!$isOwner && !$isClient && !$isAdmin) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+        }
+
+        $validated = $request->validate([
+            'sets' => 'sometimes|integer|min:1',
+            'min_reps' => 'sometimes|integer|min:0',
+            'max_reps' => 'sometimes|integer|min:0',
+            'rir' => 'nullable|string|max:20',
+            'instruction' => 'nullable|string',
+            'video_url' => 'nullable|string|max:500',
+            'superset_id' => 'nullable|string|max:10',
+        ]);
+
+        if (array_key_exists('rir', $validated) && $validated['rir'] !== null) {
+            $validated['rir'] = trim((string)$validated['rir']);
+        }
+
+        $plannedExercise->update($validated);
+
+        return new \App\Http\Resources\PlannedExerciseResource($plannedExercise->load('exercise'));
     }
 
 }

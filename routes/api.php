@@ -42,6 +42,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     // Plans
     Route::get('/plans/active', [PlanController::class , 'activePlan']);
     Route::post('/plans/{plan}/duplicate', [PlanController::class , 'duplicate']);
+    Route::match(['put', 'patch'], '/planned-exercises/{plannedExercise}', [PlanController::class, 'updatePlannedExercise']);
     Route::apiResource('plans', PlanController::class);
 
     // Workouts

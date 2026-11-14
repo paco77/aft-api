@@ -410,6 +410,15 @@
                         value="12" min="1" required>
                 </div>
 
+                <div class="w-20 exercise-rir-container hidden">
+                    <label class="block text-[11px] font-bold text-indigo-600 uppercase tracking-wider text-center mb-1 flex items-center justify-center gap-0.5" title="Repeticiones en Reserva">
+                        <span>RIR</span>
+                    </label>
+                    <input type="text"
+                        class="exercise-rir block w-full text-center font-bold text-slate-900 rounded-xl border-indigo-200 bg-indigo-50/40 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm py-1.5 placeholder-slate-400"
+                        placeholder="0-3" value="">
+                </div>
+
                 <div class="w-full sm:w-44">
                     <label class="block text-2xs font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1">
                         <svg class="w-3.5 h-3.5 text-red-500 shrink-0" viewBox="0 0 24 24" fill="currentColor">
@@ -508,6 +517,15 @@
                 <input type="number"
                     class="exercise-max block w-full text-center font-bold text-slate-900 rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm py-1.5 bg-white"
                     value="12" min="1" required>
+            </div>
+
+            <div class="w-20 exercise-rir-container hidden">
+                <label class="block text-[11px] font-bold text-indigo-600 uppercase tracking-wider text-center mb-1 flex items-center justify-center gap-0.5" title="Repeticiones en Reserva">
+                    <span>RIR</span>
+                </label>
+                <input type="text"
+                    class="exercise-rir block w-full text-center font-bold text-slate-900 rounded-xl border-indigo-200 bg-indigo-50/40 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm py-1.5 placeholder-slate-400"
+                    placeholder="0-3" value="">
             </div>
 
             <div class="w-full sm:w-44">
@@ -794,6 +812,10 @@
                 const sets = exRow.querySelector('.exercise-sets').value;
                 const min = exRow.querySelector('.exercise-min').value;
                 const max = exRow.querySelector('.exercise-max').value;
+                const rirInput = exRow.querySelector('.exercise-rir');
+                const rir = rirInput ? rirInput.value : '';
+                const rirContainer = exRow.querySelector('.exercise-rir-container');
+                const isRirVisible = rirContainer && !rirContainer.classList.contains('hidden');
                 const video = exRow.querySelector('.exercise-video').value;
 
                 const grpTemplate = document.getElementById('group-exercise-template').content.cloneNode(true);
@@ -805,6 +827,16 @@
                 newRow.querySelector('.exercise-sets').value = sets;
                 newRow.querySelector('.exercise-min').value = min;
                 newRow.querySelector('.exercise-max').value = max;
+                if (newRow.querySelector('.exercise-rir')) {
+                    newRow.querySelector('.exercise-rir').value = rir;
+                }
+                if (newRow.querySelector('.exercise-rir-container')) {
+                    if (isRirVisible || (rir !== '' && rir !== null)) {
+                        newRow.querySelector('.exercise-rir-container').classList.remove('hidden');
+                    } else {
+                        newRow.querySelector('.exercise-rir-container').classList.add('hidden');
+                    }
+                }
                 newRow.querySelector('.exercise-video').value = video;
 
                 attachGroupRowListeners(newRow, card, dayBlock);
@@ -912,6 +944,10 @@
                 const sets = row.querySelector('.exercise-sets').value;
                 const min = row.querySelector('.exercise-min').value;
                 const max = row.querySelector('.exercise-max').value;
+                const rirInput = row.querySelector('.exercise-rir');
+                const rir = rirInput ? rirInput.value : '';
+                const rirContainer = row.querySelector('.exercise-rir-container');
+                const isRirVisible = rirContainer && !rirContainer.classList.contains('hidden');
                 const video = row.querySelector('.exercise-video').value;
 
                 const indTemplate = document.getElementById('individual-exercise-template').content.cloneNode(true);
@@ -924,6 +960,16 @@
                 newRow.querySelector('.exercise-sets').value = sets;
                 newRow.querySelector('.exercise-min').value = min;
                 newRow.querySelector('.exercise-max').value = max;
+                if (newRow.querySelector('.exercise-rir')) {
+                    newRow.querySelector('.exercise-rir').value = rir;
+                }
+                if (newRow.querySelector('.exercise-rir-container')) {
+                    if (isRirVisible || (rir !== '' && rir !== null)) {
+                        newRow.querySelector('.exercise-rir-container').classList.remove('hidden');
+                    } else {
+                        newRow.querySelector('.exercise-rir-container').classList.add('hidden');
+                    }
+                }
                 newRow.querySelector('.exercise-video').value = video;
 
                 attachIndividualRowListeners(wrapper, dayBlock);
@@ -943,6 +989,10 @@
             const sets = row.querySelector('.exercise-sets').value;
             const min = row.querySelector('.exercise-min').value;
             const max = row.querySelector('.exercise-max').value;
+            const rirInput = row.querySelector('.exercise-rir');
+            const rir = rirInput ? rirInput.value : '';
+            const rirContainer = row.querySelector('.exercise-rir-container');
+            const isRirVisible = rirContainer && !rirContainer.classList.contains('hidden');
             const video = row.querySelector('.exercise-video').value;
 
             const indTemplate = document.getElementById('individual-exercise-template').content.cloneNode(true);
@@ -955,6 +1005,16 @@
             newRow.querySelector('.exercise-sets').value = sets;
             newRow.querySelector('.exercise-min').value = min;
             newRow.querySelector('.exercise-max').value = max;
+            if (newRow.querySelector('.exercise-rir')) {
+                newRow.querySelector('.exercise-rir').value = rir;
+            }
+            if (newRow.querySelector('.exercise-rir-container')) {
+                if (isRirVisible || (rir !== '' && rir !== null)) {
+                    newRow.querySelector('.exercise-rir-container').classList.remove('hidden');
+                } else {
+                    newRow.querySelector('.exercise-rir-container').classList.add('hidden');
+                }
+            }
             newRow.querySelector('.exercise-video').value = video;
 
             attachIndividualRowListeners(wrapper, dayBlock);
@@ -1264,8 +1324,32 @@
         function addSelectedExercises() {
             if (!currentDayBlockForModal) return;
 
-            const checkboxes = document.querySelectorAll('.modal-exercise-checkbox:checked');
-            const container = currentDayBlockForModal.querySelector('.exercises-container');
+            const checkboxes = Array.from(document.querySelectorAll('.modal-exercise-checkbox:checked'));
+            if (checkboxes.length === 0) {
+                closeExerciseModal();
+                return;
+            }
+
+            const targetDayBlock = currentDayBlockForModal;
+            closeExerciseModal();
+
+            Swal.fire({
+                title: '¿Ocupas agregar RIR a los ejercicios?',
+                text: '¿Deseas agregar el campo de RIR (Repeticiones en Reserva) a los ejercicios seleccionados?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, agregar RIR',
+                cancelButtonText: 'No, sin RIR',
+                confirmButtonColor: '#4f46e5',
+                cancelButtonColor: '#64748b'
+            }).then((result) => {
+                const enableRir = result.isConfirmed;
+                insertExercisesToDay(targetDayBlock, checkboxes, enableRir);
+            });
+        }
+
+        function insertExercisesToDay(dayBlock, checkboxes, enableRir) {
+            const container = dayBlock.querySelector('.exercises-container');
 
             checkboxes.forEach(cb => {
                 const exId = cb.value;
@@ -1281,13 +1365,23 @@
                 newRow.querySelector('.exercise-name-display').textContent = exName;
                 newRow.querySelector('.exercise-video').value = videoUrl;
 
-                attachIndividualRowListeners(wrapper, currentDayBlockForModal);
+                const rirContainer = newRow.querySelector('.exercise-rir-container');
+                if (rirContainer) {
+                    if (enableRir) {
+                        rirContainer.classList.remove('hidden');
+                    } else {
+                        rirContainer.classList.add('hidden');
+                        const rirInput = newRow.querySelector('.exercise-rir');
+                        if (rirInput) rirInput.value = '';
+                    }
+                }
+
+                attachIndividualRowListeners(wrapper, dayBlock);
                 container.appendChild(wrapper);
             });
 
-            updateExerciseIndices(currentDayBlockForModal);
-            updateGroupingToolbar(currentDayBlockForModal);
-            closeExerciseModal();
+            updateExerciseIndices(dayBlock);
+            updateGroupingToolbar(dayBlock);
         }
 
         function updateExerciseIndices(dayBlock) {
@@ -1299,6 +1393,10 @@
                 row.querySelector('.exercise-sets').name = `days[${dIndex}][exercises][${index}][sets]`;
                 row.querySelector('.exercise-min').name = `days[${dIndex}][exercises][${index}][min_reps]`;
                 row.querySelector('.exercise-max').name = `days[${dIndex}][exercises][${index}][max_reps]`;
+                const rirInput = row.querySelector('.exercise-rir');
+                if (rirInput) {
+                    rirInput.name = `days[${dIndex}][exercises][${index}][rir]`;
+                }
                 row.querySelector('.exercise-video').name = `days[${dIndex}][exercises][${index}][video_url]`;
                 row.querySelector('.exercise-superset').name = `days[${dIndex}][exercises][${index}][superset_id]`;
             });

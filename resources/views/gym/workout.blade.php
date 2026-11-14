@@ -123,7 +123,8 @@
                 @if(auth()->check())
                     <form action="{{ route('logout') }}" method="POST" class="inline">
                         @csrf
-                        <input type="hidden" name="redirect" value="{{ route('gym.routines', ['identifier' => $gym->username ?: $gym->id]) }}">
+                        <input type="hidden" name="redirect"
+                            value="{{ route('gym.routines', ['identifier' => $gym->username ?: $gym->id]) }}">
                         <button type="submit" title="Cerrar sesión"
                             class="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 hover:text-red-400 hover:border-red-500/40 transition flex items-center gap-1.5">
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -260,7 +261,12 @@
                         </div>
                         <div class="font-bold text-xs truncate leading-snug">{{ $pExercise->exercise->name ?? 'Ejercicio' }}
                         </div>
-                        <div class="text-2xs uppercase tracking-wider mt-0.5 opacity-80">{{ $pExercise->sets }} SERIES</div>
+                        <div class="text-2xs uppercase tracking-wider mt-0.5 opacity-80">
+                            {{ $pExercise->sets }} SERIES
+                            @if(!is_null($pExercise->rir) && $pExercise->rir !== '')
+                                &bull; <span class="text-amber-300 font-bold">RIR {{ $pExercise->rir }}</span>
+                            @endif
+                        </div>
                     </button>
                 @endforeach
             </div>
@@ -280,8 +286,7 @@
             <button type="button" onclick="openFinishModal()"
                 class="w-full py-3.5 px-4 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-extrabold text-sm uppercase tracking-wider shadow-lg shadow-orange-600/25 flex items-center justify-center gap-2 transition active:scale-[0.99]">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                        d="M5 13l4 4L19 7" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                 </svg>
                 <span>Finalizar Sesión</span>
             </button>
@@ -371,16 +376,20 @@
     </div>
 
     <!-- MODAL: VIDEO EN PANTALLA COMPLETA -->
-    <div id="videoModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-3 sm:p-5">
-        <div class="relative bg-slate-950 border border-slate-800 rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl flex flex-col">
+    <div id="videoModal"
+        class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-3 sm:p-5">
+        <div
+            class="relative bg-slate-950 border border-slate-800 rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl flex flex-col">
             <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800">
                 <div class="flex items-center gap-2 min-w-0">
                     <span class="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse shrink-0"></span>
                     <h3 id="videoModalTitle" class="text-sm font-bold text-white truncate">Video de Técnica</h3>
                 </div>
-                <button type="button" onclick="closeVideoModal()" class="p-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition shrink-0 ml-2">
+                <button type="button" onclick="closeVideoModal()"
+                    class="p-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition shrink-0 ml-2">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
@@ -874,11 +883,11 @@
 
             return prevSets.map((s, i) => {
                 const reps = s.reps || 0;
-                const wKg = (s.weight !== undefined && s.weight !== null && s.weight !== '') 
-                    ? Number(s.weight).toFixed(2) 
+                const wKg = (s.weight !== undefined && s.weight !== null && s.weight !== '')
+                    ? Number(s.weight).toFixed(2)
                     : (s.load ? Number(s.load).toFixed(2) : '0.00');
-                const wLb = (s.weight_lb !== undefined && s.weight_lb !== null && s.weight_lb !== '') 
-                    ? Number(s.weight_lb).toFixed(1) 
+                const wLb = (s.weight_lb !== undefined && s.weight_lb !== null && s.weight_lb !== '')
+                    ? Number(s.weight_lb).toFixed(1)
                     : (Number(wKg) * 2.20462).toFixed(1);
 
                 return `
@@ -939,7 +948,7 @@
             });
 
             // Target subtitle
-            const targetSubtitle = `${ex.target_sets || 3} series ${ex.min_reps && ex.max_reps ? `${ex.min_reps}-${ex.max_reps} reps` : '10-15 reps'}`;
+            const targetSubtitle = `${ex.target_sets || 3} series ${ex.min_reps && ex.max_reps ? `${ex.min_reps}-${ex.max_reps} reps` : '10-15 reps'}${ex.rir ? ` • RIR ${ex.rir}` : ''}`;
 
             container.innerHTML = `
                 <!-- Main Exercise Header Card -->
@@ -948,6 +957,12 @@
                         <div class="flex items-center gap-1.5 text-2xs font-bold uppercase tracking-wider text-slate-400">
                             <span>EJERCICIO #${workoutData.currentIndex + 1} &bull; ${ex.primary_muscle || ex.muscle_group || 'General'}</span>
                         </div>
+                        ${(ex.rir !== null && ex.rir !== undefined && ex.rir !== '') ? `
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 font-extrabold text-2xs uppercase tracking-wider shadow-sm">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                                RIR ${ex.rir}
+                            </span>
+                        ` : ''}
                     </div>
 
                     <!-- Video / GIF Media Slider Element (Top position matching app) -->
@@ -957,7 +972,17 @@
                     <div class="flex items-start justify-between gap-3 pt-1">
                         <div>
                             <h3 class="text-xl sm:text-2xl font-black text-white font-display tracking-tight leading-tight">${ex.name}</h3>
-                            <p class="text-xs text-slate-400 mt-0.5">${targetSubtitle}</p>
+                            <div class="flex flex-wrap items-center gap-2 mt-1">
+                                <span class="text-xs text-slate-400 font-medium">${ex.target_sets || 3} series &bull; ${ex.min_reps && ex.max_reps ? `${ex.min_reps}-${ex.max_reps} reps` : '10-15 reps'}</span>
+                                ${(ex.rir !== null && ex.rir !== undefined && ex.rir !== '') ? `
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-amber-950/80 border border-amber-500/40 text-amber-300 font-bold text-xs shadow-sm">
+                                        <svg class="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                        </svg>
+                                        <span>RIR Objetivo: <strong class="text-white">${ex.rir}</strong></span>
+                                    </span>
+                                ` : ''}
+                            </div>
                             ${ex.instruction ? `
                                 <div class="mt-2.5 p-2.5 rounded-xl bg-blue-950/40 border border-blue-500/20 text-xs text-blue-200 flex items-start gap-2">
                                     <svg class="w-4 h-4 text-blue-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1092,6 +1117,7 @@
         }
 
         function renderSetRow(s, idx) {
+            const ex = workoutData.plannedExercises[workoutData.currentIndex];
             const checkedClass = s.checked
                 ? 'bg-blue-950/40 border-blue-500/50'
                 : 'bg-slate-900/60 border-slate-800';
@@ -1108,8 +1134,8 @@
             }
 
             const weightKgVal = (s.weight !== undefined && s.weight !== null && s.weight !== '') ? s.weight : '';
-            const weightLbVal = (s.weight_lb !== undefined && s.weight_lb !== null && s.weight_lb !== '') 
-                ? s.weight_lb 
+            const weightLbVal = (s.weight_lb !== undefined && s.weight_lb !== null && s.weight_lb !== '')
+                ? s.weight_lb
                 : (weightKgVal !== '' ? parseFloat((parseFloat(weightKgVal) * 2.20462).toFixed(2)) : '');
             const repsVal = (s.reps !== undefined && s.reps !== null && s.reps !== '') ? s.reps : '';
 
@@ -1162,7 +1188,10 @@
                     <!-- Previous log comparison / target subline (matching AFTraining) -->
                     <div class="flex items-center justify-between text-2xs text-slate-400 pt-1.5 px-1 border-t border-slate-800/60 mt-1.5">
                         <span id="set-summary-${idx}">Serie ${idx + 1}: ${summaryReps} reps, ${summaryKg} kg (${summaryLb} lb)</span>
-                        ${diffPill}
+                        <div class="flex items-center gap-1.5">
+                            ${(ex && ex.rir !== null && ex.rir !== undefined && ex.rir !== '') ? `<span class="text-amber-300 font-bold bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-500/25">RIR ${ex.rir}</span>` : ''}
+                            ${diffPill}
+                        </div>
                     </div>
                 </div>
             `;

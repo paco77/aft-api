@@ -134,7 +134,7 @@
                                     <th class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase">Ejercicio</th>
                                     <th class="px-6 py-2 text-center text-xs font-medium text-gray-500 uppercase">Series</th>
                                     <th class="px-6 py-2 text-center text-xs font-medium text-gray-500 uppercase">Reps</th>
-                                    <th class="px-6 py-2 text-center text-xs font-medium text-gray-500 uppercase">RPE</th>
+                                    <th class="px-6 py-2 text-center text-xs font-medium text-gray-500 uppercase">RIR</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200 text-sm">
@@ -164,7 +164,7 @@
                                         <td class="px-6 py-3 text-gray-500 text-center">
                                             {{ $planned->min_reps == $planned->max_reps ? $planned->min_reps : ($planned->min_reps . ' - ' . $planned->max_reps) }}
                                         </td>
-                                        <td class="px-6 py-3 text-gray-500 text-center">{{ $planned->rpe ?? '-' }}</td>
+                                        <td class="px-6 py-3 text-slate-700 font-semibold text-center">{{ $planned->rir ?? '-' }}</td>
                                     </tr>
                                 @empty
                                     <tr>

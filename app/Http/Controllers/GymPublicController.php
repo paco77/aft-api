@@ -302,6 +302,7 @@ class GymPublicController extends Controller
                 'target_sets' => $p->sets,
                 'min_reps' => $p->min_reps,
                 'max_reps' => $p->max_reps,
+                'rir' => $p->rir,
                 'last_session_date' => $lastSessionDate,
                 'previous_sets' => $previousSets,
                 'sets' => $initialSets,

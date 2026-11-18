@@ -5,7 +5,7 @@
 @section('content')
 <div class="mb-6 flex justify-between items-center">
     <div>
-        <a href="{{ $user->id === auth()->id() ? route('profile.edit') : route('admin.users.index') }}" class="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-2">
+        <a href="{{ $user->id === auth()->id() ? route('admin.profile.edit') : route('admin.users.index') }}" class="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             {{ $user->id === auth()->id() ? 'Volver a Mi Perfil' : 'Volver a Usuarios' }}
         </a>

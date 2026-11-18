@@ -418,60 +418,68 @@ class UserController extends Controller
         $completedSessionsCount = $workoutSessions->count();
         $adherenceRate = $prescribedSessionsCount > 0 ? min(100, (int) round(($completedSessionsCount / $prescribedSessionsCount) * 100)) : 0;
 
-        // 7. Agrupar sesiones por día de entrenamiento y ordenarlas cronológicamente
+        // 7. Agrupar sesiones por día de entrenamiento (Día 1, Día 2, ...) unificando para evitar tarjetas duplicadas
         $sessionsToGroup = $workoutSessions->isNotEmpty() ? $workoutSessions : $allWorkoutSessions;
 
         $groupedDays = collect();
-        $assignedTrainingDayIds = collect();
 
+        // 1. Inicializar días base a partir del plan mensual asignado (o el más reciente)
         if ($monthPlan && $monthPlan->relationLoaded('trainingDays')) {
             foreach ($monthPlan->trainingDays->sortBy('day_number') as $tDay) {
-                $daySessions = $sessionsToGroup->where('training_day_id', $tDay->id)->sortByDesc('start_time')->values();
-                $assignedTrainingDayIds->push($tDay->id);
-                $groupedDays->put('plan_day_' . $tDay->id, [
+                $dNum = (int) ($tDay->day_number ?: 1);
+                $groupedDays->put($dNum, [
                     'id' => $tDay->id,
-                    'day_number' => (int) ($tDay->day_number ?: 1),
-                    'label' => $tDay->label ?: ('Día ' . ($tDay->day_number ?: 1)),
+                    'day_number' => $dNum,
+                    'label' => $tDay->label ?: ('Día ' . $dNum),
                     'description' => $tDay->description,
                     'comment' => $tDay->comment,
                     'estimated_minutes' => $tDay->estimated_minutes ?? 60,
                     'muscle_groups' => $tDay->muscle_groups,
                     'plan_name' => $monthPlan->name,
-                    'sessions' => $daySessions,
-                    'sessions_count' => $daySessions->count(),
-                    'last_session_date' => $daySessions->first()?->start_time,
+                    'sessions' => collect(),
                 ]);
             }
         }
 
-        // Agrupar cualquier otra sesión que tenga trainingDay pero no pertenezca al plan actual
-        $otherSessionsWithDay = $sessionsToGroup->reject(function ($s) use ($assignedTrainingDayIds) {
-            return $assignedTrainingDayIds->contains($s->training_day_id) || is_null($s->training_day_id);
-        })->groupBy('training_day_id');
+        // 2. Distribuir las sesiones en su día correspondiente por day_number (evita duplicar tarjetas)
+        $freeSessions = collect();
 
-        foreach ($otherSessionsWithDay as $tDayId => $oSessions) {
-            $tDay = $oSessions->first()->trainingDay;
-            $sortedSessions = $oSessions->sortByDesc('start_time')->values();
-            $dNum = $tDay ? (int) ($tDay->day_number ?: 990) : 990;
-            $groupedDays->put('other_day_' . $tDayId, [
-                'id' => $tDayId,
-                'day_number' => $dNum,
-                'label' => $tDay ? ($tDay->label ?: ('Día ' . ($tDay->day_number ?: 1))) : 'Día de Entrenamiento',
-                'description' => $tDay?->description,
-                'comment' => $tDay?->comment,
-                'estimated_minutes' => $tDay?->estimated_minutes ?? 60,
-                'muscle_groups' => $tDay?->muscle_groups,
-                'plan_name' => $tDay?->monthlyPlan?->name ?? 'Plan Asignado',
-                'sessions' => $sortedSessions,
-                'sessions_count' => $sortedSessions->count(),
-                'last_session_date' => $sortedSessions->first()?->start_time,
-            ]);
+        foreach ($sessionsToGroup as $session) {
+            $tDay = $session->trainingDay;
+            $dNum = $tDay ? (int) ($tDay->day_number ?: null) : null;
+
+            if ($dNum !== null && $dNum > 0) {
+                if (!$groupedDays->has($dNum)) {
+                    $groupedDays->put($dNum, [
+                        'id' => $tDay->id,
+                        'day_number' => $dNum,
+                        'label' => $tDay->label ?: ('Día ' . $dNum),
+                        'description' => $tDay->description,
+                        'comment' => $tDay->comment,
+                        'estimated_minutes' => $tDay->estimated_minutes ?? 60,
+                        'muscle_groups' => $tDay->muscle_groups,
+                        'plan_name' => $tDay->monthlyPlan?->name ?? 'Plan Asignado',
+                        'sessions' => collect(),
+                    ]);
+                }
+
+                $dayEntry = $groupedDays->get($dNum);
+                if (empty($dayEntry['muscle_groups']) && !empty($tDay?->muscle_groups)) {
+                    $dayEntry['muscle_groups'] = $tDay->muscle_groups;
+                }
+                if (empty($dayEntry['description']) && !empty($tDay?->description)) {
+                    $dayEntry['description'] = $tDay->description;
+                }
+                $dayEntry['sessions']->push($session);
+                $groupedDays->put($dNum, $dayEntry);
+            } else {
+                $freeSessions->push($session);
+            }
         }
 
-        // Sesiones libres o sin trainingDay asignado
-        $freeSessions = $sessionsToGroup->whereNull('training_day_id')->sortByDesc('start_time')->values();
+        // 3. Sesiones libres o sin día asignado
         if ($freeSessions->isNotEmpty()) {
-            $groupedDays->put('free_sessions', [
+            $groupedDays->put(9999, [
                 'id' => null,
                 'day_number' => 9999,
                 'label' => 'Sesiones Libres / Sin Día Asignado',
@@ -481,10 +489,17 @@ class UserController extends Controller
                 'muscle_groups' => null,
                 'plan_name' => 'Entrenamiento Libre',
                 'sessions' => $freeSessions,
-                'sessions_count' => $freeSessions->count(),
-                'last_session_date' => $freeSessions->first()?->start_time,
             ]);
         }
+
+        // 4. Finalizar métricas de cada día (ordenar sesiones de más reciente a más antigua)
+        $groupedDays = $groupedDays->map(function ($day) {
+            $sortedSessions = $day['sessions']->sortByDesc('start_time')->values();
+            $day['sessions'] = $sortedSessions;
+            $day['sessions_count'] = $sortedSessions->count();
+            $day['last_session_date'] = $sortedSessions->first()?->start_time;
+            return $day;
+        });
 
         // Ordenar los días de entreno por day_number (Día 1, Día 2, Día 3...)
         $groupedTrainingDays = $groupedDays->sortBy('day_number')->values();

@@ -811,7 +811,7 @@
                 @forelse($groupedTrainingDays as $dIdx => $day)
                     @php
                         $dayHasSessions = $day['sessions']->isNotEmpty();
-                        $isDefaultOpen = $dIdx === 0 || $dayHasSessions;
+                        $isDefaultOpen = false;
                     @endphp
                     <div class="day-group-card bg-[#1b2029] rounded-2xl border border-white/10 overflow-hidden shadow-lg transition-all" id="day-card-{{ $dIdx }}">
                         <!-- Encabezado del Día (Click para Desplegar/Colapsar) -->

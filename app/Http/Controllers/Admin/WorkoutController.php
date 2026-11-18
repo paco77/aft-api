@@ -11,9 +11,9 @@ class WorkoutController extends Controller
 {
     public function index(User $user)
     {
-        // Validation: coach can only see their own clients
+        // Validation: coach can see their own workouts or their own clients
         if (auth()->user()->role === 'coach') {
-            if ($user->coach_id !== auth()->id()) {
+            if ($user->id !== auth()->id() && $user->coach_id !== auth()->id()) {
                 abort(403, 'No tienes permiso para ver los entrenamientos de este usuario.');
             }
         }
@@ -30,9 +30,9 @@ class WorkoutController extends Controller
     {
         $user = $session->user;
 
-        // Validation: coach can only see their own clients' sessions
+        // Validation: coach can see their own sessions or their own clients' sessions
         if (auth()->user()->role === 'coach') {
-            if ($user->coach_id !== auth()->id()) {
+            if ($user->id !== auth()->id() && $user->coach_id !== auth()->id()) {
                 abort(403, 'No tienes permiso para ver este entrenamiento.');
             }
         }

@@ -3,8 +3,43 @@
 @section('header', 'Mi Perfil')
 
 @section('content')
-<div class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
-    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+<div class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8 space-y-6">
+
+    <!-- Accesos Directos a Planes y Métricas Personales -->
+    <div class="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-500/30 text-white shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="space-y-1">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold uppercase tracking-wider">
+                <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+                <span>Tu Cuenta Personal</span>
+            </div>
+            <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight">
+                Tus Planes y Seguimiento Personal
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-300">
+                Consulta y gestiona tus propios planes de entrenamiento, alimentación y métricas de rendimiento.
+            </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+            <a href="{{ route('admin.users.plans', auth()->user()) }}"
+               class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs uppercase tracking-wider shadow-md shadow-indigo-600/30 transition active:scale-95">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                <span>Mis Planes Entrenamiento</span>
+            </a>
+            <a href="{{ route('admin.users.nutrition-plans', auth()->user()) }}"
+               class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#ec6a06] hover:bg-[#ec6a06]/90 text-white font-bold text-xs uppercase tracking-wider shadow-md transition active:scale-95">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                <span>Mis Planes Alimentación</span>
+            </a>
+            <a href="{{ route('admin.users.show', auth()->user()) }}"
+               class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs uppercase tracking-wider transition active:scale-95"
+               title="Ver ficha completa de rendimiento personal">
+                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                <span>Mi Ficha</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="bg-white shadow overflow-hidden sm:rounded-2xl border border-gray-100">
         <form action="{{ route('admin.profile.update') }}" method="POST" enctype="multipart/form-data" class="p-6">
             @csrf
             <div class="space-y-8">

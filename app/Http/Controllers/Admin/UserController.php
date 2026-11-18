@@ -165,8 +165,8 @@ class UserController extends Controller
 
     public function show(Request $request, User $user)
     {
-        // Si el usuario logueado es coach, solo puede ver a sus propios clientes
-        if (auth()->user()->role === 'coach' && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
+        // Si el usuario logueado es coach, puede ver a sus propios clientes y a sí mismo
+        if (auth()->user()->role === 'coach' && $user->id !== auth()->id() && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
             abort(403, 'No tienes permiso para ver este usuario.');
         }
 
@@ -177,14 +177,27 @@ class UserController extends Controller
         $initialProgress = $progressLogs->last();
 
         // 2. Planes de Nutrición y Planes de Entrenamiento
-        $nutritionPlans = \App\Models\NutritionPlan::where('client_id', $user->id)->latest()->get();
+        $nutritionPlans = \App\Models\NutritionPlan::where(function($q) use ($user) {
+            $q->where('client_id', $user->id);
+            if ($user->role === 'coach') {
+                $q->orWhere(function($sub) use ($user) {
+                    $sub->where('coach_id', $user->id)->where(function($s) use ($user) {
+                        $s->where('client_id', $user->id)->orWhereNull('client_id');
+                    });
+                });
+            }
+        })->latest()->get();
         $latestNutritionPlan = $nutritionPlans->first();
         $initialNutritionPlan = $nutritionPlans->last();
 
-        $assignedPlans = \App\Models\MonthlyPlan::where('assigned_client_id', $user->id)
-            ->orWhere(function ($q) use ($user) {
-                if ($user->role === 'independiente') {
-                    $q->where('user_id', $user->id);
+        $assignedPlans = \App\Models\MonthlyPlan::where(function ($q) use ($user) {
+                $q->where('assigned_client_id', $user->id);
+                if (in_array($user->role, ['coach', 'independiente'])) {
+                    $q->orWhere(function ($sub) use ($user) {
+                        $sub->where('user_id', $user->id)->where(function($s) use ($user) {
+                            $s->where('assigned_client_id', $user->id)->orWhereNull('assigned_client_id');
+                        });
+                    });
                 }
             })
             ->with('trainingDays')
@@ -518,7 +531,7 @@ class UserController extends Controller
 
     public function storeProgress(Request $request, User $user)
     {
-        if (auth()->user()->role === 'coach' && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
+        if (auth()->user()->role === 'coach' && $user->id !== auth()->id() && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
             abort(403, 'No tienes permiso para registrar progreso de este usuario.');
         }
 
@@ -582,7 +595,7 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        if (auth()->user()->role === 'coach' && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
+        if (auth()->user()->role === 'coach' && $user->id !== auth()->id() && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
             abort(403, 'No tienes permiso para editar este usuario.');
         }
         $coaches = User::where('role', 'coach')->where('id', '!=', $user->id)->get();
@@ -591,7 +604,7 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
-        if (auth()->user()->role === 'coach' && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
+        if (auth()->user()->role === 'coach' && $user->id !== auth()->id() && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
             abort(403, 'No tienes permiso para editar este usuario.');
         }
 
@@ -722,7 +735,7 @@ class UserController extends Controller
 
     public function progress(User $user)
     {
-        if (auth()->user()->role === 'coach' && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
+        if (auth()->user()->role === 'coach' && $user->id !== auth()->id() && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
             abort(403, 'No tienes permiso para ver el progreso de este usuario.');
         }
 
@@ -733,12 +746,21 @@ class UserController extends Controller
 
     public function nutritionPlans(User $user)
     {
-        if (auth()->user()->role === 'coach' && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
+        if (auth()->user()->role === 'coach' && $user->id !== auth()->id() && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
             abort(403, 'No tienes permiso para ver los planes de este usuario.');
         }
 
-        // Utilizar la relación de NutritionPlan donde el usuario es el cliente
-        $nutritionPlans = \App\Models\NutritionPlan::where('client_id', $user->id)->latest()->get();
+        // Utilizar la relación de NutritionPlan donde el usuario es el cliente o planes personales del coach
+        $nutritionPlans = \App\Models\NutritionPlan::where(function($q) use ($user) {
+            $q->where('client_id', $user->id);
+            if ($user->role === 'coach') {
+                $q->orWhere(function($sub) use ($user) {
+                    $sub->where('coach_id', $user->id)->where(function($s) use ($user) {
+                        $s->where('client_id', $user->id)->orWhereNull('client_id');
+                    });
+                });
+            }
+        })->latest()->get();
 
         $clientQuery = User::where('role', 'client');
         if (auth()->user()->role === 'coach') {
@@ -748,21 +770,28 @@ class UserController extends Controller
             });
         }
         $clients = $clientQuery->orderBy('name')->get();
+        if (in_array(auth()->user()->role, ['coach', 'independiente']) && !$clients->contains('id', auth()->id())) {
+            $clients->prepend(auth()->user());
+        }
 
         return view('admin.users.nutrition-plans', compact('user', 'nutritionPlans', 'clients'));
     }
 
     public function plans(User $user)
     {
-        if (auth()->user()->role === 'coach' && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
+        if (auth()->user()->role === 'coach' && $user->id !== auth()->id() && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
             abort(403, 'No tienes permiso para ver los planes de este usuario.');
         }
 
         $plans = \App\Models\MonthlyPlan::where(function($q) use ($user) {
-                $q->where('assigned_client_id', $user->id)
-                  ->orWhere(function($sub) use ($user) {
-                      $sub->where('user_id', $user->id)->whereNull('assigned_client_id');
-                  });
+                $q->where('assigned_client_id', $user->id);
+                if (in_array($user->role, ['coach', 'independiente'])) {
+                    $q->orWhere(function($sub) use ($user) {
+                        $sub->where('user_id', $user->id)->where(function($s) use ($user) {
+                            $s->where('assigned_client_id', $user->id)->orWhereNull('assigned_client_id');
+                        });
+                    });
+                }
             })
             ->with(['user', 'assignedClient', 'trainingDays.plannedExercises.exercise.muscleGroup'])
             ->latest()
@@ -776,7 +805,7 @@ class UserController extends Controller
             });
         }
         $clients = $clientQuery->orderBy('name')->get();
-        if (auth()->user()->role === 'independiente' && !$clients->contains('id', auth()->id())) {
+        if (in_array(auth()->user()->role, ['coach', 'independiente']) && !$clients->contains('id', auth()->id())) {
             $clients->prepend(auth()->user());
         }
 
@@ -785,7 +814,7 @@ class UserController extends Controller
 
     public function editProgress(User $user, ClientProgressLog $progress)
     {
-        if (auth()->user()->role === 'coach' && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
+        if (auth()->user()->role === 'coach' && $user->id !== auth()->id() && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
             abort(403, 'No tienes permiso para editar el progreso de este usuario.');
         }
 
@@ -798,7 +827,7 @@ class UserController extends Controller
 
     public function updateProgress(Request $request, User $user, ClientProgressLog $progress)
     {
-        if (auth()->user()->role === 'coach' && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
+        if (auth()->user()->role === 'coach' && $user->id !== auth()->id() && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
             abort(403, 'No tienes permiso para modificar el progreso de este usuario.');
         }
 

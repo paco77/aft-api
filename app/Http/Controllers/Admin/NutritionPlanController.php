@@ -231,6 +231,9 @@ class NutritionPlanController extends Controller
             });
         }
         $clients = $clientQuery->orderBy('name')->get();
+        if (in_array(auth()->user()->role, ['coach', 'independiente']) && !$clients->contains('id', auth()->id())) {
+            $clients->prepend(auth()->user());
+        }
 
         return view('admin.nutrition-plans.index', compact('plans', 'clients'));
     }
@@ -346,6 +349,9 @@ class NutritionPlanController extends Controller
             });
         }
         $clients = $query->orderBy('name')->get();
+        if (in_array(auth()->user()->role, ['coach', 'independiente']) && !$clients->contains('id', auth()->id())) {
+            $clients->prepend(auth()->user());
+        }
         
         $selectedClientId = $request->query('client_id');
         [$foodCategories, $catalogFoods] = $this->getFoodCatalogData();
@@ -375,10 +381,10 @@ class NutritionPlanController extends Controller
 
         if (auth()->user()->role === 'coach') {
             $client = \App\Models\User::find($data['client_id']);
-            if (!$client || (!is_null($client->coach_id) && (int) $client->coach_id !== (int) auth()->id())) {
+            if (!$client || ((int) $client->id !== (int) auth()->id() && !is_null($client->coach_id) && (int) $client->coach_id !== (int) auth()->id())) {
                 abort(403, 'No tienes permiso para asignar un plan a este usuario.');
             }
-            if (is_null($client->coach_id)) {
+            if (is_null($client->coach_id) && (int) $client->id !== (int) auth()->id()) {
                 $client->coach_id = auth()->id();
                 $client->save();
             }
@@ -464,6 +470,9 @@ class NutritionPlanController extends Controller
             });
         }
         $clients = $query->orderBy('name')->get();
+        if (in_array(auth()->user()->role, ['coach', 'independiente']) && !$clients->contains('id', auth()->id())) {
+            $clients->prepend(auth()->user());
+        }
         [$foodCategories, $catalogFoods] = $this->getFoodCatalogData();
 
         return view('admin.nutrition-plans.edit', compact('nutritionPlan', 'clients', 'foodCategories', 'catalogFoods'));
@@ -640,10 +649,10 @@ class NutritionPlanController extends Controller
 
         if (auth()->user()->role === 'coach') {
             $client = \App\Models\User::find($data['client_id']);
-            if (!$client || (!is_null($client->coach_id) && (int) $client->coach_id !== (int) auth()->id())) {
+            if (!$client || ((int) $client->id !== (int) auth()->id() && !is_null($client->coach_id) && (int) $client->coach_id !== (int) auth()->id())) {
                 abort(403, 'No tienes permiso para asignar un plan a este usuario.');
             }
-            if (is_null($client->coach_id)) {
+            if (is_null($client->coach_id) && (int) $client->id !== (int) auth()->id()) {
                 $client->coach_id = auth()->id();
                 $client->save();
             }

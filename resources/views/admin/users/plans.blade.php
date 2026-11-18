@@ -1,19 +1,19 @@
 @extends('layouts.admin')
 
-@section('header', 'Planes de Entrenamiento: ' . $user->name)
+@section('header', $user->id === auth()->id() ? 'Mis Planes de Entrenamiento Personales' : 'Planes de Entrenamiento: ' . $user->name)
 
 @section('content')
 <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
     <div>
-        <a href="{{ route('admin.users.index') }}" class="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-2 text-sm">
+        <a href="{{ $user->id === auth()->id() ? route('profile.edit') : route('admin.users.index') }}" class="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-2 text-sm">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            Volver a Usuarios
+            {{ $user->id === auth()->id() ? 'Volver a Mi Perfil' : 'Volver a Usuarios' }}
         </a>
     </div>
     <div class="flex items-center gap-2.5">
         <a href="{{ route('admin.plans.create', ['client_id' => $user->id]) }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl flex items-center gap-2 transition-colors text-sm shadow-xs">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-            Crear Nuevo Plan
+            {{ $user->id === auth()->id() ? 'Crear Plan Personal' : 'Crear Nuevo Plan' }}
         </a>
     </div>
 </div>
@@ -21,8 +21,8 @@
 <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 sm:p-6">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-slate-100 gap-2">
         <div>
-            <h2 class="text-lg sm:text-xl font-bold text-slate-900">Historial de Planes de Entrenamiento</h2>
-            <p class="text-xs text-slate-500 mt-0.5">Rutinas mensuales y divisiones de entrenamiento asignadas a este usuario</p>
+            <h2 class="text-lg sm:text-xl font-bold text-slate-900">{{ $user->id === auth()->id() ? 'Mis Planes de Entrenamiento Personales' : 'Historial de Planes de Entrenamiento' }}</h2>
+            <p class="text-xs text-slate-500 mt-0.5">{{ $user->id === auth()->id() ? 'Tus rutinas mensuales y divisiones de entrenamiento personales' : 'Rutinas mensuales y divisiones de entrenamiento asignadas a este usuario' }}</p>
         </div>
         <div class="flex items-center gap-2">
             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/60">

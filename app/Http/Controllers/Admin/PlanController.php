@@ -42,6 +42,8 @@ class PlanController extends Controller
         $clients = $query->orderBy('name')->get();
         if (auth()->user()->role === 'independiente' && !$clients->contains('id', auth()->id())) {
             $clients->prepend(auth()->user());
+        } elseif (auth()->user()->role === 'coach' && !$clients->contains('id', auth()->id())) {
+            $clients->prepend(auth()->user());
         }
         return $clients;
     }
@@ -57,6 +59,9 @@ class PlanController extends Controller
             $query->where(function($q) { $q->where('coach_id', auth()->id())->orWhereNull('coach_id'); });
         }
         $clients = $query->get();
+        if (in_array(auth()->user()->role, ['coach', 'independiente']) && !$clients->contains('id', auth()->id())) {
+            $clients->prepend(auth()->user());
+        }
         $exercises = Exercise::with('muscleGroup')->where('is_active', true)->get();
         $muscleGroups = \App\Models\MuscleGroup::all();
         return view('admin.plans.create', compact('clients', 'exercises', 'muscleGroups'));
@@ -87,13 +92,13 @@ class PlanController extends Controller
 
         if (auth()->user()->role === 'coach') {
             $client = User::find($data['assigned_client_id']);
-            if (!$client || ($client->coach_id !== auth()->id() && !is_null($client->coach_id))) {
+            if (!$client || ((int) $client->id !== (int) auth()->id() && $client->coach_id !== auth()->id() && !is_null($client->coach_id))) {
                 abort(403, 'No tienes permiso para asignar un plan a este usuario.');
             }
-                if (is_null($client->coach_id)) {
-                    $client->coach_id = auth()->id();
-                    $client->save();
-                }
+            if (is_null($client->coach_id) && (int) $client->id !== (int) auth()->id()) {
+                $client->coach_id = auth()->id();
+                $client->save();
+            }
         }
 
         DB::transaction(function () use ($data) {
@@ -190,6 +195,9 @@ class PlanController extends Controller
             $query->where(function($q) { $q->where('coach_id', auth()->id())->orWhereNull('coach_id'); });
         }
         $clients = $query->get();
+        if (in_array(auth()->user()->role, ['coach', 'independiente']) && !$clients->contains('id', auth()->id())) {
+            $clients->prepend(auth()->user());
+        }
         $exercises = Exercise::with('muscleGroup')->where('is_active', true)->get();
         $muscleGroups = \App\Models\MuscleGroup::all();
 
@@ -221,10 +229,10 @@ class PlanController extends Controller
 
         if (auth()->user()->role === 'coach') {
             $client = User::find($data['assigned_client_id']);
-            if (!$client || (!is_null($client->coach_id) && (int) $client->coach_id !== (int) auth()->id())) {
+            if (!$client || ((int) $client->id !== (int) auth()->id() && !is_null($client->coach_id) && (int) $client->coach_id !== (int) auth()->id())) {
                 abort(403, 'No tienes permiso para asignar un plan a este usuario.');
             }
-            if (is_null($client->coach_id)) {
+            if (is_null($client->coach_id) && (int) $client->id !== (int) auth()->id()) {
                 $client->coach_id = auth()->id();
                 $client->save();
             }
@@ -337,10 +345,10 @@ class PlanController extends Controller
 
         if (auth()->user()->role === 'coach') {
             $client = User::find($data['assigned_client_id']);
-            if (!$client || (!is_null($client->coach_id) && (int) $client->coach_id !== (int) auth()->id())) {
+            if (!$client || ((int) $client->id !== (int) auth()->id() && !is_null($client->coach_id) && (int) $client->coach_id !== (int) auth()->id())) {
                 abort(403, 'No tienes permiso para asignar un plan a este usuario.');
             }
-            if (is_null($client->coach_id)) {
+            if (is_null($client->coach_id) && (int) $client->id !== (int) auth()->id()) {
                 $client->coach_id = auth()->id();
                 $client->save();
             }

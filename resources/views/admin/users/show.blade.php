@@ -130,7 +130,7 @@
         $athleteIdFormatted = '#AF-' . str_pad((string)$user->id, 4, '0', STR_PAD_LEFT);
         $programPhase = $user->objectives ?: 'Sin objetivo especificado';
         $programTitle = $monthPlan ? ($monthPlan->split_type ?: ($monthPlan->month . ' ' . $monthPlan->year)) : ($latestPlan ? ($latestPlan->split_type ?: ($latestPlan->month . ' ' . $latestPlan->year)) : 'Personalizado');
-        $coachName = $user->coach ? $user->coach->name : 'Sin Coach Asignado';
+        $coachName = $user->role === 'coach' ? ($user->name . ' (Coach Titular)') : ($user->coach ? $user->coach->name : 'Sin Coach Asignado');
         $selectedMonthLabel = $selectedMonthObj['label'] ?? now()->translatedFormat('F Y');
     @endphp
 
@@ -246,13 +246,13 @@
                     <a href="{{ route('admin.users.plans', $user) }}"
                         class="w-full sm:w-auto h-12 px-6 bg-indigo-600 hover:bg-indigo-500 text-white text-title-sm rounded-lg flex items-center justify-center gap-2 transition-all shadow-md font-bold">
                         <span class="material-symbols-outlined text-[20px]">fitness_center</span>
-                        <span>Planes de Entrenamiento</span>
+                        <span>{{ $user->id === auth()->id() ? 'Mis Planes de Entrenamiento' : 'Planes de Entrenamiento' }}</span>
                     </a>
 
                     <a href="{{ route('admin.users.nutrition-plans', $user) }}"
                         class="w-full sm:w-auto h-12 px-6 bg-[#ec6a06] hover:bg-[#ec6a06]/90 text-[#4a1c00] text-title-sm rounded-lg flex items-center justify-center gap-2 transition-all shadow-md font-bold">
                         <span class="material-symbols-outlined text-[20px]">tune</span>
-                        <span>Ajustar Nutrición</span>
+                        <span>{{ $user->id === auth()->id() ? 'Mis Planes de Alimentación' : 'Ajustar Nutrición' }}</span>
                     </a>
                 </div>
             </div>

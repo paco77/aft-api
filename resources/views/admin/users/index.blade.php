@@ -93,7 +93,7 @@
                         @endif
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        @if($user->role === 'client' || $user->role === 'independiente')
+                        @if($user->role === 'client' || $user->role === 'independiente' || ($user->role === 'coach' && $user->id === auth()->id()))
                             <a href="{{ route('admin.users.plans', $user) }}" class="inline-flex items-center px-2.5 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-md text-xs font-medium mr-2" title="Ver Planes de Entrenamiento">
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
                                 Planes

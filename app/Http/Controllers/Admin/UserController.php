@@ -364,7 +364,7 @@ class UserController extends Controller
         $rpeValues = [];
         $sessionMetrics = [];
 
-        foreach ($workoutSessions as $sess) {
+        foreach ($allWorkoutSessions as $sess) {
             $sessTonnage = 0;
             $sessRpes = [];
             $maxLift = 0;
@@ -384,7 +384,11 @@ class UserController extends Controller
                 }
             }
 
-            $totalTonnage += $sessTonnage;
+            // Si la sesión corresponde al mes seleccionado, acumular para el tonelaje mensual
+            if ($sess->start_time && \Carbon\Carbon::parse($sess->start_time)->format('Y-m') === $selectedMonthKey) {
+                $totalTonnage += $sessTonnage;
+            }
+
             $avgSessRpe = count($sessRpes) > 0 ? round(array_sum($sessRpes) / count($sessRpes), 1) : null;
 
             $durationMin = $sess->duration;
@@ -406,28 +410,41 @@ class UserController extends Controller
         $monthlyTonnage = $totalTonnage;
         $globalRpe = count($rpeValues) > 0 ? round(array_sum($rpeValues) / count($rpeValues), 1) : null;
 
-        // Plan asignado de ese mes (o el más reciente)
-        $monthPlan = $assignedPlans->first(function ($p) use ($selectedMonthObj, $spanishMonthsReverse) {
-            if (!$selectedMonthObj) return false;
-            $mLower = mb_strtolower(trim((string) $p->month), 'UTF-8');
-            $mNum = $spanishMonthsReverse[$mLower] ?? (is_numeric($p->month) ? (int) $p->month : null);
-            return $mNum === $selectedMonthObj['month'] && (int) $p->year === $selectedMonthObj['year'];
-        }) ?: $latestPlan;
+        // Determinar qué plan de entrenamiento se está visualizando (por separado)
+        $selectedPlanId = $request->query('plan_id');
+        $selectedPlan = null;
+
+        if ($selectedPlanId && is_numeric($selectedPlanId)) {
+            $selectedPlan = $assignedPlans->firstWhere('id', (int) $selectedPlanId);
+        }
+
+        // Si no se especificó plan_id explícito o no se encontró, seleccionar el plan correspondiente al mes actual o el más reciente
+        if (!$selectedPlan && $selectedPlanId !== 'free') {
+            $selectedPlan = $assignedPlans->first(function ($p) use ($selectedMonthObj, $spanishMonthsReverse) {
+                if (!$selectedMonthObj) return false;
+                $mLower = mb_strtolower(trim((string) $p->month), 'UTF-8');
+                $mNum = $spanishMonthsReverse[$mLower] ?? (is_numeric($p->month) ? (int) $p->month : null);
+                return $mNum === $selectedMonthObj['month'] && (int) $p->year === $selectedMonthObj['year'];
+            }) ?: $latestPlan;
+        }
+
+        $monthPlan = $selectedPlan ?: $latestPlan;
 
         $prescribedSessionsCount = $monthPlan && $monthPlan->days_per_week ? ($monthPlan->days_per_week * 4) : 20;
         $completedSessionsCount = $workoutSessions->count();
         $adherenceRate = $prescribedSessionsCount > 0 ? min(100, (int) round(($completedSessionsCount / $prescribedSessionsCount) * 100)) : 0;
 
-        // 7. Agrupar sesiones por día de entrenamiento (Día 1, Día 2, ...) unificando para evitar tarjetas duplicadas
-        $sessionsToGroup = $workoutSessions->isNotEmpty() ? $workoutSessions : $allWorkoutSessions;
+        $hasFreeSessions = $allWorkoutSessions->whereNull('training_day_id')->isNotEmpty();
 
+        // 7. Agrupar sesiones por día de entrenamiento del plan seleccionado (sin mezclar con otros planes)
         $groupedDays = collect();
 
-        // 1. Inicializar días base a partir del plan mensual asignado (o el más reciente)
-        if ($monthPlan && $monthPlan->relationLoaded('trainingDays')) {
-            foreach ($monthPlan->trainingDays->sortBy('day_number') as $tDay) {
+        if ($selectedPlan && $selectedPlanId !== 'free') {
+            // Mostrar ÚNICAMENTE los días y las sesiones que pertenecen a este plan específico
+            foreach ($selectedPlan->trainingDays->sortBy('day_number') as $tDay) {
+                $daySessions = $allWorkoutSessions->where('training_day_id', $tDay->id)->sortByDesc('start_time')->values();
                 $dNum = (int) ($tDay->day_number ?: 1);
-                $groupedDays->put($dNum, [
+                $groupedDays->put('day_' . $tDay->id, [
                     'id' => $tDay->id,
                     'day_number' => $dNum,
                     'label' => $tDay->label ?: ('Día ' . $dNum),
@@ -435,74 +452,53 @@ class UserController extends Controller
                     'comment' => $tDay->comment,
                     'estimated_minutes' => $tDay->estimated_minutes ?? 60,
                     'muscle_groups' => $tDay->muscle_groups,
-                    'plan_name' => $monthPlan->name,
-                    'sessions' => collect(),
+                    'plan_name' => ($selectedPlan->split_type ?: $selectedPlan->name),
+                    'sessions' => $daySessions,
+                    'sessions_count' => $daySessions->count(),
+                    'last_session_date' => $daySessions->first()?->start_time,
+                ]);
+            }
+        } elseif ($selectedPlanId === 'free') {
+            // Mostrar únicamente sesiones libres
+            $freeSessions = $allWorkoutSessions->whereNull('training_day_id')->sortByDesc('start_time')->values();
+            if ($freeSessions->isNotEmpty()) {
+                $groupedDays->put('free', [
+                    'id' => null,
+                    'day_number' => 9999,
+                    'label' => 'Sesiones Libres / Sin Plan',
+                    'description' => 'Entrenamientos realizados fuera de un plan mensual',
+                    'comment' => null,
+                    'estimated_minutes' => 60,
+                    'muscle_groups' => null,
+                    'plan_name' => 'Entrenamiento Libre',
+                    'sessions' => $freeSessions,
+                    'sessions_count' => $freeSessions->count(),
+                    'last_session_date' => $freeSessions->first()?->start_time,
+                ]);
+            }
+        } else {
+            // Fallback si el usuario no tiene ningún plan
+            $freeSessions = $allWorkoutSessions->sortByDesc('start_time')->values();
+            if ($freeSessions->isNotEmpty()) {
+                $groupedDays->put('all', [
+                    'id' => null,
+                    'day_number' => 1,
+                    'label' => 'Sesiones de Entrenamiento',
+                    'description' => 'Entrenamientos registrados',
+                    'comment' => null,
+                    'estimated_minutes' => 60,
+                    'muscle_groups' => null,
+                    'plan_name' => 'General',
+                    'sessions' => $freeSessions,
+                    'sessions_count' => $freeSessions->count(),
+                    'last_session_date' => $freeSessions->first()?->start_time,
                 ]);
             }
         }
 
-        // 2. Distribuir las sesiones en su día correspondiente por day_number (evita duplicar tarjetas)
-        $freeSessions = collect();
-
-        foreach ($sessionsToGroup as $session) {
-            $tDay = $session->trainingDay;
-            $dNum = $tDay ? (int) ($tDay->day_number ?: null) : null;
-
-            if ($dNum !== null && $dNum > 0) {
-                if (!$groupedDays->has($dNum)) {
-                    $groupedDays->put($dNum, [
-                        'id' => $tDay->id,
-                        'day_number' => $dNum,
-                        'label' => $tDay->label ?: ('Día ' . $dNum),
-                        'description' => $tDay->description,
-                        'comment' => $tDay->comment,
-                        'estimated_minutes' => $tDay->estimated_minutes ?? 60,
-                        'muscle_groups' => $tDay->muscle_groups,
-                        'plan_name' => $tDay->monthlyPlan?->name ?? 'Plan Asignado',
-                        'sessions' => collect(),
-                    ]);
-                }
-
-                $dayEntry = $groupedDays->get($dNum);
-                if (empty($dayEntry['muscle_groups']) && !empty($tDay?->muscle_groups)) {
-                    $dayEntry['muscle_groups'] = $tDay->muscle_groups;
-                }
-                if (empty($dayEntry['description']) && !empty($tDay?->description)) {
-                    $dayEntry['description'] = $tDay->description;
-                }
-                $dayEntry['sessions']->push($session);
-                $groupedDays->put($dNum, $dayEntry);
-            } else {
-                $freeSessions->push($session);
-            }
-        }
-
-        // 3. Sesiones libres o sin día asignado
-        if ($freeSessions->isNotEmpty()) {
-            $groupedDays->put(9999, [
-                'id' => null,
-                'day_number' => 9999,
-                'label' => 'Sesiones Libres / Sin Día Asignado',
-                'description' => 'Entrenamientos realizados fuera de la rutina mensual',
-                'comment' => null,
-                'estimated_minutes' => 60,
-                'muscle_groups' => null,
-                'plan_name' => 'Entrenamiento Libre',
-                'sessions' => $freeSessions,
-            ]);
-        }
-
-        // 4. Finalizar métricas de cada día (ordenar sesiones de más reciente a más antigua)
-        $groupedDays = $groupedDays->map(function ($day) {
-            $sortedSessions = $day['sessions']->sortByDesc('start_time')->values();
-            $day['sessions'] = $sortedSessions;
-            $day['sessions_count'] = $sortedSessions->count();
-            $day['last_session_date'] = $sortedSessions->first()?->start_time;
-            return $day;
-        });
-
         // Ordenar los días de entreno por day_number (Día 1, Día 2, Día 3...)
         $groupedTrainingDays = $groupedDays->sortBy('day_number')->values();
+        $planSessionsTotalCount = $groupedTrainingDays->sum('sessions_count');
 
         return view('admin.users.show', compact(
             'user',
@@ -516,6 +512,10 @@ class UserController extends Controller
             'assignedPlans',
             'latestPlan',
             'monthPlan',
+            'selectedPlan',
+            'selectedPlanId',
+            'hasFreeSessions',
+            'planSessionsTotalCount',
             'allWorkoutSessions',
             'workoutSessions',
             'groupedTrainingDays',

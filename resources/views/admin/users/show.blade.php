@@ -766,11 +766,21 @@
             <!-- Section Title & Filter Controls -->
             <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                 <div>
-                    <h2 class="text-headline-md text-[#dfe2f0]">
-                        Sesiones de Entrenamiento &middot; {{ $selectedMonthLabel }}
-                        <span class="text-body-md text-[#adc6ff] font-normal">({{ $workoutSessions->count() }} en este mes)</span>
+                    <h2 class="text-headline-md text-[#dfe2f0] flex flex-wrap items-center gap-2">
+                        <span>Sesiones de Entrenamiento</span>
+                        @if($selectedPlan)
+                            <span class="text-body-lg text-[#adc6ff] font-semibold">
+                                &middot; {{ $selectedPlan->split_type ?: $selectedPlan->name }}
+                                @if($selectedPlan->month)
+                                    <span class="text-xs opacity-80">({{ $selectedPlan->month }} {{ $selectedPlan->year }})</span>
+                                @endif
+                            </span>
+                        @elseif($selectedPlanId === 'free')
+                            <span class="text-body-lg text-[#adc6ff] font-semibold">&middot; Sesiones Libres</span>
+                        @endif
+                        <span class="text-body-sm text-[#8c909f] font-normal">({{ $planSessionsTotalCount }} {{ $planSessionsTotalCount == 1 ? 'sesión' : 'sesiones' }} en este plan)</span>
                     </h2>
-                    <p class="text-body-md text-[#c2c6d6]">Días de entrenamiento ordenados con sesiones desplegables por fecha</p>
+                    <p class="text-body-md text-[#c2c6d6]">Días y sesiones del plan seleccionado con detalles desplegables por fecha</p>
                 </div>
 
                 <!-- Filtros y Controles Rápidos -->
@@ -795,12 +805,86 @@
                 </div>
             </div>
 
-            @if($workoutSessions->isEmpty() && $allWorkoutSessions->isNotEmpty())
+            <!-- Selector de Plan de Entrenamiento (Pestañas / Dropdown para ver por separado) -->
+            @if($assignedPlans->isNotEmpty())
+                <div class="bg-[#1b2029] p-4 rounded-2xl border border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-[#4d8eff]/20 text-[#adc6ff] border border-[#4d8eff]/30 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-[20px]">fitness_center</span>
+                        </div>
+                        <div>
+                            <span class="text-label-caps text-[#8c909f] uppercase tracking-wider block">Plan de Entrenamiento:</span>
+                            <span class="text-title-sm text-[#dfe2f0] font-bold">
+                                @if($selectedPlan)
+                                    {{ $selectedPlan->split_type ?: $selectedPlan->name }}
+                                    @if($selectedPlan->month)
+                                        <span class="text-[#adc6ff] font-medium text-xs">({{ $selectedPlan->month }} {{ $selectedPlan->year }})</span>
+                                    @endif
+                                @elseif($selectedPlanId === 'free')
+                                    Sesiones Libres / Sin Plan
+                                @else
+                                    Todos los Planes
+                                @endif
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Botones de planes -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        @if($assignedPlans->count() <= 4)
+                            @foreach($assignedPlans as $p)
+                                @php
+                                    $isPSelected = $selectedPlan && $selectedPlan->id === $p->id;
+                                    $pName = ($p->split_type ?: $p->name) . ($p->month ? ' (' . $p->month . ')' : '');
+                                @endphp
+                                <a href="{{ route('admin.users.show', ['user' => $user->id, 'month' => $selectedMonthKey, 'plan_id' => $p->id]) }}"
+                                   class="px-3.5 py-2 rounded-xl text-body-sm font-semibold transition-all flex items-center gap-2 {{ $isPSelected ? 'bg-[#4d8eff] text-[#00285d] shadow-md' : 'bg-[#171c25] text-[#c2c6d6] hover:text-[#dfe2f0] hover:bg-[#262a34] border border-white/5' }}">
+                                    <span class="material-symbols-outlined text-[16px]">folder</span>
+                                    <span>{{ $pName }}</span>
+                                    @if($p->days_per_week)
+                                        <span class="text-xs opacity-75">({{ $p->days_per_week }}d)</span>
+                                    @endif
+                                </a>
+                            @endforeach
+                        @else
+                            <select onchange="window.location.href = this.value"
+                                    class="bg-[#171c25] text-[#dfe2f0] text-body-sm font-semibold rounded-xl px-4 py-2.5 border border-white/10 hover:border-[#adc6ff]/50 focus:outline-none focus:border-[#adc6ff] cursor-pointer">
+                                @foreach($assignedPlans as $p)
+                                    @php
+                                        $isPSelected = $selectedPlan && $selectedPlan->id === $p->id;
+                                        $pLabel = ($p->split_type ?: $p->name) . ($p->month ? ' · ' . $p->month . ' ' . $p->year : '');
+                                    @endphp
+                                    <option value="{{ route('admin.users.show', ['user' => $user->id, 'month' => $selectedMonthKey, 'plan_id' => $p->id]) }}"
+                                            {{ $isPSelected ? 'selected' : '' }}>
+                                        Plan: {{ $pLabel }} ({{ $p->days_per_week ?? $p->trainingDays->count() }} días)
+                                    </option>
+                                @endforeach
+                                @if($hasFreeSessions)
+                                    <option value="{{ route('admin.users.show', ['user' => $user->id, 'month' => $selectedMonthKey, 'plan_id' => 'free']) }}"
+                                            {{ $selectedPlanId === 'free' ? 'selected' : '' }}>
+                                        Sesiones Libres / Sin Plan
+                                    </option>
+                                @endif
+                            </select>
+                        @endif
+
+                        @if($hasFreeSessions && $assignedPlans->count() <= 4)
+                            <a href="{{ route('admin.users.show', ['user' => $user->id, 'month' => $selectedMonthKey, 'plan_id' => 'free']) }}"
+                               class="px-3.5 py-2 rounded-xl text-body-sm font-semibold transition-all flex items-center gap-2 {{ $selectedPlanId === 'free' ? 'bg-[#4d8eff] text-[#00285d] shadow-md' : 'bg-[#171c25] text-[#c2c6d6] hover:text-[#dfe2f0] hover:bg-[#262a34] border border-white/5' }}">
+                                <span class="material-symbols-outlined text-[16px]">more_horiz</span>
+                                <span>Libres</span>
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
+            @if($groupedTrainingDays->every(fn($d) => $d['sessions']->isEmpty()))
                 <div class="bg-[#262a34]/70 border border-white/10 rounded-xl p-4 flex items-center justify-between gap-4">
                     <div class="flex items-center gap-3">
                         <span class="material-symbols-outlined text-[#ffb690]">info</span>
                         <p class="text-body-sm text-[#c2c6d6]">
-                            No se encontraron sesiones en <strong>{{ $selectedMonthLabel }}</strong>. Mostrando los días y las últimas <strong>{{ $allWorkoutSessions->count() }}</strong> sesiones registradas del atleta en otros meses.
+                            No se encontraron sesiones registradas para este plan de entrenamiento.
                         </p>
                     </div>
                 </div>

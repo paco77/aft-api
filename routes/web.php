@@ -68,6 +68,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::put('/users/{user}/progress/{progress}', [\App\Http\Controllers\Admin\UserController::class, 'updateProgress'])->name('users.progress.update');
     Route::delete('/users/{user}/progress/{progress}', [\App\Http\Controllers\Admin\UserController::class, 'destroyProgress'])->name('users.progress.destroy');
     Route::get('/users/{user}/nutrition-plans', [\App\Http\Controllers\Admin\UserController::class, 'nutritionPlans'])->name('users.nutrition-plans');
+    Route::get('/users/{user}/plans', [\App\Http\Controllers\Admin\UserController::class, 'plans'])->name('users.plans');
     Route::get('/workouts/{session}', [\App\Http\Controllers\Admin\WorkoutController::class, 'show'])->name('workouts.show');
 
     // Rutas para Rutinas de Gimnasio (No ligadas a planes mensuales)

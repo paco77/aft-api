@@ -243,6 +243,12 @@
                         <span>Reporte PDF</span>
                     </button>
 
+                    <a href="{{ route('admin.users.plans', $user) }}"
+                        class="w-full sm:w-auto h-12 px-6 bg-indigo-600 hover:bg-indigo-500 text-white text-title-sm rounded-lg flex items-center justify-center gap-2 transition-all shadow-md font-bold">
+                        <span class="material-symbols-outlined text-[20px]">fitness_center</span>
+                        <span>Planes de Entrenamiento</span>
+                    </a>
+
                     <a href="{{ route('admin.users.nutrition-plans', $user) }}"
                         class="w-full sm:w-auto h-12 px-6 bg-[#ec6a06] hover:bg-[#ec6a06]/90 text-[#4a1c00] text-title-sm rounded-lg flex items-center justify-center gap-2 transition-all shadow-md font-bold">
                         <span class="material-symbols-outlined text-[20px]">tune</span>
@@ -754,7 +760,7 @@
         </section>
 
         <!-- ========================================================================= -->
-        <!-- 4. HISTORIAL GRANULAR DE SESIONES DE ENTRENAMIENTO                        -->
+        <!-- 4. HISTORIAL DE SESIONES ORDENADO POR DÍAS DE ENTRENAMIENTO               -->
         <!-- ========================================================================= -->
         <section class="space-y-4">
             <!-- Section Title & Filter Controls -->
@@ -764,18 +770,16 @@
                         Sesiones de Entrenamiento &middot; {{ $selectedMonthLabel }}
                         <span class="text-body-md text-[#adc6ff] font-normal">({{ $workoutSessions->count() }} en este mes)</span>
                     </h2>
-                    <p class="text-body-md text-[#c2c6d6]">Desglose de ejercicios realizados, cargas registradas, volumen movido y comentarios</p>
+                    <p class="text-body-md text-[#c2c6d6]">Días de entrenamiento ordenados con sesiones desplegables por fecha</p>
                 </div>
 
-                <!-- Filtros Rápidos -->
+                <!-- Filtros y Controles Rápidos -->
                 <div class="flex flex-wrap items-center gap-2 no-print">
-                    @if($workoutSessions->isEmpty() && $allWorkoutSessions->isNotEmpty())
-                        <button type="button" onclick="toggleAllSessionsView()" id="btn-show-all-sessions"
-                            class="bg-[#4d8eff] text-[#00285d] font-bold rounded-lg px-3.5 py-2 flex items-center gap-2 transition cursor-pointer">
-                            <span class="material-symbols-outlined text-[18px]">history</span>
-                            <span class="text-body-sm">Ver todas las sesiones ({{ $allWorkoutSessions->count() }})</span>
-                        </button>
-                    @endif
+                    <button type="button" onclick="toggleAllDaysAccordion()" id="btn-toggle-all-days"
+                        class="bg-[#1b2029] hover:bg-[#262a34] rounded-lg px-3.5 py-2 flex items-center gap-1.5 border border-white/5 transition text-[#adc6ff] cursor-pointer">
+                        <span class="material-symbols-outlined text-[18px]" id="icon-toggle-all-days">unfold_more</span>
+                        <span class="text-body-sm" id="text-toggle-all-days">Desplegar Todos</span>
+                    </button>
 
                     <button type="button" id="filter-rpe-btn" data-active="0"
                         class="bg-[#1b2029] hover:bg-[#262a34] rounded-lg px-3.5 py-2 flex items-center gap-2 border border-white/5 transition cursor-pointer">
@@ -791,160 +795,235 @@
                 </div>
             </div>
 
-            @php
-                // Si el mes seleccionado tiene sesiones, las mostramos; si no tiene pero el usuario tiene en otros meses, permitimos verlas también
-                $sessionsToDisplay = $workoutSessions->isNotEmpty() ? $workoutSessions : $allWorkoutSessions;
-            @endphp
-
             @if($workoutSessions->isEmpty() && $allWorkoutSessions->isNotEmpty())
                 <div class="bg-[#262a34]/70 border border-white/10 rounded-xl p-4 flex items-center justify-between gap-4">
                     <div class="flex items-center gap-3">
                         <span class="material-symbols-outlined text-[#ffb690]">info</span>
                         <p class="text-body-sm text-[#c2c6d6]">
-                            No se encontraron sesiones en <strong>{{ $selectedMonthLabel }}</strong>. Mostrando las últimas <strong>{{ $allWorkoutSessions->count() }}</strong> sesiones registradas del atleta en otros meses.
+                            No se encontraron sesiones en <strong>{{ $selectedMonthLabel }}</strong>. Mostrando los días y las últimas <strong>{{ $allWorkoutSessions->count() }}</strong> sesiones registradas del atleta en otros meses.
                         </p>
                     </div>
                 </div>
             @endif
 
-            <!-- Lista de Tarjetas de Sesiones -->
-            <div id="sessions-stack" class="space-y-4">
-                @forelse($sessionsToDisplay as $idx => $sess)
+            <!-- Acordeón de Días de Entrenamiento Ordenados -->
+            <div id="days-accordion-container" class="space-y-4">
+                @forelse($groupedTrainingDays as $dIdx => $day)
                     @php
-                        // Calcular métricas si la sesión proviene de $allWorkoutSessions y no estaba en $sessionMetrics
-                        if (isset($sessionMetrics[$sess->id])) {
-                            $meta = $sessionMetrics[$sess->id];
-                        } else {
-                            $sTonnage = 0;
-                            $sRpes = [];
-                            $sMaxLift = 0;
-                            foreach ($sess->exerciseLogs as $eLog) {
-                                foreach ($eLog->setLogs as $set) {
-                                    $w = (float) ($set->weight ?: 0);
-                                    $r = (int) ($set->reps ?: 0);
-                                    $sTonnage += ($w * $r);
-                                    if ($w > $sMaxLift) $sMaxLift = $w;
-                                    if (!empty($set->rpe) && is_numeric($set->rpe)) $sRpes[] = (float) $set->rpe;
-                                }
-                            }
-                            $sDur = $sess->duration;
-                            if (!$sDur && $sess->start_time && $sess->end_time) {
-                                $sDur = \Carbon\Carbon::parse($sess->start_time)->diffInMinutes(\Carbon\Carbon::parse($sess->end_time));
-                            }
-                            $meta = [
-                                'tonnage' => $sTonnage,
-                                'rpe' => count($sRpes) > 0 ? round(array_sum($sRpes) / count($sRpes), 1) : null,
-                                'duration' => $sDur ?: ($sess->trainingDay->estimated_minutes ?? 60),
-                                'is_pr' => $sMaxLift >= 60,
-                            ];
-                        }
-                        $sessionTitle = $sess->trainingDay ? $sess->trainingDay->label : 'Sesión de Entrenamiento';
-                        $planName = ($sess->trainingDay && $sess->trainingDay->monthlyPlan) ? $sess->trainingDay->monthlyPlan->name : 'Plan Asignado';
+                        $dayHasSessions = $day['sessions']->isNotEmpty();
+                        $isDefaultOpen = $dIdx === 0 || $dayHasSessions;
                     @endphp
-
-                    <div class="session-card bg-[#1b2029] rounded-xl p-6 shadow-md space-y-4 border border-white/5"
-                         data-rpe="{{ $meta['rpe'] ?? 8.0 }}">
-                        <!-- Cabecera de la Sesión -->
-                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl {{ $idx === 0 ? 'bg-[#4d8eff] text-[#00285d]' : 'bg-[#262a34] text-[#adc6ff]' }} flex items-center justify-center font-bold">
-                                    <span class="material-symbols-outlined text-[20px]">fitness_center</span>
+                    <div class="day-group-card bg-[#1b2029] rounded-2xl border border-white/10 overflow-hidden shadow-lg transition-all" id="day-card-{{ $dIdx }}">
+                        <!-- Encabezado del Día (Click para Desplegar/Colapsar) -->
+                        <div onclick="toggleDayAccordion({{ $dIdx }})"
+                             class="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer select-none hover:bg-white/[0.03] transition group">
+                            <div class="flex items-center gap-3.5">
+                                <div class="w-11 h-11 rounded-xl {{ $dayHasSessions ? 'bg-[#4d8eff]/20 text-[#adc6ff] border border-[#4d8eff]/30' : 'bg-[#262a34] text-[#8c909f]' }} flex items-center justify-center font-bold shrink-0">
+                                    @if($day['day_number'] < 900)
+                                        <span class="text-xs font-black tracking-tight uppercase">D{{ $day['day_number'] }}</span>
+                                    @else
+                                        <span class="material-symbols-outlined text-[20px]">fitness_center</span>
+                                    @endif
                                 </div>
                                 <div>
                                     <div class="flex flex-wrap items-center gap-2">
-                                        <h3 class="text-title-sm text-[#dfe2f0]">{{ $sessionTitle }}</h3>
-                                        <span class="bg-[#262a34] text-[#adc6ff] text-label-caps px-2.5 py-0.5 rounded-full">
-                                            {{ $planName }}
-                                        </span>
-                                        @if($meta['is_pr'])
-                                            <span class="bg-[#ec6a06] text-[#4a1c00] text-label-caps px-2 py-0.5 rounded-full font-bold">PR Superado</span>
-                                        @endif
-                                    </div>
-                                    <span class="text-body-sm text-[#8c909f]">
-                                        Realizada el {{ \Carbon\Carbon::parse($sess->start_time)->translatedFormat('d \d\e F, Y') }} &middot; Hora: {{ \Carbon\Carbon::parse($sess->start_time)->format('h:i A') }}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div class="flex flex-wrap items-center gap-3 text-[#c2c6d6] text-body-sm">
-                                <div class="flex items-center gap-1.5 bg-[#262a34] px-3 py-1 rounded-lg">
-                                    <span class="material-symbols-outlined text-[18px] text-[#adc6ff]">schedule</span>
-                                    <span>{{ $meta['duration'] }} min</span>
-                                </div>
-                                <div class="flex items-center gap-1.5 bg-[#262a34] px-3 py-1 rounded-lg">
-                                    <span class="material-symbols-outlined text-[18px] text-[#ffb690]">weight</span>
-                                    <span class="font-bold text-[#dfe2f0]">{{ number_format($meta['tonnage']) }} kg</span>
-                                </div>
-                                @if($meta['rpe'])
-                                    <div class="flex items-center gap-1.5 bg-[#262a34] px-3 py-1 rounded-lg">
-                                        <span class="material-symbols-outlined text-[18px] text-[#ffb690]">speed</span>
-                                        <span>RPE {{ number_format($meta['rpe'], 1) }}</span>
-                                    </div>
-                                @endif
-                                <a href="{{ route('admin.workouts.show', $sess) }}"
-                                   class="bg-[#4d8eff]/20 hover:bg-[#4d8eff] text-[#adc6ff] hover:text-[#00285d] px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 no-print">
-                                    <span>Ver Series</span>
-                                    <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
-                                </a>
-                            </div>
-                        </div>
-
-                        <!-- Grid de Ejercicios Realizados en la Sesión -->
-                        @if($sess->exerciseLogs->isNotEmpty())
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
-                                @foreach($sess->exerciseLogs as $exIdx => $exLog)
-                                    @php
-                                        $topSet = $exLog->setLogs->sortByDesc('weight')->first();
-                                        $setsCount = $exLog->setLogs->count() ?: ($exLog->plannedExercise->sets ?? 0);
-                                        $exName = $exLog->plannedExercise->exercise->name ?? 'Ejercicio';
-                                    @endphp
-                                    <div class="bg-[#171c25] p-3 rounded-lg space-y-1 border border-white/5">
-                                        <div class="flex justify-between items-center gap-1">
-                                            <span class="text-body-sm text-[#dfe2f0] font-semibold truncate" title="{{ $exName }}">{{ $exName }}</span>
-                                            <span class="text-label-caps text-[#adc6ff] shrink-0">{{ $setsCount }} series</span>
-                                        </div>
-                                        @if($topSet)
-                                            <p class="text-title-sm text-[#ffb690]">
-                                                {{ $topSet->weight }} kg
-                                                <span class="text-body-sm text-[#8c909f]">&times; {{ $topSet->reps }} reps (Top Set)</span>
-                                            </p>
-                                        @else
-                                            <p class="text-body-sm text-[#8c909f]">Sin series registradas</p>
-                                        @endif
-                                        @if($exLog->setLogs->count() > 1)
-                                            <span class="text-[11px] text-[#8c909f] block truncate">
-                                                Series: {{ $exLog->setLogs->map(fn($s) => $s->weight . 'kg×' . $s->reps)->implode(' | ') }}
+                                        <h3 class="text-title-sm sm:text-title-md font-bold text-[#dfe2f0] group-hover:text-[#adc6ff] transition">
+                                            {{ $day['label'] }}
+                                        </h3>
+                                        @if($day['plan_name'])
+                                            <span class="bg-[#262a34] text-[#adc6ff] text-label-caps px-2 py-0.5 rounded-full border border-white/5">
+                                                {{ $day['plan_name'] }}
                                             </span>
                                         @endif
                                     </div>
-                                @endforeach
+                                    <div class="flex flex-wrap items-center gap-2 text-body-sm text-[#8c909f] mt-0.5">
+                                        @if($day['estimated_minutes'])
+                                            <span>{{ $day['estimated_minutes'] }} min estimados</span>
+                                        @endif
+                                        @if(!empty($day['muscle_groups']))
+                                            <span>&bull; {{ is_array($day['muscle_groups']) ? implode(', ', $day['muscle_groups']) : $day['muscle_groups'] }}</span>
+                                        @elseif($day['description'])
+                                            <span class="line-clamp-1">&bull; {{ $day['description'] }}</span>
+                                        @endif
+                                    </div>
+                                </div>
                             </div>
-                        @else
-                            <div class="bg-[#171c25] p-3 rounded-lg text-body-sm text-[#8c909f]">
-                                Sesión registrada sin desglose de series individuales.
-                            </div>
-                        @endif
 
-                        <!-- Comentarios de la Sesión (Coach y Atleta) -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-                            <div class="bg-[#262a34]/70 p-3 rounded-lg flex items-start gap-2.5">
-                                <span class="material-symbols-outlined text-[18px] text-[#adc6ff] shrink-0 mt-0.5">sports</span>
-                                <div class="space-y-0.5">
-                                    <span class="text-label-caps text-[#adc6ff] uppercase font-bold">Indicaciones del Día / Coach</span>
-                                    <p class="text-body-sm text-[#c2c6d6]">
-                                        “{{ ($sess->trainingDay && $sess->trainingDay->comment) ? $sess->trainingDay->comment : ($sess->trainingDay && $sess->trainingDay->description ? $sess->trainingDay->description : 'Cumplir rango de repeticiones prescrito con control técnico.') }}”
-                                    </p>
+                            <!-- Indicadores y Flecha Desplegable -->
+                            <div class="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-white/5">
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold {{ $dayHasSessions ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-[#262a34] text-[#8c909f]' }}">
+                                        {{ $day['sessions_count'] }} {{ $day['sessions_count'] == 1 ? 'sesión realizada' : 'sesiones realizadas' }}
+                                    </span>
+                                    @if($day['last_session_date'])
+                                        <span class="text-body-sm text-[#c2c6d6] hidden md:inline">
+                                            Última: {{ \Carbon\Carbon::parse($day['last_session_date'])->format('d/m/Y') }}
+                                        </span>
+                                    @endif
+                                </div>
+                                <div class="w-8 h-8 rounded-lg bg-[#262a34] flex items-center justify-center text-[#adc6ff] group-hover:bg-[#4d8eff] group-hover:text-[#00285d] transition">
+                                    <span class="material-symbols-outlined text-[20px] transform transition-transform duration-200" id="chevron-day-{{ $dIdx }}">
+                                        {{ $isDefaultOpen ? 'expand_less' : 'expand_more' }}
+                                    </span>
                                 </div>
                             </div>
-                            <div class="bg-[#262a34]/70 p-3 rounded-lg flex items-start gap-2.5">
-                                <span class="material-symbols-outlined text-[18px] text-[#ffb690] shrink-0 mt-0.5">sentiment_very_satisfied</span>
-                                <div class="space-y-0.5">
-                                    <span class="text-label-caps text-[#ffb690] uppercase font-bold">Comentarios del Atleta</span>
-                                    <p class="text-body-sm text-[#c2c6d6]">
-                                        “{{ $sess->comments ?: 'Sesión finalizada sin comentarios adicionales.' }}”
-                                    </p>
+                        </div>
+
+                        <!-- Contenedor Desplegable: Sesiones Realizadas de este Día (Ordenadas por Fecha) -->
+                        <div id="day-content-{{ $dIdx }}" class="{{ $isDefaultOpen ? 'block' : 'hidden' }} border-t border-white/5 bg-[#141820]/60 p-4 sm:p-5 space-y-4">
+                            @if($dayHasSessions)
+                                <div class="text-label-caps text-[#8c909f] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                    <span class="material-symbols-outlined text-[16px] text-[#adc6ff]">calendar_month</span>
+                                    <span>Sesiones realizadas por fecha (del más reciente al más antiguo):</span>
                                 </div>
-                            </div>
+
+                                <div class="space-y-4">
+                                    @foreach($day['sessions'] as $sIdx => $sess)
+                                        @php
+                                            if (isset($sessionMetrics[$sess->id])) {
+                                                $meta = $sessionMetrics[$sess->id];
+                                            } else {
+                                                $sTonnage = 0;
+                                                $sRpes = [];
+                                                $sMaxLift = 0;
+                                                foreach ($sess->exerciseLogs as $eLog) {
+                                                    foreach ($eLog->setLogs as $set) {
+                                                        $w = (float) ($set->weight ?: 0);
+                                                        $r = (int) ($set->reps ?: 0);
+                                                        $sTonnage += ($w * $r);
+                                                        if ($w > $sMaxLift) $sMaxLift = $w;
+                                                        if (!empty($set->rpe) && is_numeric($set->rpe)) $sRpes[] = (float) $set->rpe;
+                                                    }
+                                                }
+                                                $sDur = $sess->duration;
+                                                if (!$sDur && $sess->start_time && $sess->end_time) {
+                                                    $sDur = \Carbon\Carbon::parse($sess->start_time)->diffInMinutes(\Carbon\Carbon::parse($sess->end_time));
+                                                }
+                                                $meta = [
+                                                    'tonnage' => $sTonnage,
+                                                    'rpe' => count($sRpes) > 0 ? round(array_sum($sRpes) / count($sRpes), 1) : null,
+                                                    'duration' => $sDur ?: ($sess->trainingDay->estimated_minutes ?? 60),
+                                                    'is_pr' => $sMaxLift >= 60,
+                                                ];
+                                            }
+                                            $planName = ($sess->trainingDay && $sess->trainingDay->monthlyPlan) ? $sess->trainingDay->monthlyPlan->name : $day['plan_name'];
+                                        @endphp
+
+                                        <div class="session-card bg-[#1b2029] rounded-xl p-5 shadow-md space-y-4 border border-white/5"
+                                             data-rpe="{{ $meta['rpe'] ?? 8.0 }}">
+                                            <!-- Cabecera de la Sesión con Fecha Destacada -->
+                                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 pb-3 border-b border-white/5">
+                                                <div class="flex items-center gap-3">
+                                                    <div class="w-10 h-10 rounded-xl bg-[#262a34] text-[#adc6ff] flex items-center justify-center font-bold shrink-0">
+                                                        <span class="material-symbols-outlined text-[20px]">event_available</span>
+                                                    </div>
+                                                    <div>
+                                                        <div class="flex flex-wrap items-center gap-2">
+                                                            <span class="text-title-sm text-[#dfe2f0] font-bold">
+                                                                {{ \Carbon\Carbon::parse($sess->start_time)->translatedFormat('l, d \d\e F \d\e Y') }}
+                                                            </span>
+                                                            @if($meta['is_pr'])
+                                                                <span class="bg-[#ec6a06] text-[#4a1c00] text-label-caps px-2 py-0.5 rounded-full font-bold">PR Superado</span>
+                                                            @endif
+                                                        </div>
+                                                        <div class="flex items-center gap-2 text-body-sm text-[#8c909f] mt-0.5">
+                                                            <span>Hora de inicio: {{ \Carbon\Carbon::parse($sess->start_time)->format('h:i A') }}</span>
+                                                            @if($sess->end_time)
+                                                                <span>&bull; Fin: {{ \Carbon\Carbon::parse($sess->end_time)->format('h:i A') }}</span>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="flex flex-wrap items-center gap-2.5 text-[#c2c6d6] text-body-sm">
+                                                    <div class="flex items-center gap-1.5 bg-[#262a34] px-3 py-1 rounded-lg">
+                                                        <span class="material-symbols-outlined text-[18px] text-[#adc6ff]">schedule</span>
+                                                        <span>{{ $meta['duration'] }} min</span>
+                                                    </div>
+                                                    <div class="flex items-center gap-1.5 bg-[#262a34] px-3 py-1 rounded-lg">
+                                                        <span class="material-symbols-outlined text-[18px] text-[#ffb690]">weight</span>
+                                                        <span class="font-bold text-[#dfe2f0]">{{ number_format($meta['tonnage']) }} kg</span>
+                                                    </div>
+                                                    @if($meta['rpe'])
+                                                        <div class="flex items-center gap-1.5 bg-[#262a34] px-3 py-1 rounded-lg">
+                                                            <span class="material-symbols-outlined text-[18px] text-[#ffb690]">speed</span>
+                                                            <span>RPE {{ number_format($meta['rpe'], 1) }}</span>
+                                                        </div>
+                                                    @endif
+                                                    <a href="{{ route('admin.workouts.show', $sess) }}"
+                                                       class="bg-[#4d8eff]/20 hover:bg-[#4d8eff] text-[#adc6ff] hover:text-[#00285d] px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 no-print">
+                                                        <span>Ver Series</span>
+                                                        <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                                                    </a>
+                                                </div>
+                                            </div>
+
+                                            <!-- Grid de Ejercicios Realizados en la Sesión -->
+                                            @if($sess->exerciseLogs->isNotEmpty())
+                                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
+                                                    @foreach($sess->exerciseLogs as $exIdx => $exLog)
+                                                        @php
+                                                            $topSet = $exLog->setLogs->sortByDesc('weight')->first();
+                                                            $setsCount = $exLog->setLogs->count() ?: ($exLog->plannedExercise->sets ?? 0);
+                                                            $exName = $exLog->plannedExercise->exercise->name ?? 'Ejercicio';
+                                                        @endphp
+                                                        <div class="bg-[#171c25] p-3 rounded-lg space-y-1 border border-white/5">
+                                                            <div class="flex justify-between items-center gap-1">
+                                                                <span class="text-body-sm text-[#dfe2f0] font-semibold truncate" title="{{ $exName }}">{{ $exName }}</span>
+                                                                <span class="text-label-caps text-[#adc6ff] shrink-0">{{ $setsCount }} series</span>
+                                                            </div>
+                                                            @if($topSet)
+                                                                <p class="text-title-sm text-[#ffb690]">
+                                                                    {{ $topSet->weight }} kg
+                                                                    <span class="text-body-sm text-[#8c909f]">&times; {{ $topSet->reps }} reps (Top Set)</span>
+                                                                </p>
+                                                            @else
+                                                                <p class="text-body-sm text-[#8c909f]">Sin series registradas</p>
+                                                            @endif
+                                                            @if($exLog->setLogs->count() > 1)
+                                                                <span class="text-[11px] text-[#8c909f] block truncate">
+                                                                    Series: {{ $exLog->setLogs->map(fn($s) => $s->weight . 'kg×' . $s->reps)->implode(' | ') }}
+                                                                </span>
+                                                            @endif
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            @else
+                                                <div class="bg-[#171c25] p-3 rounded-lg text-body-sm text-[#8c909f]">
+                                                    Sesión registrada sin desglose de series individuales.
+                                                </div>
+                                            @endif
+
+                                            <!-- Comentarios de la Sesión (Coach y Atleta) -->
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                                                <div class="bg-[#262a34]/70 p-3 rounded-lg flex items-start gap-2.5">
+                                                    <span class="material-symbols-outlined text-[18px] text-[#adc6ff] shrink-0 mt-0.5">sports</span>
+                                                    <div class="space-y-0.5">
+                                                        <span class="text-label-caps text-[#adc6ff] uppercase font-bold">Indicaciones del Día / Coach</span>
+                                                        <p class="text-body-sm text-[#c2c6d6]">
+                                                            “{{ ($sess->trainingDay && $sess->trainingDay->comment) ? $sess->trainingDay->comment : ($sess->trainingDay && $sess->trainingDay->description ? $sess->trainingDay->description : ($day['comment'] ?: 'Cumplir rango de repeticiones prescrito con control técnico.')) }}”
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="bg-[#262a34]/70 p-3 rounded-lg flex items-start gap-2.5">
+                                                    <span class="material-symbols-outlined text-[18px] text-[#ffb690] shrink-0 mt-0.5">sentiment_very_satisfied</span>
+                                                    <div class="space-y-0.5">
+                                                        <span class="text-label-caps text-[#ffb690] uppercase font-bold">Comentarios del Atleta</span>
+                                                        <p class="text-body-sm text-[#c2c6d6]">
+                                                            “{{ $sess->comments ?: 'Sesión finalizada sin comentarios adicionales.' }}”
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <div class="py-6 px-4 text-center text-body-sm text-[#8c909f] italic bg-[#171c25]/40 rounded-xl border border-dashed border-white/10">
+                                    <span class="material-symbols-outlined text-[24px] block mb-1 text-[#8c909f]">event_busy</span>
+                                    No se registraron sesiones para este día en {{ $selectedMonthLabel }}.
+                                </div>
+                            @endif
                         </div>
                     </div>
                 @empty
@@ -952,9 +1031,9 @@
                         <div class="w-12 h-12 rounded-full bg-[#262a34] text-[#8c909f] flex items-center justify-center mx-auto">
                             <span class="material-symbols-outlined text-[24px]">fitness_center</span>
                         </div>
-                        <h3 class="text-title-sm text-[#dfe2f0]">Sin sesiones de entrenamiento registradas</h3>
+                        <h3 class="text-title-sm text-[#dfe2f0]">Sin días de entrenamiento registrados</h3>
                         <p class="text-body-sm text-[#8c909f] max-w-md mx-auto">
-                            Este atleta aún no tiene sesiones de entrenamiento guardadas. Cuando registre entrenamientos desde la aplicación o vía QR, aparecerán desglosadas aquí.
+                            Este atleta aún no tiene sesiones ni días de entrenamiento configurados. Cuando registre entrenamientos o se le asigne un plan, aparecerán ordenados aquí.
                         </p>
                     </div>
                 @endforelse
@@ -1085,6 +1164,45 @@
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
             }
+        }
+
+        function toggleDayAccordion(dIdx) {
+            const content = document.getElementById(`day-content-${dIdx}`);
+            const chevron = document.getElementById(`chevron-day-${dIdx}`);
+            if (!content) return;
+
+            const isHidden = content.classList.contains('hidden');
+            if (isHidden) {
+                content.classList.remove('hidden');
+                if (chevron) chevron.textContent = 'expand_less';
+            } else {
+                content.classList.add('hidden');
+                if (chevron) chevron.textContent = 'expand_more';
+            }
+        }
+
+        let allDaysExpanded = false;
+        function toggleAllDaysAccordion() {
+            allDaysExpanded = !allDaysExpanded;
+            const contents = document.querySelectorAll('[id^="day-content-"]');
+            const chevrons = document.querySelectorAll('[id^="chevron-day-"]');
+            const btnText = document.getElementById('text-toggle-all-days');
+            const btnIcon = document.getElementById('icon-toggle-all-days');
+
+            contents.forEach(content => {
+                if (allDaysExpanded) {
+                    content.classList.remove('hidden');
+                } else {
+                    content.classList.add('hidden');
+                }
+            });
+
+            chevrons.forEach(chevron => {
+                chevron.textContent = allDaysExpanded ? 'expand_less' : 'expand_more';
+            });
+
+            if (btnText) btnText.textContent = allDaysExpanded ? 'Colapsar Todos' : 'Desplegar Todos';
+            if (btnIcon) btnIcon.textContent = allDaysExpanded ? 'unfold_less' : 'unfold_more';
         }
 
         (function() {

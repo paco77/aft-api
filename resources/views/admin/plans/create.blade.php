@@ -87,7 +87,7 @@
                             class="w-full rounded-xl border-slate-300 shadow-xs focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 text-sm py-2.5 px-3.5 bg-slate-50/60 transition-colors">
                             <option value="">Selecciona un cliente</option>
                             @foreach($clients as $client)
-                                <option value="{{ $client->id }}" data-phone="{{ $client->phone ?? '' }}" data-name="{{ $client->name }}">
+                                <option value="{{ $client->id }}" data-phone="{{ $client->phone ?? '' }}" data-name="{{ $client->name }}" {{ (old('assigned_client_id', request('client_id')) == $client->id) ? 'selected' : '' }}>
                                     {{ $client->name }} ({{ $client->email }})
                                 </option>
                             @endforeach

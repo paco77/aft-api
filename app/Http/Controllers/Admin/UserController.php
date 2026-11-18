@@ -405,6 +405,77 @@ class UserController extends Controller
         $completedSessionsCount = $workoutSessions->count();
         $adherenceRate = $prescribedSessionsCount > 0 ? min(100, (int) round(($completedSessionsCount / $prescribedSessionsCount) * 100)) : 0;
 
+        // 7. Agrupar sesiones por día de entrenamiento y ordenarlas cronológicamente
+        $sessionsToGroup = $workoutSessions->isNotEmpty() ? $workoutSessions : $allWorkoutSessions;
+
+        $groupedDays = collect();
+        $assignedTrainingDayIds = collect();
+
+        if ($monthPlan && $monthPlan->relationLoaded('trainingDays')) {
+            foreach ($monthPlan->trainingDays->sortBy('day_number') as $tDay) {
+                $daySessions = $sessionsToGroup->where('training_day_id', $tDay->id)->sortByDesc('start_time')->values();
+                $assignedTrainingDayIds->push($tDay->id);
+                $groupedDays->put('plan_day_' . $tDay->id, [
+                    'id' => $tDay->id,
+                    'day_number' => (int) ($tDay->day_number ?: 1),
+                    'label' => $tDay->label ?: ('Día ' . ($tDay->day_number ?: 1)),
+                    'description' => $tDay->description,
+                    'comment' => $tDay->comment,
+                    'estimated_minutes' => $tDay->estimated_minutes ?? 60,
+                    'muscle_groups' => $tDay->muscle_groups,
+                    'plan_name' => $monthPlan->name,
+                    'sessions' => $daySessions,
+                    'sessions_count' => $daySessions->count(),
+                    'last_session_date' => $daySessions->first()?->start_time,
+                ]);
+            }
+        }
+
+        // Agrupar cualquier otra sesión que tenga trainingDay pero no pertenezca al plan actual
+        $otherSessionsWithDay = $sessionsToGroup->reject(function ($s) use ($assignedTrainingDayIds) {
+            return $assignedTrainingDayIds->contains($s->training_day_id) || is_null($s->training_day_id);
+        })->groupBy('training_day_id');
+
+        foreach ($otherSessionsWithDay as $tDayId => $oSessions) {
+            $tDay = $oSessions->first()->trainingDay;
+            $sortedSessions = $oSessions->sortByDesc('start_time')->values();
+            $dNum = $tDay ? (int) ($tDay->day_number ?: 990) : 990;
+            $groupedDays->put('other_day_' . $tDayId, [
+                'id' => $tDayId,
+                'day_number' => $dNum,
+                'label' => $tDay ? ($tDay->label ?: ('Día ' . ($tDay->day_number ?: 1))) : 'Día de Entrenamiento',
+                'description' => $tDay?->description,
+                'comment' => $tDay?->comment,
+                'estimated_minutes' => $tDay?->estimated_minutes ?? 60,
+                'muscle_groups' => $tDay?->muscle_groups,
+                'plan_name' => $tDay?->monthlyPlan?->name ?? 'Plan Asignado',
+                'sessions' => $sortedSessions,
+                'sessions_count' => $sortedSessions->count(),
+                'last_session_date' => $sortedSessions->first()?->start_time,
+            ]);
+        }
+
+        // Sesiones libres o sin trainingDay asignado
+        $freeSessions = $sessionsToGroup->whereNull('training_day_id')->sortByDesc('start_time')->values();
+        if ($freeSessions->isNotEmpty()) {
+            $groupedDays->put('free_sessions', [
+                'id' => null,
+                'day_number' => 9999,
+                'label' => 'Sesiones Libres / Sin Día Asignado',
+                'description' => 'Entrenamientos realizados fuera de la rutina mensual',
+                'comment' => null,
+                'estimated_minutes' => 60,
+                'muscle_groups' => null,
+                'plan_name' => 'Entrenamiento Libre',
+                'sessions' => $freeSessions,
+                'sessions_count' => $freeSessions->count(),
+                'last_session_date' => $freeSessions->first()?->start_time,
+            ]);
+        }
+
+        // Ordenar los días de entreno por day_number (Día 1, Día 2, Día 3...)
+        $groupedTrainingDays = $groupedDays->sortBy('day_number')->values();
+
         return view('admin.users.show', compact(
             'user',
             'progressLogs',
@@ -419,6 +490,7 @@ class UserController extends Controller
             'monthPlan',
             'allWorkoutSessions',
             'workoutSessions',
+            'groupedTrainingDays',
             'sessionMetrics',
             'availableMonths',
             'selectedMonthKey',
@@ -678,6 +750,37 @@ class UserController extends Controller
         $clients = $clientQuery->orderBy('name')->get();
 
         return view('admin.users.nutrition-plans', compact('user', 'nutritionPlans', 'clients'));
+    }
+
+    public function plans(User $user)
+    {
+        if (auth()->user()->role === 'coach' && ($user->role !== 'client' || $user->coach_id !== auth()->id())) {
+            abort(403, 'No tienes permiso para ver los planes de este usuario.');
+        }
+
+        $plans = \App\Models\MonthlyPlan::where(function($q) use ($user) {
+                $q->where('assigned_client_id', $user->id)
+                  ->orWhere(function($sub) use ($user) {
+                      $sub->where('user_id', $user->id)->whereNull('assigned_client_id');
+                  });
+            })
+            ->with(['user', 'assignedClient', 'trainingDays.plannedExercises.exercise.muscleGroup'])
+            ->latest()
+            ->get();
+
+        $clientQuery = User::where('role', 'client');
+        if (auth()->user()->role === 'coach') {
+            $clientQuery->where(function($q) {
+                $q->where('coach_id', auth()->id())
+                  ->orWhereNull('coach_id');
+            });
+        }
+        $clients = $clientQuery->orderBy('name')->get();
+        if (auth()->user()->role === 'independiente' && !$clients->contains('id', auth()->id())) {
+            $clients->prepend(auth()->user());
+        }
+
+        return view('admin.users.plans', compact('user', 'plans', 'clients'));
     }
 
     public function editProgress(User $user, ClientProgressLog $progress)

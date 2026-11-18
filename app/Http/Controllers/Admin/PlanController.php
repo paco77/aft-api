@@ -25,6 +25,9 @@ class PlanController extends Controller
                   ->orWhere('assigned_client_id', auth()->id());
             });
         }
+        if (request()->filled('client_id')) {
+            $query->where('assigned_client_id', request('client_id'));
+        }
         $plans = $query->get();
         $clients = $this->getClientsForUser();
         return view('admin.plans.index', compact('plans', 'clients'));
@@ -289,9 +292,15 @@ class PlanController extends Controller
             abort(403, 'No tienes permiso para eliminar este plan.');
         }
 
+        $clientId = $plan->assigned_client_id;
+
         DB::transaction(function () use ($plan) {
             $plan->delete();
         });
+
+        if (request('redirect_to') === 'user' && $clientId) {
+            return redirect()->route('admin.users.plans', $clientId)->with('success', 'Plan eliminado correctamente.');
+        }
 
         return redirect()->route('admin.plans.index')->with('success', 'Plan eliminado correctamente.');
     }
